@@ -7,6 +7,7 @@ import os.path as path
 import os
 import yfinance as yf
 
+DATA_PATH = '/home/francisco/tese_data/'
 
 def vix_to_dataframe(vix):
     date = vix['date'].to_list()
@@ -80,7 +81,7 @@ def vix_info():
 
 
 def load_option_dataset(tic):
-    filepath = 'tese_data/companies_options/' + tic + '_dataset.pickle'
+    filepath = DATA_PATH + 'companies_options/' + tic + '_dataset.pickle'
     if os.path.exists(filepath):
         with open(filepath, 'rb') as f:
             data = pickle.load(f)
@@ -96,7 +97,7 @@ def save_option_dataset(tic='none'):
         for ticker in open_sp500_tickers_to_list():
             i += 1
             print('doing... ' + str(i) + ' of ' + str(len(open_sp500_tickers_to_list())))
-            filepath = 'tese_data/companies_options/' + ticker + '_dataset.pickle'
+            filepath = DATA_PATH +'companies_options/' + ticker + '_dataset.pickle'
             if os.path.exists(filepath):
                 print('Dataset already exists. \n Continuing...')
             else:
@@ -104,7 +105,7 @@ def save_option_dataset(tic='none'):
                 with open(filepath, 'wb') as f:
                     pickle.dump(data, f)
     else:
-        filepath = 'tese_data/companies_options/' + tic + '_dataset.pickle'
+        filepath = DATA_PATH +'companies_options/' + tic + '_dataset.pickle'
         if os.path.exists(filepath):
             print('Dataset already exists.')
         else:
@@ -114,7 +115,7 @@ def save_option_dataset(tic='none'):
 
 
 def create_custom_option_dataset(ticker):
-    filenames_list = open('tese_data/Options/option_dataset_filenames.txt').readlines()
+    filenames_list = open(DATA_PATH + 'Options/option_dataset_filenames.txt').readlines()
     option_dataset = pd.DataFrame()
     count = 0
     for name in filenames_list:
@@ -138,13 +139,13 @@ def create_custom_option_dataset(ticker):
 
 
 def open_sp500_tickers_to_list():
-    with open('tese_data/Options/sp500_tickers_all.txt') as f:
+    with open(DATA_PATH + 'Options/sp500_tickers_all.txt') as f:
         tickers = f.read().splitlines()
     return tickers
 
 
 def open_sp500_tickers_to_str():
-    with open('tese_data/SP500/sp500_tickers_all.txt') as f:
+    with open(DATA_PATH + 'SP500/sp500_tickers_all.txt') as f:
         tickers = f.read().replace('\n', ' ')  # transforms all strings in just one (separated by a space)
     return tickers
 
@@ -157,20 +158,20 @@ def create_stock_dataset(ds_start, ds_end):
 
 
 def save_dataset(ds, filename):
-    filepath = 'tese_data/SP500/' + filename + '.pickle'
+    filepath = DATA_PATH + 'SP500/' + filename + '.pickle'
     with open(filepath, 'wb') as f:
         pickle.dump(ds, f)
 
 
 def load_dataset(filename='stock_dataset'):
-    filepath = 'tese_data/companies_options/' + filename + '.pickle'
+    filepath = DATA_PATH + 'companies_options/' + filename + '.pickle'
     with open(filepath, 'rb') as f:
         ds = pickle.load(f)
     return ds
 
 
 def create_ivol_dataset():
-    file = 'tese_data/implied_volatility/all_tickers_ivol.csv'
+    file = DATA_PATH + 'implied_volatility/all_tickers_ivol.csv'
     if path.exists(file):
         os.remove(file)
         print("File Removed!")
@@ -178,7 +179,7 @@ def create_ivol_dataset():
     tickers = open_sp500_tickers_to_list()
     all_ivol = pd.DataFrame()
     for ticker in tickers:
-        filepath = 'tese_data/implied_volatility/HistoricalIV_' + ticker + '.csv'
+        filepath = DATA_PATH + 'implied_volatility/HistoricalIV_' + ticker + '.csv'
         if path.exists(filepath):
             data = pd.read_csv(filepath)
             data['Date'] = pd.to_datetime(data['Date'])
@@ -187,92 +188,11 @@ def create_ivol_dataset():
             data.drop(data.columns.difference(['IV30']), 1, inplace=True)
             data = data.rename({'IV30': ticker}, axis='columns')
             all_ivol = pd.concat([all_ivol, data], axis=1)
-    all_ivol.to_csv('tese_data/implied_volatility/all_tickers_ivol.csv')
+    all_ivol.to_csv(DATA_PATH + 'implied_volatility/all_tickers_ivol.csv')
     return all_ivol
 
-
-
-#############################################################################
-#                            Temporary                                      #
-#############################################################################
-def create_custom_stock_dataset(ticker):
-    filepath = 'tese_data/verification/' + ticker + '_dataset.pickle'
-    if os.path.exists(filepath):
-        print('Dataset already exists. \n Importing...')
-        with open(filepath, 'rb') as f:
-            stock_dataset = pickle.load(f)
-    else:
-        filenames_list = open('tese_data/Options/option_dataset_filenames.txt').readlines()
-        stock_dataset = pd.DataFrame()
-        count = 0
-        for name in filenames_list:
-            # todo tirar
-            print('creating ' + ticker + ' dataset: ' + str(count) + '/' + str(len(filenames_list)))
-            count += 1  # todo tirar
-            data = pd.read_csv(name.rstrip('\n'))  # rstrip removes \n from the end of string
-            data = data.drop(data[data.UnderlyingSymbol != ticker].index)  # drops all rows that are not of that ticker
-            data = data[0:1]
-            data.rename(columns={' DataDate': 'Date', 'DataDate': 'Date', 'UnderlyingPrice': 'Price'}, inplace=True)
-            data['Date'] = pd.to_datetime(data['Date'])
-            data = data[['Price', 'Date']]
-            stock_dataset = pd.concat([stock_dataset, data], ignore_index=True, sort=False)
-        stock_dataset.set_index('Date', inplace=True)
-        with open(filepath, 'wb') as f:
-            pickle.dump(stock_dataset, f)
-    return stock_dataset
-
-
-def create_yfinance_stock_dataset(ticker):
-    data = yf.download(ticker, start="2011-01-03", end="2016-01-01")
-    data = pd.DataFrame(data)
-    stock_dataset = data.Close
-    return stock_dataset
-
-
-def compare_stock_values(ticker):
-    custom_stocks = create_custom_stock_dataset(ticker)
-    yfinance_stocks = create_yfinance_stock_dataset(ticker)
-    stock_compar = pd.DataFrame()
-    stock_compar['diff'] = ''
-    for date in custom_stocks.index:
-        stock_compar.loc[date] = [custom_stocks.at[date, 'Price'] - yfinance_stocks[date]]
-    return stock_compar
-
-
-def all_stock_diffs(tic='none'):
-    if tic == 'none':
-        i = 0
-        for ticker in open_sp500_tickers_to_list():
-            i += 1
-            print('doing... ' + str(i) + ' of ' + str(len(open_sp500_tickers_to_list())))
-            filepath = 'tese_data/verification/' + ticker + '_diff.pickle'
-            if os.path.exists(filepath):
-                print('Dataset already exists. \n Continuing...')
-            else:
-                data = compare_stock_values(ticker)
-                with open(filepath, 'wb') as f:
-                    pickle.dump(data, f)
-    else:
-        filepath = 'tese_data/verification/' + tic + '_diff.pickle'
-        if os.path.exists(filepath):
-            print('Dataset already exists.')
-        else:
-            data = compare_stock_values(tic)
-            with open(filepath, 'wb') as f:
-                pickle.dump(data, f)
-
-
-def load_stock_diffs(ticker):
-    filepath = 'tese_data/verification/' + ticker + '_diff.pickle'
-    return load_pickle(filepath)
-
-
-def load_stock(ticker):
-    filepath = 'tese_data/verification/' + ticker + '_dataset.pickle'
-    return load_pickle(filepath)
-
-
-def load_pickle(filepath):
-    with open(filepath, 'rb') as f:
-        ds = pickle.load(f)
-    return ds
+def save_best(best, title):
+    now = pd.to_datetime("now")
+    now = now.strftime('%r:%d-%m-%Y')
+    filepath = DATA_PATH + 'results/' + title + '-' + now + '.pickle'
+    pickle.dump(best, open( filepath, "wb" ))

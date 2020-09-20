@@ -4,12 +4,14 @@ import pickle
 import yfinance as yf
 import data as d
 
+DATA_PATH = '/home/francisco/tese_data/'
+
 
 def compute_technical_signals():
     tickers = d.open_sp500_tickers_to_list()
 
     # Vix signal
-    filename = 'tese_data/VIX/VIX30D.csv'
+    filename = DATA_PATH + 'VIX/VIX30D.csv'
     data = pd.read_csv(filename, index_col='date', parse_dates=True)
     rsi_vix = RSI(data).rename(columns={'value': 'vix_rsi'})
     roc_vix = ROC(data).rename(columns={'value': 'vix_roc'})
@@ -49,13 +51,13 @@ def normalization(signal, s_min=0, s_max=0):
 
 
 def save_technical_indicators(signal):
-    filepath = 'tese_data/technical_indicators.pickle'
+    filepath = DATA_PATH + 'technical_indicators/technical_indicators.pickle'
     with open(filepath, 'wb') as f:
         pickle.dump(signal, f)
 
 
 def load_technical_indicators():
-    filepath = 'tese_data/technical_indicators.pickle'
+    filepath = DATA_PATH + 'technical_indicators/technical_indicators.pickle'
     with open(filepath, 'rb') as f:
         signal = pickle.load(f)
     return signal
@@ -104,7 +106,6 @@ def RSI(raw_signal, n=14):
     for i in range(n + 1, len(calc)):
         calc.at[calc.index[i], 'avg_up'] = (n - 1 * calc.iloc[i-1].at['avg_up'] + calc.iloc[i].at['up']) / n
         calc.at[calc.index[i], 'avg_down'] = (n - 1 * calc.iloc[i-1].at['avg_down'] + calc.iloc[i].at['down']) / n
-        # print(100 - 100 / (1 + calc.iloc[i].at['avg_up'] / calc.iloc[i].at['avg_down']))
         calc.at[calc.index[i], 'rsi'] = 100 - 100 / (1 + calc.iloc[i].at['avg_up'] / calc.iloc[i].at['avg_down'])
 
     signal = pd.DataFrame()

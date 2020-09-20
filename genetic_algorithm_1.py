@@ -10,15 +10,17 @@ from copy import deepcopy
 # import statistics as stats
 import data
 
+DATA_PATH = '/home/francisco/tese_data/'
+
 ############################
 #     Global Variables     #
 ############################
 GENE_SIZE = 100000  # gene max value
 END_VALUE = 0.9  # end condition TODO TROCAR PARA UM VALOR QUE FAÇA SENTIDO
 MAX_N_GEN = 1000  # max of generations per simulation
-N_TOP = 2
-MAX_NO_EVOL = 5
-H_FAME_SIZE = 5
+N_TOP = 10
+MAX_NO_EVOL = 25
+H_FAME_SIZE = 10
 
 N_PARENTS = 1  # initialization
 N_CHILDREN = 1  # initialization
@@ -690,7 +692,7 @@ def forecast_check(forecast, tickers):
     change_step = get_IVOL_CHANGE_STEP()
     correct_days = 0
     trading_days = 0
-    all_ivol = pd.read_csv('data/implied_volatility/all_tickers_ivol.csv')
+    all_ivol = pd.read_csv(DATA_PATH + 'implied_volatility/all_tickers_ivol.csv')
     all_ivol['Date'] = pd.to_datetime(all_ivol['Date'])
     all_ivol = all_ivol.set_index('Date')
     for ticker in tickers:

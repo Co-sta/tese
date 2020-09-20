@@ -73,9 +73,9 @@ def unnorm_method_crov(method_crov_norm):
 #     Global Variables     #
 ############################
 END_VALUE = 100000  # end condition  # TODO VERIFICAR O VALOR
-N_TOP = 3   # TODO VERIFICAR O VALOR
-MAX_NO_EVOL = 15    # TODO VERIFICAR O VALOR
-MAX_N_GEN = 2  # max of generations per simulation    # TODO VERIFICAR O VALOR
+N_TOP = 5   # TODO VERIFICAR O VALOR
+MAX_NO_EVOL = 5    # TODO VERIFICAR O VALOR
+MAX_N_GEN = 10  # max of generations per simulation    # TODO VERIFICAR O VALOR
 
 GENE_SIZE = 1.0  # initialization
 
@@ -739,3 +739,13 @@ def crov_random(chromo1, chromo2):
         gene_list.append(Gene(value))
     chromo3 = Chromosome(gene_list)
     return chromo3
+
+
+############################
+#          other           #
+############################
+def check_same_chromo(chromo1, chromo2):
+    for i in range(chromo1.get_size()):
+        if chromo1.get_gene_list()[i].get_value() != chromo2.get_gene_list()[i].get_value():
+            return False
+    return True
