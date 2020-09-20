@@ -675,9 +675,9 @@ def forecast_orders(genes, technical_signals, tickers, chr_size):
 
             # print('foretasted value: ' + str(fc))
             forecast.at[ticker, date] = fc
-            if fc >= 60:  # TODO VERIFICAR O VALOR
+            if fc >= 55:  # TODO VERIFICAR O VALOR
                 orders.at[ticker, date] = 1
-            elif fc <= 40:  # TODO VERIFICAR O VALOR
+            elif fc <= 45:  # TODO VERIFICAR O VALOR
                 orders.at[ticker, date] = -1
             else:
                 orders.at[ticker, date] = 0
@@ -706,9 +706,9 @@ def forecast_check(forecast, tickers):
                 change = (ivol_fut_value - ivol_pre_value) / ivol_pre_value  # percentage of increase of ivol
 
                 # TODO VERIFICAR OS VALOR
-                if (forecast.at[ticker, date] >= 60 and change >= change_step) \
-                        or (forecast.at[ticker, date] <= 40 and change <= -change_step) \
-                        or (40 >= forecast.at[ticker, date] >= 60 and abs(change) < change_step):
+                if (forecast.at[ticker, date] >= 55 and change >= change_step) \
+                        or (forecast.at[ticker, date] <= 45 and change <= -change_step) \
+                        or (45 >= forecast.at[ticker, date] >= 55 and abs(change) < change_step):
                     correct_days += 1
                 trading_days += 1
 
