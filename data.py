@@ -79,25 +79,8 @@ def vix_info():
     # st.graph_vix(VIX_6M_3M, 'VIX 6 months minus VIX 3 months', 12)
 
 
-def load_ivol_dataset(tic):
-    filepath = 'data/ivol/' + tic + '_ivol.pickle'
-    if os.path.exists(filepath):
-        with open(filepath, 'rb') as f:
-            ivol = pickle.load(f)
-            return ivol
-    else:
-        print('There is no existing dataset for that ticker')
-        return -1
-
-    # TODO TIRAR
-    # filename = 'data/VIX/vix3mdailyprices.csv'
-    # ivol = pd.read_csv(filename).rename(columns={'value': 'ivol'})
-    # ivol.set_index('date', inplace=True)
-    # return ivol
-
-
 def load_option_dataset(tic):
-    filepath = 'data/companies_options/' + tic + '_dataset.pickle'
+    filepath = 'tese_data/companies_options/' + tic + '_dataset.pickle'
     if os.path.exists(filepath):
         with open(filepath, 'rb') as f:
             data = pickle.load(f)
@@ -113,7 +96,7 @@ def save_option_dataset(tic='none'):
         for ticker in open_sp500_tickers_to_list():
             i += 1
             print('doing... ' + str(i) + ' of ' + str(len(open_sp500_tickers_to_list())))
-            filepath = 'data/companies_options/' + ticker + '_dataset.pickle'
+            filepath = 'tese_data/companies_options/' + ticker + '_dataset.pickle'
             if os.path.exists(filepath):
                 print('Dataset already exists. \n Continuing...')
             else:
@@ -121,7 +104,7 @@ def save_option_dataset(tic='none'):
                 with open(filepath, 'wb') as f:
                     pickle.dump(data, f)
     else:
-        filepath = 'data/companies_options/' + tic + '_dataset.pickle'
+        filepath = 'tese_data/companies_options/' + tic + '_dataset.pickle'
         if os.path.exists(filepath):
             print('Dataset already exists.')
         else:
@@ -131,7 +114,7 @@ def save_option_dataset(tic='none'):
 
 
 def create_custom_option_dataset(ticker):
-    filenames_list = open('data/Options/option_dataset_filenames.txt').readlines()
+    filenames_list = open('tese_data/Options/option_dataset_filenames.txt').readlines()
     option_dataset = pd.DataFrame()
     count = 0
     for name in filenames_list:
@@ -155,13 +138,13 @@ def create_custom_option_dataset(ticker):
 
 
 def open_sp500_tickers_to_list():
-    with open('data/Options/sp500_tickers_all.txt') as f:
+    with open('tese_data/Options/sp500_tickers_all.txt') as f:
         tickers = f.read().splitlines()
     return tickers
 
 
 def open_sp500_tickers_to_str():
-    with open('data/SP500/sp500_tickers_all.txt') as f:
+    with open('tese_data/SP500/sp500_tickers_all.txt') as f:
         tickers = f.read().replace('\n', ' ')  # transforms all strings in just one (separated by a space)
     return tickers
 
@@ -174,20 +157,20 @@ def create_stock_dataset(ds_start, ds_end):
 
 
 def save_dataset(ds, filename):
-    filepath = 'data/SP500/' + filename + '.pickle'
+    filepath = 'tese_data/SP500/' + filename + '.pickle'
     with open(filepath, 'wb') as f:
         pickle.dump(ds, f)
 
 
 def load_dataset(filename='stock_dataset'):
-    filepath = 'data/companies_options/' + filename + '.pickle'
+    filepath = 'tese_data/companies_options/' + filename + '.pickle'
     with open(filepath, 'rb') as f:
         ds = pickle.load(f)
     return ds
 
 
 def create_ivol_dataset():
-    file = 'data/implied_volatility/all_tickers_ivol.csv'
+    file = 'tese_data/implied_volatility/all_tickers_ivol.csv'
     if path.exists(file):
         os.remove(file)
         print("File Removed!")
@@ -195,7 +178,7 @@ def create_ivol_dataset():
     tickers = open_sp500_tickers_to_list()
     all_ivol = pd.DataFrame()
     for ticker in tickers:
-        filepath = 'data/implied_volatility/HistoricalIV_' + ticker + '.csv'
+        filepath = 'tese_data/implied_volatility/HistoricalIV_' + ticker + '.csv'
         if path.exists(filepath):
             data = pd.read_csv(filepath)
             data['Date'] = pd.to_datetime(data['Date'])
@@ -204,7 +187,7 @@ def create_ivol_dataset():
             data.drop(data.columns.difference(['IV30']), 1, inplace=True)
             data = data.rename({'IV30': ticker}, axis='columns')
             all_ivol = pd.concat([all_ivol, data], axis=1)
-    all_ivol.to_csv('data/implied_volatility/all_tickers_ivol.csv')
+    all_ivol.to_csv('tese_data/implied_volatility/all_tickers_ivol.csv')
     return all_ivol
 
 
@@ -213,13 +196,13 @@ def create_ivol_dataset():
 #                            Temporary                                      #
 #############################################################################
 def create_custom_stock_dataset(ticker):
-    filepath = 'data/verification/' + ticker + '_dataset.pickle'
+    filepath = 'tese_data/verification/' + ticker + '_dataset.pickle'
     if os.path.exists(filepath):
         print('Dataset already exists. \n Importing...')
         with open(filepath, 'rb') as f:
             stock_dataset = pickle.load(f)
     else:
-        filenames_list = open('data/Options/option_dataset_filenames.txt').readlines()
+        filenames_list = open('tese_data/Options/option_dataset_filenames.txt').readlines()
         stock_dataset = pd.DataFrame()
         count = 0
         for name in filenames_list:
@@ -262,7 +245,7 @@ def all_stock_diffs(tic='none'):
         for ticker in open_sp500_tickers_to_list():
             i += 1
             print('doing... ' + str(i) + ' of ' + str(len(open_sp500_tickers_to_list())))
-            filepath = 'data/verification/' + ticker + '_diff.pickle'
+            filepath = 'tese_data/verification/' + ticker + '_diff.pickle'
             if os.path.exists(filepath):
                 print('Dataset already exists. \n Continuing...')
             else:
@@ -270,7 +253,7 @@ def all_stock_diffs(tic='none'):
                 with open(filepath, 'wb') as f:
                     pickle.dump(data, f)
     else:
-        filepath = 'data/verification/' + tic + '_diff.pickle'
+        filepath = 'tese_data/verification/' + tic + '_diff.pickle'
         if os.path.exists(filepath):
             print('Dataset already exists.')
         else:
@@ -280,12 +263,12 @@ def all_stock_diffs(tic='none'):
 
 
 def load_stock_diffs(ticker):
-    filepath = 'data/verification/' + ticker + '_diff.pickle'
+    filepath = 'tese_data/verification/' + ticker + '_diff.pickle'
     return load_pickle(filepath)
 
 
 def load_stock(ticker):
-    filepath = 'data/verification/' + ticker + '_dataset.pickle'
+    filepath = 'tese_data/verification/' + ticker + '_dataset.pickle'
     return load_pickle(filepath)
 
 

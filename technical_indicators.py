@@ -9,7 +9,7 @@ def compute_technical_signals():
     tickers = d.open_sp500_tickers_to_list()
 
     # Vix signal
-    filename = 'data/VIX/VIX30D.csv'
+    filename = 'tese_data/VIX/VIX30D.csv'
     data = pd.read_csv(filename, index_col='date', parse_dates=True)
     rsi_vix = RSI(data).rename(columns={'value': 'vix_rsi'})
     roc_vix = ROC(data).rename(columns={'value': 'vix_roc'})
@@ -49,13 +49,13 @@ def normalization(signal, s_min=0, s_max=0):
 
 
 def save_technical_indicators(signal):
-    filepath = 'data/technical_indicators.pickle'
+    filepath = 'tese_data/technical_indicators.pickle'
     with open(filepath, 'wb') as f:
         pickle.dump(signal, f)
 
 
 def load_technical_indicators():
-    filepath = 'data/technical_indicators.pickle'
+    filepath = 'tese_data/technical_indicators.pickle'
     with open(filepath, 'rb') as f:
         signal = pickle.load(f)
     return signal
