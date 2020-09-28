@@ -14,6 +14,7 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
     genes2 = best_chromo.get_gene_list()
     print('G2-Chromossome :' + '(score=' +str(best_chromo.get_score())+ ')')
 
+   
     [ga1_n_parents,ga1_n_children,ga1_crov_w,ga1_mutation_rate,
     ga1_mutation_std,ga1_method_1pop,ga1_method_ps,ga1_method_crov] = \
     ga2.unnorm(genes2, ga1_pop_size, ga1_gene_size)
