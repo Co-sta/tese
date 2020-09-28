@@ -9,7 +9,6 @@ from scipy.stats import truncnorm
 from copy import deepcopy
 import data
 
-DATA_PATH = '/home/francisco/tese_data/'
 
 ############################
 #     Global Variables     #
@@ -692,7 +691,7 @@ def forecast_check(forecast, tickers):
     change_step = get_IVOL_CHANGE_STEP()
     correct_days = 0
     trading_days = 0
-    all_ivol = pd.read_csv(DATA_PATH + 'implied_volatility/all_tickers_ivol.csv')
+    all_ivol = pd.read_csv('data/implied_volatility/all_tickers_ivol.csv')
     all_ivol['Date'] = pd.to_datetime(all_ivol['Date'])
     all_ivol = all_ivol.set_index('Date')
     for ticker in tickers:

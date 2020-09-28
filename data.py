@@ -7,8 +7,6 @@ import os.path as path
 import os
 import yfinance as yf
 
-DATA_PATH = '/home/francisco/tese_data/'
-
 def vix_to_dataframe(vix):
     date = vix['date'].to_list()
     for i, item in enumerate(date):
@@ -81,7 +79,7 @@ def vix_info():
 
 
 def load_option_dataset(tic):
-    filepath = DATA_PATH + 'companies_options/' + tic + '_dataset.pickle'
+    filepath = 'data/companies_options/' + tic + '_dataset.pickle'
     if os.path.exists(filepath):
         with open(filepath, 'rb') as f:
             data = pickle.load(f)
@@ -97,7 +95,7 @@ def save_option_dataset(tic='none'):
         for ticker in open_sp500_tickers_to_list():
             i += 1
             print('doing... ' + str(i) + ' of ' + str(len(open_sp500_tickers_to_list())))
-            filepath = DATA_PATH +'companies_options/' + ticker + '_dataset.pickle'
+            filepath = 'data/companies_options/' + ticker + '_dataset.pickle'
             if os.path.exists(filepath):
                 print('Dataset already exists. \n Continuing...')
             else:
@@ -105,7 +103,7 @@ def save_option_dataset(tic='none'):
                 with open(filepath, 'wb') as f:
                     pickle.dump(data, f)
     else:
-        filepath = DATA_PATH +'companies_options/' + tic + '_dataset.pickle'
+        filepath = 'data/companies_options/' + tic + '_dataset.pickle'
         if os.path.exists(filepath):
             print('Dataset already exists.')
         else:
@@ -115,7 +113,7 @@ def save_option_dataset(tic='none'):
 
 
 def create_custom_option_dataset(ticker):
-    filenames_list = open(DATA_PATH + 'Options/option_dataset_filenames.txt').readlines()
+    filenames_list = open('data/' + 'Options/option_dataset_filenames.txt').readlines()
     option_dataset = pd.DataFrame()
     count = 0
     for name in filenames_list:
@@ -139,13 +137,13 @@ def create_custom_option_dataset(ticker):
 
 
 def open_sp500_tickers_to_list():
-    with open(DATA_PATH + 'Options/sp500_tickers_all.txt') as f:
+    with open('data/Options/sp500_tickers_all.txt') as f:
         tickers = f.read().splitlines()
     return tickers
 
 
 def open_sp500_tickers_to_str():
-    with open(DATA_PATH + 'SP500/sp500_tickers_all.txt') as f:
+    with open('data/SP500/sp500_tickers_all.txt') as f:
         tickers = f.read().replace('\n', ' ')  # transforms all strings in just one (separated by a space)
     return tickers
 
@@ -158,20 +156,20 @@ def create_stock_dataset(ds_start, ds_end):
 
 
 def save_dataset(ds, filename):
-    filepath = DATA_PATH + 'SP500/' + filename + '.pickle'
+    filepath = 'data/SP500/' + filename + '.pickle'
     with open(filepath, 'wb') as f:
         pickle.dump(ds, f)
 
 
 def load_dataset(filename='stock_dataset'):
-    filepath = DATA_PATH + 'companies_options/' + filename + '.pickle'
+    filepath = 'data/companies_options/' + filename + '.pickle'
     with open(filepath, 'rb') as f:
         ds = pickle.load(f)
     return ds
 
 
 def create_ivol_dataset():
-    file = DATA_PATH + 'implied_volatility/all_tickers_ivol.csv'
+    file = 'data/implied_volatility/all_tickers_ivol.csv'
     if path.exists(file):
         os.remove(file)
         print("File Removed!")
@@ -179,7 +177,7 @@ def create_ivol_dataset():
     tickers = open_sp500_tickers_to_list()
     all_ivol = pd.DataFrame()
     for ticker in tickers:
-        filepath = DATA_PATH + 'implied_volatility/HistoricalIV_' + ticker + '.csv'
+        filepath = 'data/implied_volatility/HistoricalIV_' + ticker + '.csv'
         if path.exists(filepath):
             data = pd.read_csv(filepath)
             data['Date'] = pd.to_datetime(data['Date'])
@@ -188,12 +186,12 @@ def create_ivol_dataset():
             data.drop(data.columns.difference(['IV30']), 1, inplace=True)
             data = data.rename({'IV30': ticker}, axis='columns')
             all_ivol = pd.concat([all_ivol, data], axis=1)
-    all_ivol.to_csv(DATA_PATH + 'implied_volatility/all_tickers_ivol.csv')
+    all_ivol.to_csv('data/implied_volatility/all_tickers_ivol.csv')
     return all_ivol
 
 def save_best(best, title):
     now = pd.to_datetime("now")
     now = now.strftime('%r:%d-%m-%Y')
-    filepath = DATA_PATH + 'results/' + title + '-' + now + '.pickle'
+    filepath = 'data/results/' + title + '-' + now + '.pickle'
     pickle.dump(best, open( filepath, "wb" ))
     print('result saved')

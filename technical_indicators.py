@@ -4,14 +4,12 @@ import pickle
 import yfinance as yf
 import data as d
 
-DATA_PATH = '/home/francisco/tese_data/'
-
 
 def compute_technical_signals():
     tickers = d.open_sp500_tickers_to_list()
 
     # Vix signal
-    filename = DATA_PATH + 'VIX/VIX30D.csv'
+    filename = 'data/VIX/VIX30D.csv'
     data = pd.read_csv(filename, index_col='date', parse_dates=True)
     rsi_vix = RSI(data).rename(columns={'value': 'vix_rsi'})
     roc_vix = ROC(data).rename(columns={'value': 'vix_roc'})
@@ -53,13 +51,13 @@ def normalization(signal, s_min=0, s_max=0):
 
 
 def save_technical_indicators(signal):
-    filepath = DATA_PATH + 'technical_indicators/technical_indicators.pickle'
+    filepath = 'data/technical_indicators/technical_indicators.pickle'
     with open(filepath, 'wb') as f:
         pickle.dump(signal, f)
 
 
 def load_technical_indicators():
-    filepath = DATA_PATH + 'technical_indicators/technical_indicators.pickle'
+    filepath = 'data/technical_indicators/technical_indicators.pickle'
     with open(filepath, 'rb') as f:
         signal = pickle.load(f)
     return signal

@@ -6,15 +6,13 @@ import pickle
 import plotly.express as px
 
 
-DATA_PATH = '/home/francisco/tese_data/'
-
 def print_result(filename, ga1_pop_size, ga1_gene_size):
-    filepath = DATA_PATH + 'results/' + filename
+    filepath = 'data/results/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
     genes2 = best_chromo.get_gene_list()
     print('G2-Chromossome :' + '(score=' +str(best_chromo.get_score())+ ')')
 
-   
+
     [ga1_n_parents,ga1_n_children,ga1_crov_w,ga1_mutation_rate,
     ga1_mutation_std,ga1_method_1pop,ga1_method_ps,ga1_method_crov] = \
     ga2.unnorm(genes2, ga1_pop_size, ga1_gene_size)
@@ -31,7 +29,7 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
         print('     gene: ' + str(chr1.get_value()))
 
 def graph_score(filename):
-    filepath = DATA_PATH + 'results/' + filename
+    filepath = 'data/results/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
     score_evol =  best_chromo.get_sub_pop().get_max_score()
     print(score_evol)
