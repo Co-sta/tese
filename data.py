@@ -6,6 +6,7 @@ import pickle
 import os.path as path
 import os
 import yfinance as yf
+import genetic_algorithm_2 as ga2
 
 DATA_PATH = '/home/francisco/tese_data/'
 
@@ -196,3 +197,4 @@ def save_best(best, title):
     now = now.strftime('%r:%d-%m-%Y')
     filepath = DATA_PATH + 'results/' + title + '-' + now + '.pickle'
     pickle.dump(best, open( filepath, "wb" ))
+    print('result saved')

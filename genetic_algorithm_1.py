@@ -17,10 +17,10 @@ DATA_PATH = '/home/francisco/tese_data/'
 ############################
 GENE_SIZE = 100000  # gene max value
 END_VALUE = 0.9  # end condition TODO TROCAR PARA UM VALOR QUE FAÇA SENTIDO
-MAX_N_GEN = 1000  # max of generations per simulation
-N_TOP = 10
-MAX_NO_EVOL = 25
-H_FAME_SIZE = 10
+MAX_N_GEN = 20  # max of generations per simulation
+N_TOP = 3
+MAX_NO_EVOL = 3
+H_FAME_SIZE = 3
 
 N_PARENTS = 1  # initialization
 N_CHILDREN = 1  # initialization
@@ -32,8 +32,8 @@ METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
-FORECAST_DIST = 14  # forecast with 15 days of distance
-IVOL_CHANGE_STEP = 0.03  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
+FORECAST_DIST = 20  # forecast with 15 days of distance
+IVOL_CHANGE_STEP = 0.05  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
 def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
@@ -64,25 +64,28 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
     set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
                    mutation_std, method_1pop, method_ps, method_crov)
     pop = Population(pop_size, chromo_size)
-    max_score = []
-
+    max_score = pd.DataFrame({'epoch':[], 'score':[]})
+    epoch = 1
     while True:
         print('G1 generation nr: ' + str(pop.get_generation() + 1))
         pop.evaluation_phase(eval_start, eval_end, technical_signals, use_trading=False)
         pop.update_h_fame()
-        [end, chromo] = pop.check_end_phase()
+        end = pop.check_end_phase()
 
         if end:
             if graph:
                 print('gráfco GA1')
                 # stats.graph_max_score(max_score)
-            return chromo  # TODO VERIFICAR SE RETORNA O MELHOR CHROMOSSOMA OU O HALL OF FAME
+            return pop, max_score  # TODO VERIFICAR SE RETORNA O MELHOR CHROMOSSOMA OU O HALL OF FAME
         else:
-            max_score.append(chromo.get_score())
+            max_score = max_score.append({'epoch':epoch, 'score':chromo.get_score()}, ignore_index=True)
             pop.parent_selection_phase()
+            print('N_PAreNTS: ' + str(N_PARENTS))
+            print('n_parents: ' + str(len(pop.get_parents())))
             pop.crossover_phase()
             pop.mutation_phase()
             pop.increase_gen()
+            epoch += 1
 
 
 def get_GENE_SIZE():
@@ -400,17 +403,17 @@ class Population:
             parents.append(chromo_list.pop(index))
 
         # roullete method
-        for i in range(len(chromo_list)):
-            sum_scores = sum_scores + chromo_list[i].get_score()
-        if sum_scores:
+        if (get_N_PARENTS() - ntop > 0):
             for i in range(len(chromo_list)):
-                scores.append(chromo_list[i].score / sum_scores)
-            parents_i = (np.random.choice(len(chromo_list), get_N_PARENTS() - ntop, replace=False, p=scores).tolist())
-        else:
-            parents_i = (np.random.choice(len(chromo_list), get_N_PARENTS() - ntop, replace=False).tolist())
-
-        for i in parents_i:
-            parents.append(chromo_list[i])
+                sum_scores = sum_scores + chromo_list[i].get_score()
+            if sum_scores:
+                for i in range(len(chromo_list)):
+                    scores.append(chromo_list[i].score / sum_scores)
+                parents_i = (np.random.choice(len(chromo_list), get_N_PARENTS() - ntop, replace=False, p=scores).tolist())
+            else:
+                parents_i = (np.random.choice(len(chromo_list), get_N_PARENTS() - ntop, replace=False).tolist())
+            for i in parents_i:
+                parents.append(chromo_list[i])
         return parents
 
     def ps_tournament(self):
@@ -450,25 +453,25 @@ class Population:
                     print('same')
                     chromo_list.remove(chromo)
         #  TODO CONTINUAR AQUI
-        for chromo in chromo_list:
-            print('score: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in chromo_list:
+        #     print('score: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         chromo_list.sort(key=lambda x: x.score, reverse=True)
-        for chromo in chromo_list:
-            print('score ordenado: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in chromo_list:
+        #     print('score ordenado: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         h_fame.extend(chromo_list)
-        for chromo in h_fame:
-            print('h_fame + list: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in h_fame:
+        #     print('h_fame + list: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         h_fame.sort(key=lambda x: x.score, reverse=True)
-        for chromo in h_fame:
-            print('h_fame + list ordenado: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in h_fame:
+        #     print('h_fame + list ordenado: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         new_h_fame = deepcopy(h_fame[0:h_fame_size])
-        for chromo in new_h_fame:
-            print('H_FAME: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in new_h_fame:
+        #     print('H_FAME: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         new_best_score = new_h_fame[0].get_score()
 
         if new_best_score > old_best_score:
@@ -500,6 +503,7 @@ class Population:
 
     def parent_selection_phase(self):
         method_ps = self.get_method_ps()
+        print('method' + str(method_ps))
         method = self.ps_tournament  # to eliminate warnings
         if method_ps == 1:
             method = self.ps_top
@@ -514,6 +518,7 @@ class Population:
     def crossover_phase(self):
         method_crov = self.get_method_crov()
         method = crov_2points  # to eliminate warnings
+        print(self.get_parents())
         parents = self.get_parents().copy()
         new_gen = []
 
@@ -578,9 +583,9 @@ class Population:
 
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():
-            return 1, best_chromo
+            return 1
         else:
-            return 0, best_chromo
+            return 0
 
 
 ############################

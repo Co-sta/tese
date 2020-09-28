@@ -7,6 +7,7 @@ from scipy.stats import truncnorm
 from copy import deepcopy
 # import statistics as stats
 import genetic_algorithm_1 as ga1
+import data
 import technical_indicators as ti
 
 ############################
@@ -16,56 +17,62 @@ G1_POP_SIZE = 1.0  # initialization
 G1_CHR_SIZE = 1.0  # initialization
 G1_GENE_SIZE = 1.0  # initialization
 
-pos_n_parents = []  # initialization
-pos_n_children = []  # initialization
-pos_mutation_std = []  # initialization
-pos_method_1pop = []  # initialization
-pos_method_ps = []  # initialization
-pos_method_crov = []  # initialization
+def unnorm(gene_list, g1_pop_size=0, g1_gene_size=0):
+    if not g1_pop_size: g1_pop_size = G1_POP_SIZE
+    if not g1_gene_size: g1_gene_size = G1_GENE_SIZE
+    ga1_n_parents = unnorm_n_parents(gene_list[0].get_value(), g1_pop_size, g1_gene_size)
+    ga1_n_children = unnorm_n_children(gene_list[1].get_value(), ga1_n_parents, g1_pop_size, g1_gene_size)
+    ga1_crov_w = unnorm_crov_w(gene_list[2].get_value())
+    ga1_mutation_rate = unnorm_mutation_rate(gene_list[3].get_value())
+    ga1_mutation_std = unnorm_mutation_std(gene_list[4].get_value(), g1_gene_size)
+    ga1_method_1pop = unnorm_method_1pop(gene_list[5].get_value(), g1_gene_size)
+    ga1_method_ps = unnorm_method_ps(gene_list[6].get_value(), g1_gene_size)
+    ga1_method_crov = unnorm_method_crov(gene_list[7].get_value(), g1_gene_size)
+    return [ga1_n_parents,ga1_n_children,ga1_crov_w,ga1_mutation_rate,
+           ga1_mutation_std,ga1_method_1pop,ga1_method_ps,ga1_method_crov]
 
-STEP_N_PARENTS = 1.0  # initialization
-STEP_N_CHILDREN = 1.0  # initialization
-STEP_MUTATION_STD = 1.0  # initialization
-STEP_METHOD_1POP = 1.0  # initialization
-STEP_METHOD_PS = 1.0  # initialization
-STEP_METHOD_CROV = 1.0  # initialization
-
-
-def unnorm_n_parents(n_parents_norm):
-    i = int(np.floor(n_parents_norm / STEP_N_PARENTS))
+def unnorm_n_parents(n_parents_norm, g1_pop_size, g1_gene_size):
+    pos_n_parents = np.arange(2, g1_pop_size + 1)
+    print(pos_n_parents)
+    step_n_parents = (g1_gene_size + 1) / len(pos_n_parents)
+    i = int(np.floor(n_parents_norm / step_n_parents))
+    print('number of parents: ' + str(int(pos_n_parents[i])))
     return int(pos_n_parents[i])
 
-
-def unnorm_n_children(n_children_norm):
-    i = int(np.floor(n_children_norm / STEP_N_CHILDREN))
+def unnorm_n_children(n_children_norm, ga1_n_parents, g1_pop_size, g1_gene_size):
+    pos_n_children = np.arange(g1_pop_size - ga1_n_parents, g1_pop_size + 1)
+    step_n_children = (g1_gene_size + 1) / len(pos_n_children)
+    i = int(np.floor(n_children_norm / step_n_children))
     return int(pos_n_children[i])
-
 
 def unnorm_crov_w(crov_w_norm):
     return crov_w_norm / 100000
 
-
 def unnorm_mutation_rate(mutation_rate_norm):
     return mutation_rate_norm / 100000
 
-
-def unnorm_mutation_std(mutation_std_norm):
-    i = int(np.floor(mutation_std_norm / STEP_MUTATION_STD))
+def unnorm_mutation_std(mutation_std_norm, g1_gene_size):
+    pos_mutation_std = np.arange(0, 15000 + 1)
+    step_mutation_std = (g1_gene_size + 1) / len(pos_mutation_std)
+    i = int(np.floor(mutation_std_norm / step_mutation_std))
     return int(pos_mutation_std[i])
 
-
-def unnorm_method_1pop(method_1pop_norm):
-    i = int(np.floor(method_1pop_norm / STEP_METHOD_1POP))
+def unnorm_method_1pop(method_1pop_norm, g1_gene_size):
+    pos_method_1pop = np.arange(1, 3 + 1)
+    step_method_1pop = (g1_gene_size + 1) / len(pos_method_1pop)
+    i = int(np.floor(method_1pop_norm / step_method_1pop))
     return int(pos_method_1pop[i])
 
-
-def unnorm_method_ps(method_ps_norm):
-    i = int(np.floor(method_ps_norm / STEP_METHOD_PS))
+def unnorm_method_ps(method_ps_norm, g1_gene_size):
+    pos_method_ps = np.arange(1, 4 + 1)
+    step_method_ps = (g1_gene_size + 1) / len(pos_method_ps)
+    i = int(np.floor(method_ps_norm / step_method_ps))
     return int(pos_method_ps[i])
 
-
-def unnorm_method_crov(method_crov_norm):
-    i = int(np.floor(method_crov_norm / STEP_METHOD_CROV))
+def unnorm_method_crov(method_crov_norm, g1_gene_size):
+    pos_method_crov = np.arange(1, 5 + 1)
+    step_method_crov = (g1_gene_size + 1) / len(pos_method_crov)
+    i = int(np.floor(method_crov_norm / step_method_crov))
     return int(pos_method_crov[i])
 
 
@@ -73,9 +80,10 @@ def unnorm_method_crov(method_crov_norm):
 #     Global Variables     #
 ############################
 END_VALUE = 100000  # end condition  # TODO VERIFICAR O VALOR
-N_TOP = 5   # TODO VERIFICAR O VALOR
-MAX_NO_EVOL = 5    # TODO VERIFICAR O VALOR
-MAX_N_GEN = 10  # max of generations per simulation    # TODO VERIFICAR O VALOR
+N_TOP = 3   # TODO VERIFICAR O VALOR
+MAX_NO_EVOL = 2    # TODO VERIFICAR O VALOR
+MAX_N_GEN = 5  # max of generations per simulation    # TODO VERIFICAR O VALOR
+H_FAME_SIZE = 3
 
 GENE_SIZE = 1.0  # initialization
 
@@ -88,32 +96,32 @@ MUTATION_STD = 1.0  # initialization
 METHOD_1POP = 1.0  # initialization
 METHOD_PS = 1.0  # initialization
 METHOD_CROV = 1.0  # initialization
-H_FAME_SIZE = 5
 
 
 
-def set_global_var(ga2_gene_size, n_parents, n_children, crow_w, mutation_rate, mutation_std,
-                   method_1pop, method_ps, method_crov,
+
+def set_global_var(ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crov_w, ga2_mutation_rate, ga2_mutation_std,
+                   ga2_method_1pop, ga2_method_ps, ga2_method_crov,
                    g1_pop_size, g1_chr_size, g1_gene_size):
 
     global GENE_SIZE
     GENE_SIZE = ga2_gene_size
     global N_PARENTS
-    N_PARENTS = n_parents
+    N_PARENTS = ga2_n_parents
     global N_CHILDREN
-    N_CHILDREN = n_children
+    N_CHILDREN = ga2_n_children
     global CROV_W
-    CROV_W = crow_w
+    CROV_W = ga2_crov_w
     global MUTATION_RATE
-    MUTATION_RATE = mutation_rate
+    MUTATION_RATE = ga2_mutation_rate
     global MUTATION_STD
-    MUTATION_STD = mutation_std
+    MUTATION_STD = ga2_mutation_std
     global METHOD_1POP
-    METHOD_1POP = method_1pop
+    METHOD_1POP = ga2_method_1pop
     global METHOD_PS
-    METHOD_PS = method_ps
+    METHOD_PS = ga2_method_ps
     global METHOD_CROV
-    METHOD_CROV = method_crov
+    METHOD_CROV = ga2_method_crov
     global G1_POP_SIZE
     G1_POP_SIZE = g1_pop_size
     global G1_CHR_SIZE
@@ -122,39 +130,13 @@ def set_global_var(ga2_gene_size, n_parents, n_children, crow_w, mutation_rate, 
     G1_GENE_SIZE = g1_gene_size
 
 
-    global pos_n_parents
-    pos_n_parents = np.arange(2, G1_POP_SIZE + 1)
-    global pos_n_children
-    pos_n_children = np.arange(G1_POP_SIZE - n_parents / 2, G1_POP_SIZE + 1)
-    global pos_mutation_std
-    pos_mutation_std = np.arange(0, 15000 + 1)
-    global pos_method_1pop
-    pos_method_1pop = np.arange(1, 3 + 1)
-    global pos_method_ps
-    pos_method_ps = np.arange(1, 4 + 1)
-    global pos_method_crov
-    pos_method_crov = np.arange(1, 5 + 1)
 
-    global STEP_N_PARENTS
-    STEP_N_PARENTS = (G1_GENE_SIZE + 1) / len(pos_n_parents)
-    global STEP_N_CHILDREN
-    STEP_N_CHILDREN = (G1_GENE_SIZE + 1) / len(pos_n_children)
-    global STEP_MUTATION_STD
-    STEP_MUTATION_STD = (G1_GENE_SIZE + 1) / len(pos_mutation_std)
-    global STEP_METHOD_1POP
-    STEP_METHOD_1POP = (G1_GENE_SIZE + 1) / len(pos_method_1pop)
-    global STEP_METHOD_PS
-    STEP_METHOD_PS = (G1_GENE_SIZE + 1) / len(pos_method_ps)
-    global STEP_METHOD_CROV
-    STEP_METHOD_CROV = (G1_GENE_SIZE + 1) / len(pos_method_crov)
-
-
-def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, n_parents, n_children, crow_w,
-             mutation_rate, mutation_std, method_1pop, method_ps, method_crov,
+def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w,
+             ga2_mutation_rate, ga2_mutation_std, ga2_method_1pop, ga2_method_ps, ga2_method_crov,
              g1_pop_size, g1_chr_size, g1_gene_size, eval_start, eval_end, graph=False):
 
-    set_global_var(ga2_gene_size, n_parents, n_children, crow_w, mutation_rate, mutation_std,
-                   method_1pop, method_ps, method_crov,
+    set_global_var(ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w, ga2_mutation_rate, ga2_mutation_std,
+                   ga2_method_1pop, ga2_method_ps, ga2_method_crov,
                    g1_pop_size, g1_chr_size, g1_gene_size)
 
     pop = Population(ga2_pop_size, ga2_chromo_size)
@@ -262,6 +244,7 @@ class Chromosome:
         self.size = len(gene_list)
         self.score = 0
         self.sub_chromo = None
+        self.sub_max_score = []
 
     ###########################
     #     general methods     #
@@ -280,6 +263,9 @@ class Chromosome:
 
     def get_sub_chromo(self):
         return self.sub_chromo
+
+    def get_sub_max_score(self):
+        return self.sub_max_score
     ###########################
     #     custom methods      #
     ###########################
@@ -638,18 +624,11 @@ class Population:
         for chromo in self.get_chromo_list():
             print('G2: evaluating ' + str(cnt) + ' of ' + str(self.get_pop_size()) + ' chromossomes')  # TODO tirar
             gene_list = chromo.get_gene_list()
-
-            ga1_n_parents = unnorm_n_parents(gene_list[0].get_value())
-            ga1_n_children = unnorm_n_children(gene_list[1].get_value())
-            ga1_crov_w = unnorm_crov_w(gene_list[2].get_value())
-            ga1_mutation_rate = unnorm_mutation_rate(gene_list[3].get_value())
-            ga1_mutation_std = unnorm_mutation_std(gene_list[4].get_value())
-            ga1_method_1pop = unnorm_method_1pop(gene_list[5].get_value())
-            ga1_method_ps = unnorm_method_ps(gene_list[6].get_value())
-            ga1_method_crov = unnorm_method_crov(gene_list[7].get_value())
+            [ga1_n_parents,ga1_n_children,ga1_crov_w,ga1_mutation_rate,
+            ga1_mutation_std,ga1_method_1pop,ga1_method_ps,ga1_method_crov] = unnorm(gene_list)
 
             # TODO VERIFICAR O QUE É QUE O GA1.SIMULATE RETORNA
-            chromo.sub_chromo = ga1.simulate(G1_POP_SIZE, G1_CHR_SIZE, G1_GENE_SIZE,
+            [chromo.sub_chromo, chromo.sub_max_score] = ga1.simulate(G1_POP_SIZE, G1_CHR_SIZE, G1_GENE_SIZE,
                                              ga1_n_parents, ga1_n_children, ga1_crov_w,
                                              ga1_mutation_rate, ga1_mutation_std,
                                              ga1_method_1pop, ga1_method_ps, ga1_method_crov,
