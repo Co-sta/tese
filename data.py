@@ -6,7 +6,6 @@ import pickle
 import os.path as path
 import os
 import yfinance as yf
-import genetic_algorithm_2 as ga2
 
 DATA_PATH = '/home/francisco/tese_data/'
 

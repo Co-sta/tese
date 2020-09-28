@@ -146,14 +146,10 @@ def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_
         print('G2 generation nr: ' + str(pop.get_generation() + 1))
         pop.evaluation_phase(eval_start, eval_end)
         pop.update_h_fame()
-        [end, chromo] = pop.check_end_phase()
+        [end, best_chromo] = pop.check_end_phase()
 
         if end:
-            if graph:
-                print('gráfico')
-                # TODO TER A CERTEZA QUE O GŔAFICO ESTÁ A FUNCIONAR
-                # stats.graph_max_score(max_score)
-            return pop.get_h_fame()   # TODO RETORNAR O MELHOR CHROMOSSOMA OU O HALL OF FAME?
+            return best_chromo   # TODO RETORNAR O MELHOR CHROMOSSOMA OU O HALL OF FAME?
         else:
             max_score.append(chromo.get_score())
             pop.parent_selection_phase()
@@ -243,8 +239,7 @@ class Chromosome:
         self.gene_list = gene_list
         self.size = len(gene_list)
         self.score = 0
-        self.sub_chromo = None
-        self.sub_max_score = []
+        self.sub_pop = None
 
     ###########################
     #     general methods     #
@@ -266,6 +261,9 @@ class Chromosome:
 
     def get_sub_max_score(self):
         return self.sub_max_score
+
+    def get_sub_pop(self):
+        return self.sub_pop
     ###########################
     #     custom methods      #
     ###########################
@@ -628,28 +626,19 @@ class Population:
             ga1_mutation_std,ga1_method_1pop,ga1_method_ps,ga1_method_crov] = unnorm(gene_list)
 
             # TODO VERIFICAR O QUE É QUE O GA1.SIMULATE RETORNA
-            [chromo.sub_chromo, chromo.sub_max_score] = ga1.simulate(G1_POP_SIZE, G1_CHR_SIZE, G1_GENE_SIZE,
+            chromo.sub_pop = ga1.simulate(G1_POP_SIZE, G1_CHR_SIZE, G1_GENE_SIZE,
                                              ga1_n_parents, ga1_n_children, ga1_crov_w,
                                              ga1_mutation_rate, ga1_mutation_std,
                                              ga1_method_1pop, ga1_method_ps, ga1_method_crov,
                                              eval_start, eval_end, self.technical_signals)
 
-            chromo.score = chromo.sub_chromo.get_score()
+            chromo.score = chromo.sub_pop.get_max_score()[-1]
             cnt += 1
 
     # TODO verificar se estão todas as condições
     def check_end_phase(self):  # 1 = end achieved, 0 = end not achieved
         score = 0
-        best_chromo = []
-
-        for chromo1 in self.get_chromo_list().copy():
-            if chromo1.score > score:
-                score = chromo1.score
-                best_chromo = deepcopy(chromo1)
-        for chromo2 in self.get_h_fame().copy():
-            if chromo2.score > score:
-                score = chromo2.score
-                best_chromo = deepcopy(chromo2)
+        best_chromo = deepcopy(self.h_fame[0])
 
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():

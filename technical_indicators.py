@@ -22,6 +22,7 @@ def compute_technical_signals():
     data_all_tic = data_all_tic.drop(['Low', 'Adj Close', 'Open', 'Volume', 'High'], axis=1)
     data_all_tic.columns = data_all_tic.columns.get_level_values(1)
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+        print(tic)
         data['close'] = data_all_tic[tic]
         rsi_tic = RSI(data).rename(columns={'value': tic + '_rsi'})
         roc_tic = ROC(data).rename(columns={'value': tic + '_roc'})
@@ -32,6 +33,7 @@ def compute_technical_signals():
 
     tec_signals = tec_signals.applymap(nan_to_50)
     save_technical_indicators(tec_signals)
+    print(tec_signals.to_string())
     return tec_signals
 
 
@@ -123,3 +125,6 @@ def ROC(raw_signal, n=14):
     signal = pd.DataFrame()
     signal['value'] = calc['value']
     return signal
+
+
+compute_technical_signals()

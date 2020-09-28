@@ -7,7 +7,6 @@ from math import floor
 from math import sqrt
 from scipy.stats import truncnorm
 from copy import deepcopy
-# import statistics as stats
 import data
 
 DATA_PATH = '/home/francisco/tese_data/'
@@ -60,7 +59,7 @@ def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
 
 def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
              mutation_rate, mutation_std, method_1pop,
-             method_ps, method_crov, eval_start, eval_end, technical_signals, graph=False):
+             method_ps, method_crov, eval_start, eval_end, technical_signals):
     set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
                    mutation_std, method_1pop, method_ps, method_crov)
     pop = Population(pop_size, chromo_size)
@@ -73,12 +72,9 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
         end = pop.check_end_phase()
 
         if end:
-            if graph:
-                print('gráfco GA1')
-                # stats.graph_max_score(max_score)
-            return pop, max_score  # TODO VERIFICAR SE RETORNA O MELHOR CHROMOSSOMA OU O HALL OF FAME
+            return pop
         else:
-            max_score = max_score.append({'epoch':epoch, 'score':chromo.get_score()}, ignore_index=True)
+            pop.max_score.append({'epoch':epoch, 'score':chromo.get_score()}, ignore_index=True)
             pop.parent_selection_phase()
             print('N_PAreNTS: ' + str(N_PARENTS))
             print('n_parents: ' + str(len(pop.get_parents())))
@@ -222,6 +218,8 @@ class Population:
         self.no_evolution = 0
         self.generation = 0
 
+        self.max_score = []
+
     ###########################
     #     general methods     #
     ###########################
@@ -309,6 +307,9 @@ class Population:
     def increase_gen(self):
         gen = self.get_generation()
         self.generation = gen + 1
+
+    def get_max_score(self):
+        return self.max_score
 
     ###########################
     # pop generation methods  #
@@ -553,7 +554,7 @@ class Population:
 
     # TODO INTRODUZIR A LISTA COMPLETA DE EMPRESAS
     def evaluation_phase(self, eval_start, eval_end, technical_signals, use_trading=False):
-        tickers = ['AAPL']
+        tickers = data.open_sp500_tickers_to_list()
         cnt = 1  # TODO tirar
         for chro in self.get_chromo_list():
             print('evaluating ' + str(cnt) + ' of ' + str(self.get_pop_size()) + ' chromossomes')  # TODO tirar
@@ -570,16 +571,7 @@ class Population:
     # TODO verificar se estão todas as condições
     def check_end_phase(self):  # 1 = end achieved, 0 = end not achieved
         score = 0
-        best_chromo = []
-
-        for chromo1 in self.get_chromo_list().copy():
-            if chromo1.score > score:
-                score = chromo1.score
-                best_chromo = deepcopy(chromo1)
-        for chromo2 in self.get_h_fame().copy():
-            if chromo2.score > score:
-                score = chromo2.score
-                best_chromo = deepcopy(chromo2)
+        best_chromo = deeepcopy(self.h_fame[0])
 
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():
@@ -681,6 +673,9 @@ def forecast_orders(genes, technical_signals, tickers, chr_size):
             # print('gene AAPL roc: ' + str(genes[3].get_value()))
 
             # print('foretasted value: ' + str(fc))
+            print('---------------------------')
+            print(ticker)
+            print(fc)
             forecast.at[ticker, date] = fc
             if fc >= 55:  # TODO VERIFICAR O VALOR
                 orders.at[ticker, date] = 1
@@ -701,6 +696,7 @@ def forecast_check(forecast, tickers):
     all_ivol['Date'] = pd.to_datetime(all_ivol['Date'])
     all_ivol = all_ivol.set_index('Date')
     for ticker in tickers:
+        print('ultimo antes de falhar: ' + str(ticker))
         ivol = all_ivol[ticker]
         for date in forecast.columns:
             if date in ivol.index:

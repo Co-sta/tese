@@ -25,22 +25,24 @@ ga1_gene_size = 100000
 
 
 # 1st EVALUATION
-# eval_start = pd.to_datetime('01-02-2011')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
-# eval_end = pd.to_datetime('12-31-2011')
+eval_start = pd.to_datetime('01-02-2011')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
+eval_end = pd.to_datetime('12-31-2011')
+time_period = '1st_period'
 
 # 2nd EVALUATION
-eval_start = pd.to_datetime('01-02-2012')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
-eval_end = pd.to_datetime('12-31-2012')
+# eval_start = pd.to_datetime('01-02-2012')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
+# eval_end = pd.to_datetime('12-31-2012')
+# time_period = '2nd_period'
 
 
 
 def tese():
-    best = ga2.simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w,
+    best_chromo = ga2.simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w,
                         ga2_mutation_rate, ga2_mutation_std, ga2_method_1pop, ga2_method_ps, ga2_method_crov,
                         ga1_pop_size, ga1_chr_size, ga1_gene_size, eval_start, eval_end, graph=True)
 
-    data.save_best(best, '1st_period')
+    data.save_best(best_chromo, time_period)
 
-# tese()
+tese()
 # ui.print_result('1st_period-06:49:22 AM:28-09-2020.pickle', ga1_pop_size, ga1_gene_size)
-ui.graph_score('1st_period-06:49:22 AM:28-09-2020.pickle')
+# ui.graph_score('1st_period-06:49:22 AM:28-09-2020.pickle')
