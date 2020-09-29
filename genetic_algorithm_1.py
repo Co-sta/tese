@@ -5,6 +5,7 @@ import trading_simulator as ts
 from random import randrange
 from math import floor
 from math import sqrt
+from copy import deepcopy
 from scipy.stats import truncnorm
 from copy import deepcopy
 import data
