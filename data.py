@@ -137,7 +137,7 @@ def create_custom_option_dataset(ticker):
 
 
 def open_sp500_tickers_to_list():
-    with open('data/Options/sp500_tickers_all.txt') as f:
+    with open('data/SP500/sp500_tickers_all.txt') as f:
         tickers = f.read().splitlines()
     return tickers
 

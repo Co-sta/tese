@@ -39,7 +39,7 @@ time_period = '1st_period'
 def tese():
     best_chromo = ga2.simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w,
                         ga2_mutation_rate, ga2_mutation_std, ga2_method_1pop, ga2_method_ps, ga2_method_crov,
-                        ga1_pop_size, ga1_chr_size, ga1_gene_size, eval_start, eval_end, graph=True)
+                        ga1_pop_size, ga1_chr_size, ga1_gene_size, eval_start, eval_end)
 
     data.save_best(best_chromo, time_period)
 

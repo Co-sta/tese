@@ -134,7 +134,6 @@ def set_global_var(ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crov_w, ga2
 def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w,
              ga2_mutation_rate, ga2_mutation_std, ga2_method_1pop, ga2_method_ps, ga2_method_crov,
              g1_pop_size, g1_chr_size, g1_gene_size, eval_start, eval_end, graph=False):
-
     set_global_var(ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w, ga2_mutation_rate, ga2_mutation_std,
                    ga2_method_1pop, ga2_method_ps, ga2_method_crov,
                    g1_pop_size, g1_chr_size, g1_gene_size)

@@ -653,28 +653,24 @@ def forecast_orders(genes, technical_signals, tickers, chr_size):
 
     for gene in genes:
         gene_sum += gene.get_value()
-
     for ticker in tickers:
         for date in chr_signals.index:
             fc = (chr_signals.loc[date, 'vix_rsi'] * genes[0].get_value() +
                   chr_signals.loc[date, 'vix_roc'] * genes[1].get_value() +
-                  chr_signals.loc[date, ticker + '_rsi'] * genes[2].get_value() +
+                  chr_signals.loc[date, ticker + '_llrsi'] * genes[2].get_value() +
                   chr_signals.loc[date, ticker + '_roc'] * genes[3].get_value()) / \
                  gene_sum  # TODO ... AQUI
-
-            # print('vix rsi: ' + str(chr_signals.loc[date, 'vix_rsi']))
-            # print('gene vix rsi: ' + str(genes[0].get_value()))
-            # print('vix roc: ' + str(chr_signals.loc[date, 'vix_roc']))
-            # print('gene vix roc: ' + str(genes[1].get_value()))
-            # print('AAPL rsi: ' + str(chr_signals.loc[date, ticker + '_rsi']))
-            # print('gene AAPl roc: ' + str(genes[2].get_value()))
-            # print('AAPL roc: ' + str(chr_signals.loc[date, ticker + '_roc']))
-            # print('gene AAPL roc: ' + str(genes[3].get_value()))
-
+            # print('---------------------------')
+            # print(ticker)
+            # print('\nvix rsi: ' + str(chr_signals.loc[date, 'vix_rsi']))
+            # print('\ngene vix rsi: ' + str(genes[0].get_value()))
+            # print('\nvix roc: ' + str(chr_signals.loc[date, 'vix_roc']))
+            # print('\ngene vix roc: ' + str(genes[1].get_value()))
+            # print('\nAAPL rsi: ' + str(chr_signals.loc[date, ticker + '_rsi']))
+            # print('\ngene AAPl roc: ' + str(genes[2].get_value()))
+            # print('\nAAPL roc: ' + str(chr_signals.loc[date, ticker + '_roc']))
+            # print('\ngene AAPL roc: ' + str(genes[3].get_value()))
             # print('foretasted value: ' + str(fc))
-            print('---------------------------')
-            print(ticker)
-            print(fc)
             forecast.at[ticker, date] = fc
             if fc >= 55:  # TODO VERIFICAR O VALOR
                 orders.at[ticker, date] = 1
@@ -695,7 +691,6 @@ def forecast_check(forecast, tickers):
     all_ivol['Date'] = pd.to_datetime(all_ivol['Date'])
     all_ivol = all_ivol.set_index('Date')
     for ticker in tickers:
-        print('ultimo antes de falhar: ' + str(ticker))
         ivol = all_ivol[ticker]
         for date in forecast.columns:
             if date in ivol.index:

@@ -28,10 +28,8 @@ def compute_technical_signals():
 
     # Other signals
 
-
     tec_signals = tec_signals.applymap(nan_to_50)
     save_technical_indicators(tec_signals)
-    print(tec_signals.to_string())
     return tec_signals
 
 
@@ -101,7 +99,10 @@ def RSI(raw_signal, n=14):
 
     calc.at[calc.index[n], 'avg_up'] = sum_u / n
     calc.at[calc.index[n], 'avg_down'] = sum_d / n
-    calc.at[calc.index[n], 'rsi'] = 100 - 100 / (1 + calc.iloc[n].at['avg_up'] / calc.iloc[n].at['avg_down'])
+    if calc.iloc[n].at['avg_down']:
+        calc.at[calc.index[n], 'rsi'] = 100 - 100 / (1 + calc.iloc[n].at['avg_up'] / calc.iloc[n].at['avg_down'])
+    else:
+        calc.at[calc.index[n], 'rsi'] = 100
 
     for i in range(n + 1, len(calc)):
         calc.at[calc.index[i], 'avg_up'] = (n - 1 * calc.iloc[i-1].at['avg_up'] + calc.iloc[i].at['up']) / n
@@ -124,5 +125,4 @@ def ROC(raw_signal, n=14):
     signal['value'] = calc['value']
     return signal
 
-
-compute_technical_signals()
+# compute_technical_signals()
