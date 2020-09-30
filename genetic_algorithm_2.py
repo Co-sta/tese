@@ -631,7 +631,7 @@ class Population:
                                              ga1_method_1pop, ga1_method_ps, ga1_method_crov,
                                              eval_start, eval_end, self.technical_signals)
 
-            chromo.score = chromo.sub_pop.get_max_score()[-1]
+            chromo.score = chromo.sub_pop.get_h_fame()[0].get_score()
             cnt += 1
 
     # TODO verificar se estão todas as condições

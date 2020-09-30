@@ -5,7 +5,6 @@ import trading_simulator as ts
 from random import randrange
 from math import floor
 from math import sqrt
-from copy import deepcopy
 from scipy.stats import truncnorm
 from copy import deepcopy
 import data
@@ -74,7 +73,7 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
         if end:
             return pop
         else:
-            pop.max_score.append({'epoch':epoch, 'score':chromo.get_score()}, ignore_index=True)
+            pop.max_score.append({'epoch':epoch, 'score':pop.get_h_fame()[0].get_score()}, ignore_index=True)
             pop.parent_selection_phase()
             print('N_PAreNTS: ' + str(N_PARENTS))
             print('n_parents: ' + str(len(pop.get_parents())))
@@ -218,7 +217,7 @@ class Population:
         self.no_evolution = 0
         self.generation = 0
 
-        self.max_score = []
+        self.max_score = pd.DataFrame()
 
     ###########################
     #     general methods     #
@@ -571,7 +570,7 @@ class Population:
     # TODO verificar se estão todas as condições
     def check_end_phase(self):  # 1 = end achieved, 0 = end not achieved
         score = 0
-        best_chromo = deeepcopy(self.h_fame[0])
+        best_chromo = deepcopy(self.h_fame[0])
 
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():
