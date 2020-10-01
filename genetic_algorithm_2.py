@@ -150,7 +150,7 @@ def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_
         if end:
             return best_chromo   # TODO RETORNAR O MELHOR CHROMOSSOMA OU O HALL OF FAME?
         else:
-            max_score.append(chromo.get_score())
+            max_score.append(best_chromo.get_score())
             pop.parent_selection_phase()
             pop.crossover_phase()
             pop.mutation_phase()
@@ -636,8 +636,8 @@ class Population:
 
     # TODO verificar se estão todas as condições
     def check_end_phase(self):  # 1 = end achieved, 0 = end not achieved
-        score = 0
         best_chromo = deepcopy(self.h_fame[0])
+        score = best_chromo.get_score()
 
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():
