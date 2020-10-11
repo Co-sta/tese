@@ -25,7 +25,7 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
     print('First pop: ' + str(ga1_method_1pop) + ' (' + str(genes2[5].get_value()) + ')')
     print('Parent selct: ' + str(ga1_method_ps) + ' (' + str(genes2[6].get_value()) + ')')
     print('Crossover: ' + str(ga1_method_crov) + ' (' + str(genes2[7].get_value()) + ')')
-    for chr1 in best_chromo.get_sub_pop.get_h_fame()[0].get_gene_list():
+    for chr1 in best_chromo.get_sub_pop().get_h_fame()[0].get_gene_list():
         print('     gene: ' + str(chr1.get_value()))
 
 def graph_score(filename):

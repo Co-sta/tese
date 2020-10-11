@@ -13,12 +13,12 @@ import data
 ############################
 #     Global Variables     #
 ############################
-GENE_SIZE = 100000  # gene max value
-END_VALUE = 0.9  # end condition TODO TROCAR PARA UM VALOR QUE FAÇA SENTIDO
-MAX_N_GEN = 20  # max of generations per simulation
-N_TOP = 3
-MAX_NO_EVOL = 3
-H_FAME_SIZE = 3
+GENE_SIZE = 100000
+END_VALUE = 0.9  # MEXER
+MAX_N_GEN = 10  # max of generations per simulation # MEXER
+N_TOP = 2 # MEXER
+MAX_NO_EVOL = 10 # MEXER
+H_FAME_SIZE = 5 # MEXER
 
 N_PARENTS = 1  # initialization
 N_CHILDREN = 1  # initialization
@@ -30,7 +30,7 @@ METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
-FORECAST_DIST = 20  # forecast with 15 days of distance
+FORECAST_DIST = 30  # forecast with 15 days of distance
 IVOL_CHANGE_STEP = 0.05  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
@@ -73,10 +73,11 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
         if end:
             return pop
         else:
-            pop.max_score.append({'epoch':epoch, 'score':pop.get_h_fame()[0].get_score()}, ignore_index=True)
+            pop.max_score = pop.max_score.append({'epoch':epoch, 'score':pop.get_h_fame()[0].get_score()}, ignore_index=True)
+            print(pop.max_score)
             pop.parent_selection_phase()
-            print('N_PAreNTS: ' + str(N_PARENTS))
-            print('n_parents: ' + str(len(pop.get_parents())))
+            # print('N_PAreNTS: ' + str(N_PARENTS))
+            # print('n_parents: ' + str(len(pop.get_parents())))
             pop.crossover_phase()
             pop.mutation_phase()
             pop.increase_gen()
@@ -217,7 +218,7 @@ class Population:
         self.no_evolution = 0
         self.generation = 0
 
-        self.max_score = pd.DataFrame()
+        self.max_score = pd.DataFrame(columns=['epoch', 'score'])
 
     ###########################
     #     general methods     #
