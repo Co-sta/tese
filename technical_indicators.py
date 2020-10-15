@@ -6,30 +6,38 @@ import data as d
 
 
 def compute_technical_signals():
-    tickers = d.open_sp500_tickers_to_list()
+    tickers = d.open_all_sp500_tickers_to_list()
 
     # Vix signal
-    filename = 'data/VIX/VIX30D.csv'
-    data = pd.read_csv(filename, index_col='date', parse_dates=True)
+    filepath = 'data/VIX/VIX30D.csv'
+    data = pd.read_csv(filepath, index_col='date', parse_dates=True)
     rsi_vix = RSI(data).rename(columns={'value': 'vix_rsi'})
     roc_vix = ROC(data).rename(columns={'value': 'vix_roc'})
     tec_signals = pd.concat([rsi_vix, roc_vix], axis=1)
 
     # Stock signals
-    data_all_tic = yf.download(tickers, start="2011-01-03", end="2016-01-01")
-    data_all_tic = data_all_tic.drop(['Low', 'Adj Close', 'Open', 'Volume', 'High'], axis=1)
-    data_all_tic.columns = data_all_tic.columns.get_level_values(1)
+    filepath = 'data/yfinance/all_tickers_yfinance.csv'
+    data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
-        print(tic)
         data['close'] = data_all_tic[tic]
         rsi_tic = RSI(data).rename(columns={'value': tic + '_rsi'})
         roc_tic = ROC(data).rename(columns={'value': tic + '_roc'})
         tec_signals = pd.concat([tec_signals, rsi_tic, roc_tic], axis=1)
 
+    # Implied volatility
+    filepath = 'data/implied_volatility/all_tickers_ivol.csv'
+    data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+        data['close'] = data_all_tic[tic]
+        rsi_tic = RSI(data).rename(columns={'value': 'ivol_' + tic + '_rsi'})
+        roc_tic = ROC(data).rename(columns={'value': 'ivol_' + tic + '_roc'})
+        tec_signals = pd.concat([tec_signals, rsi_tic, roc_tic], axis=1)
+
     # Other signals
 
+    filepath = 'data/technical_indicators/technical_indicators.csv'
     tec_signals = tec_signals.applymap(nan_to_50)
-    save_technical_indicators(tec_signals)
+    tec_signals.to_csv(filepath)
     return tec_signals
 
 
@@ -48,16 +56,15 @@ def normalization(signal, s_min=0, s_max=0):
     return signal_norm
 
 
-def save_technical_indicators(signal):
-    filepath = 'data/technical_indicators/technical_indicators.pickle'
-    with open(filepath, 'wb') as f:
-        pickle.dump(signal, f)
+# def save_technical_indicators(signal):
+#     filepath = 'data/technical_indicators/technical_indicators.pickle'
+#     with open(filepath, 'wb') as f:
+#         pickle.dump(signal, f)
 
 
 def load_technical_indicators():
     filepath = 'data/technical_indicators/technical_indicators.pickle'
-    with open(filepath, 'rb') as f:
-        signal = pickle.load(f)
+    signal = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     return signal
 
 
@@ -125,4 +132,4 @@ def ROC(raw_signal, n=14):
     signal['value'] = calc['value']
     return signal
 
-# compute_technical_signals()
+compute_technical_signals()

@@ -141,6 +141,11 @@ def open_sp500_tickers_to_list():
         tickers = f.read().splitlines()
     return tickers
 
+def open_all_sp500_tickers_to_list():
+    with open('data/SP500/sp500_tickers_all_all.txt') as f:
+        tickers = f.read().splitlines()
+    return tickers
+
 
 def open_sp500_tickers_to_str():
     with open('data/SP500/sp500_tickers_all.txt') as f:
@@ -169,14 +174,15 @@ def load_dataset(filename='stock_dataset'):
 
 
 def create_ivol_dataset():
-    file = 'data/implied_volatility/all_tickers_ivol.csv'
-    if path.exists(file):
-        os.remove(file)
+    filename = 'data/implied_volatility/all_tickers_ivol.csv'
+    if path.exists(filename):
+        os.remove(filename)
         print("File Removed!")
 
-    tickers = open_sp500_tickers_to_list()
+    tickers = open_all_sp500_tickers_to_list()
     all_ivol = pd.DataFrame()
     for ticker in tickers:
+        print(ticker)
         filepath = 'data/implied_volatility/HistoricalIV_' + ticker + '.csv'
         if path.exists(filepath):
             data = pd.read_csv(filepath)
@@ -186,12 +192,27 @@ def create_ivol_dataset():
             data.drop(data.columns.difference(['IV30']), 1, inplace=True)
             data = data.rename({'IV30': ticker}, axis='columns')
             all_ivol = pd.concat([all_ivol, data], axis=1)
-    all_ivol.to_csv('data/implied_volatility/all_tickers_ivol.csv')
+    all_ivol.to_csv(filename)
+    print("File Saved!")
     return all_ivol
+
+def create_yfinance_dataset():
+    tickers = open_all_sp500_tickers_to_list()
+    filename = 'data/yfinance/all_tickers_yfinance.csv'
+    if path.exists(filename):
+        os.remove(filename)
+        print("File Removed!")
+    all_yfiance = yf.download(tickers, start="2011-01-03", end="2016-01-01")
+    all_yfiance = all_yfiance.drop(['Low', 'Adj Close', 'Open', 'Volume', 'High'], axis=1)
+    all_yfiance.columns = all_yfiance.columns.get_level_values(1)
+    all_yfiance.to_csv(filename)
+    print("File Saved!")
+    return all_yfiance
+
 
 def save_best(best, title):
     now = pd.to_datetime("now")
-    now = now.strftime('%r:%d-%m-%Y')
+    now = now.strftime('%d-%m-%Y:%r')
     filepath = 'data/results/' + title + '-' + now + '.pickle'
     pickle.dump(best, open( filepath, "wb" ))
     print('result saved')
