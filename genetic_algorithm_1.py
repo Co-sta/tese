@@ -15,10 +15,10 @@ import data
 ############################
 GENE_SIZE = 100000
 END_VALUE = 0.9  # MEXER
-MAX_N_GEN = 10  # max of generations per simulation # MEXER
-N_TOP = 2 # MEXER
-MAX_NO_EVOL = 10 # MEXER
-H_FAME_SIZE = 5 # MEXER
+MAX_N_GEN = 1000  # max of generations per simulation # MEXER
+N_TOP = 10 # MEXER
+MAX_NO_EVOL = 30 # MEXER
+H_FAME_SIZE = 10 # MEXER
 
 N_PARENTS = 1  # initialization
 N_CHILDREN = 1  # initialization
@@ -658,8 +658,10 @@ def forecast_orders(genes, technical_signals, tickers, chr_size):
         for date in chr_signals.index:
             fc = (chr_signals.loc[date, 'vix_rsi'] * genes[0].get_value() +
                   chr_signals.loc[date, 'vix_roc'] * genes[1].get_value() +
-                  chr_signals.loc[date, ticker + '_llrsi'] * genes[2].get_value() +
-                  chr_signals.loc[date, ticker + '_roc'] * genes[3].get_value()) / \
+                  chr_signals.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
+                  chr_signals.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
+                  chr_signals.loc[date, 'ivol_' + ticker + '_rsi'] * genes[4].get_value() +
+                  chr_signals.loc[date, 'ivol_' + ticker + '_roc'] * genes[5].get_value()) / \
                  gene_sum  # TODO ... AQUI
             # print('---------------------------')
             # print(ticker)

@@ -80,9 +80,9 @@ def unnorm_method_crov(method_crov_norm, g1_gene_size):
 #     Global Variables     #
 ############################
 END_VALUE = 0.9  # MEXER
-N_TOP = 2   # MEXER
+N_TOP = 5   # MEXER
 MAX_NO_EVOL = 2    # MEXER
-MAX_N_GEN = 5  # max of generations per simulation # MEXER
+MAX_N_GEN = 10  # max of generations per simulation # MEXER
 H_FAME_SIZE = 5 # MEXER
 
 GENE_SIZE = 1.0  # initialization

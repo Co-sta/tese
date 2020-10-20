@@ -7,38 +7,46 @@ import data as d
 
 def compute_technical_signals():
     tickers = d.open_all_sp500_tickers_to_list()
+    rsi_stock_signals = pd.DataFrame()
+    roc_stock_signals = pd.DataFrame()
+    rsi_ivol_signals = pd.DataFrame()
+    roc_ivol_signals = pd.DataFrame()
 
     # Vix signal
     filepath = 'data/VIX/VIX30D.csv'
-    data = pd.read_csv(filepath, index_col='date', parse_dates=True)
+    data = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     rsi_vix = RSI(data).rename(columns={'value': 'vix_rsi'})
     roc_vix = ROC(data).rename(columns={'value': 'vix_roc'})
-    tec_signals = pd.concat([rsi_vix, roc_vix], axis=1)
+    save_technical_indicator(rsi_vix, 'vix_rsi')
+    save_technical_indicator(roc_vix, 'vix_roc')
 
     # Stock signals
     filepath = 'data/yfinance/all_tickers_yfinance.csv'
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+        print('stock: ' + tic)
         data['close'] = data_all_tic[tic]
-        rsi_tic = RSI(data).rename(columns={'value': tic + '_rsi'})
-        roc_tic = ROC(data).rename(columns={'value': tic + '_roc'})
-        tec_signals = pd.concat([tec_signals, rsi_tic, roc_tic], axis=1)
+        rsi_tic = RSI(data).rename(columns={'value': 'stock_' + tic + '_rsi'})
+        roc_tic = ROC(data).rename(columns={'value': 'stock_' + tic + '_roc'})
+        rsi_stock_signals = pd.concat([rsi_stock_signals, rsi_tic], axis=1)
+        roc_stock_signals = pd.concat([roc_stock_signals, roc_tic], axis=1)
+    save_technical_indicator(rsi_stock_signals, 'stock_rsi')
+    save_technical_indicator(roc_stock_signals, 'stock_roc')
 
     # Implied volatility
     filepath = 'data/implied_volatility/all_tickers_ivol.csv'
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+        print('ivol: ' + tic)
         data['close'] = data_all_tic[tic]
         rsi_tic = RSI(data).rename(columns={'value': 'ivol_' + tic + '_rsi'})
         roc_tic = ROC(data).rename(columns={'value': 'ivol_' + tic + '_roc'})
-        tec_signals = pd.concat([tec_signals, rsi_tic, roc_tic], axis=1)
+        rsi_ivol_signals = pd.concat([rsi_ivol_signals, rsi_tic], axis=1)
+        roc_ivol_signals = pd.concat([roc_ivol_signals, roc_tic], axis=1)
+    save_technical_indicator(rsi_ivol_signals, 'ivol_rsi')
+    save_technical_indicator(roc_ivol_signals, 'ivol_roc')
 
     # Other signals
-
-    filepath = 'data/technical_indicators/technical_indicators.csv'
-    tec_signals = tec_signals.applymap(nan_to_50)
-    tec_signals.to_csv(filepath)
-    return tec_signals
 
 
 ############################
@@ -56,16 +64,32 @@ def normalization(signal, s_min=0, s_max=0):
     return signal_norm
 
 
-# def save_technical_indicators(signal):
-#     filepath = 'data/technical_indicators/technical_indicators.pickle'
-#     with open(filepath, 'wb') as f:
-#         pickle.dump(signal, f)
+def save_technical_indicator(signal, filename):
+    filepath = 'data/technical_indicators/' + filename + '.csv'
+    signal = signal.applymap(nan_to_50)
+    signal.to_csv(filepath)
 
 
 def load_technical_indicators():
-    filepath = 'data/technical_indicators/technical_indicators.pickle'
-    signal = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    return signal
+    ti = pd.DataFrame()
+    fp_vix_rsi = 'data/technical_indicators/vix_rsi.csv'
+    fp_vix_roc = 'data/technical_indicators/vix_roc.csv'
+    fp_stock_rsi = 'data/technical_indicators/stock_rsi.csv'
+    fp_stock_roc = 'data/technical_indicators/stock_roc.csv'
+    fp_ivol_rsi = 'data/technical_indicators/ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/ivol_roc.csv'
+
+    vix_rsi = pd.read_csv(fp_vix_rsi, index_col='Date', parse_dates=True)
+    vix_roc = pd.read_csv(fp_vix_roc, index_col='Date', parse_dates=True)
+    stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
+    stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
+    ivol_rsi = pd.read_csv(fp_ivol_rsi, index_col='Date', parse_dates=True)
+    ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
+
+    ti = pd.concat([vix_rsi, vix_roc,
+                    stock_rsi, stock_roc,
+                    ivol_rsi, ivol_roc], axis=1)
+    return ti
 
 
 def nan_to_50(value):
@@ -131,5 +155,3 @@ def ROC(raw_signal, n=14):
     signal = pd.DataFrame()
     signal['value'] = calc['value']
     return signal
-
-compute_technical_signals()

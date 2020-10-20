@@ -35,3 +35,12 @@ def graph_score(filename):
     print(score_evol)
     fig = px.line(score_evol, x="epoch", y="score")
     fig.show()
+
+# def graph_ROI(filename):
+#     filepath = 'data/results/' + filename
+#     best_chromo = pickle.load( open( filepath, "rb" ))
+#
+#     roi_evol =  best_chromo.get_sub_pop().get_max_score()
+#     print(score_evol)
+#     fig = px.line(score_evol, x="epoch", y="score")
+#     fig.show()
