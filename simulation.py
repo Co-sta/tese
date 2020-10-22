@@ -4,23 +4,23 @@ import ui
 import data
 
 # GA 2 - UPPER
-ga2_pop_size = 20 # MEXER
+ga2_pop_size = 5 # MEXER
 ga2_chromo_size = 8
 ga2_gene_size = 100000
 
-ga2_n_parents = 10  # range [2 G] # MEXER
-ga2_n_children = 15  # range [G-n_parents G]  # MEXER
-ga2_crow_w = 0.5  # range [0 1] #M EXER
+ga2_n_parents = 2  # range [2 G] # MEXER
+ga2_n_children = 5  # range [G-n_parents G]  # MEXER
+ga2_crow_w = 0.5  # range [0 1] # MEXER
 ga2_mutation_rate = 0.8  # range [0 1] # MEXER
 ga2_mutation_std = 10000  # range [0 15000] # MEXER
-ga2_method_1pop = 1  # 1st generation creation methods. [1,2,3] # MEXER
+ga2_method_1pop = 2  # 1st generation creation methods. [1,2,3] # MEXER
 ga2_method_ps = 2  # parent selection methods. [1,2,3,4] # MEXER
-ga2_method_crov = 2  # crossover methods. [1,2,3,4,5] # MEXER
+ga2_method_crov = 5  # crossover methods. [1,2,3,4,5] # MEXER
 
 
 # GA 1 - LOWER
-ga1_pop_size = 30  # MEXER
-ga1_chr_size = 6    # 6 INDICADORES PARA CADA EMPRESA
+ga1_pop_size = 10  # MEXER
+ga1_chr_size = 12    # 6 INDICADORES PARA CADA EMPRESA + 6 GENES PARA O 'N' DE CADA INDICADOR
 ga1_gene_size = 100000
 
 

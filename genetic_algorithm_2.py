@@ -5,10 +5,12 @@ from math import floor
 from math import sqrt
 from scipy.stats import truncnorm
 from copy import deepcopy
+from multiprocessing import Pool
 # import statistics as stats
 import genetic_algorithm_1 as ga1
 import data
 import technical_indicators as ti
+
 
 ############################
 #       GA1 variables      #
@@ -80,7 +82,7 @@ def unnorm_method_crov(method_crov_norm, g1_gene_size):
 #     Global Variables     #
 ############################
 END_VALUE = 0.9  # MEXER
-N_TOP = 5   # MEXER
+N_TOP = 2   # MEXER
 MAX_NO_EVOL = 2    # MEXER
 MAX_N_GEN = 10  # max of generations per simulation # MEXER
 H_FAME_SIZE = 5 # MEXER
@@ -142,7 +144,7 @@ def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_
     max_score = []
 
     while True:
-        print('G2 generation nr: ' + str(pop.get_generation() + 1))
+        print('G2 generation nr: ' + str(pop.get_generation()))
         pop.evaluation_phase(eval_start, eval_end)
         pop.update_h_fame()
         [end, best_chromo] = pop.check_end_phase()
@@ -288,8 +290,7 @@ class Population:
         self.parents = []
         self.h_fame = []  # a hall of fame with top 10 all time best
         self.no_evolution = 0
-        self.technical_signals = ti.load_technical_indicators()
-        self.generation = 0
+        self.generation = 1
 
     ###########################
     #     general methods     #
@@ -619,7 +620,8 @@ class Population:
     def evaluation_phase(self, eval_start, eval_end):
         cnt = 1  # TODO tirar
         for chromo in self.get_chromo_list():
-            print('G2: evaluating ' + str(cnt) + ' of ' + str(self.get_pop_size()) + ' chromossomes')  # TODO tirar
+            print('G2 generation nr: ' + str(pop.get_generation())) # TODO tirar
+            print('G2: evaluating ' + 'chromossome ' + str(cnt) + ' (' + str(self.get_pop_size()) + ')')  # TODO tirar
             gene_list = chromo.get_gene_list()
             [ga1_n_parents,ga1_n_children,ga1_crov_w,ga1_mutation_rate,
             ga1_mutation_std,ga1_method_1pop,ga1_method_ps,ga1_method_crov] = unnorm(gene_list)
@@ -629,7 +631,7 @@ class Population:
                                              ga1_n_parents, ga1_n_children, ga1_crov_w,
                                              ga1_mutation_rate, ga1_mutation_std,
                                              ga1_method_1pop, ga1_method_ps, ga1_method_crov,
-                                             eval_start, eval_end, self.technical_signals)
+                                             eval_start, eval_end)
 
             chromo.score = chromo.sub_pop.get_h_fame()[0].get_score()
             cnt += 1

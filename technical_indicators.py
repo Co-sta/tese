@@ -5,7 +5,7 @@ import yfinance as yf
 import data as d
 
 
-def compute_technical_signals():
+def compute_technical_signals(n):
     tickers = d.open_all_sp500_tickers_to_list()
     rsi_stock_signals = pd.DataFrame()
     roc_stock_signals = pd.DataFrame()
@@ -15,10 +15,10 @@ def compute_technical_signals():
     # Vix signal
     filepath = 'data/VIX/VIX30D.csv'
     data = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    rsi_vix = RSI(data).rename(columns={'value': 'vix_rsi'})
-    roc_vix = ROC(data).rename(columns={'value': 'vix_roc'})
-    save_technical_indicator(rsi_vix, 'vix_rsi')
-    save_technical_indicator(roc_vix, 'vix_roc')
+    rsi_vix = RSI(data, n).rename(columns={'value': 'vix_rsi'})
+    roc_vix = ROC(data, n).rename(columns={'value': 'vix_roc'})
+    save_technical_indicator(rsi_vix, str(n)+'_vix_rsi')
+    save_technical_indicator(roc_vix, str(n)+'_vix_roc')
 
     # Stock signals
     filepath = 'data/yfinance/all_tickers_yfinance.csv'
@@ -26,12 +26,12 @@ def compute_technical_signals():
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
         print('stock: ' + tic)
         data['close'] = data_all_tic[tic]
-        rsi_tic = RSI(data).rename(columns={'value': 'stock_' + tic + '_rsi'})
-        roc_tic = ROC(data).rename(columns={'value': 'stock_' + tic + '_roc'})
+        rsi_tic = RSI(data, n).rename(columns={'value': 'stock_' + tic + '_rsi'})
+        roc_tic = ROC(data, n).rename(columns={'value': 'stock_' + tic + '_roc'})
         rsi_stock_signals = pd.concat([rsi_stock_signals, rsi_tic], axis=1)
         roc_stock_signals = pd.concat([roc_stock_signals, roc_tic], axis=1)
-    save_technical_indicator(rsi_stock_signals, 'stock_rsi')
-    save_technical_indicator(roc_stock_signals, 'stock_roc')
+    save_technical_indicator(rsi_stock_signals, str(n)+'_stock_rsi')
+    save_technical_indicator(roc_stock_signals, str(n)+'_stock_roc')
 
     # Implied volatility
     filepath = 'data/implied_volatility/all_tickers_ivol.csv'
@@ -39,12 +39,12 @@ def compute_technical_signals():
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
         print('ivol: ' + tic)
         data['close'] = data_all_tic[tic]
-        rsi_tic = RSI(data).rename(columns={'value': 'ivol_' + tic + '_rsi'})
-        roc_tic = ROC(data).rename(columns={'value': 'ivol_' + tic + '_roc'})
+        rsi_tic = RSI(data, n).rename(columns={'value': 'ivol_' + tic + '_rsi'})
+        roc_tic = ROC(data, n).rename(columns={'value': 'ivol_' + tic + '_roc'})
         rsi_ivol_signals = pd.concat([rsi_ivol_signals, rsi_tic], axis=1)
         roc_ivol_signals = pd.concat([roc_ivol_signals, roc_tic], axis=1)
-    save_technical_indicator(rsi_ivol_signals, 'ivol_rsi')
-    save_technical_indicator(roc_ivol_signals, 'ivol_roc')
+    save_technical_indicator(rsi_ivol_signals, str(n)+'_ivol_rsi')
+    save_technical_indicator(roc_ivol_signals, str(n)+'_ivol_roc')
 
     # Other signals
 
@@ -52,6 +52,12 @@ def compute_technical_signals():
 ############################
 #       extra methods      #
 ############################
+
+def compute_all_technical_signals(min=5, max=30):
+    for n in range(min, max):
+        print(n)
+        compute_technical_signals(n)
+
 def normalization(signal, s_min=0, s_max=0):
     signal_norm = signal.copy()
     if not(s_max or s_min):
@@ -151,7 +157,9 @@ def ROC(raw_signal, n=14):
 
     for i in range(n, len(calc)):
         calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] / calc.iloc[i-n]['close'] - 1) * 100
-    calc = normalization(calc, -100, 100)
+    # calc = normalization(calc, -100, 100)
     signal = pd.DataFrame()
     signal['value'] = calc['value']
     return signal
+
+compute_all_technical_signals()

@@ -25,8 +25,22 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
     print('First pop: ' + str(ga1_method_1pop) + ' (' + str(genes2[5].get_value()) + ')')
     print('Parent selct: ' + str(ga1_method_ps) + ' (' + str(genes2[6].get_value()) + ')')
     print('Crossover: ' + str(ga1_method_crov) + ' (' + str(genes2[7].get_value()) + ')')
-    for chr1 in best_chromo.get_sub_pop().get_h_fame()[0].get_gene_list():
-        print('     gene: ' + str(chr1.get_value()))
+    for i in range(len(best_chromo.get_sub_pop().get_h_fame()[0].get_gene_list())):
+        chr1 = best_chromo.get_sub_pop().get_h_fame()[0].get_gene_list()[i]
+        if i == 0: print('     vix_rsi_weight: ' + str(chr1.get_value()))
+        if i == 1: print('     vix_roc_weight: ' + str(chr1.get_value()))
+        if i == 2: print('     stock_rsi_weight: ' + str(chr1.get_value()))
+        if i == 3: print('     stock_roc_weight: ' + str(chr1.get_value()))
+        if i == 4: print('     ivol_rsi_weight: ' + str(chr1.get_value()))
+        if i == 5: print('     ivol_roc_weight: ' + str(chr1.get_value()))
+
+        if i == 6: print('     n_vix_rsi: ' + str(ti.unnorm_ti(chr1.get_value())))
+        if i == 7: print('     n_vix_roc: ' + str(ti.unnorm_ti(chr1.get_value())))
+        if i == 8: print('     n_stock_rsi: ' + str(ti.unnorm_ti(chr1.get_value())))
+        if i == 9: print('     n_stock_roc: ' + str(ti.unnorm_ti(chr1.get_value())))
+        if i == 10: print('     n_ivol_rsi: ' + str(ti.unnorm_ti(chr1.get_value())))
+        if i == 11: print('     n_ivol_roc: ' + str(ti.unnorm_ti(chr1.get_value())))
+
 
 def graph_score(filename):
     filepath = 'data/results/' + filename

@@ -10,15 +10,22 @@ from copy import deepcopy
 import data
 
 
+def unnorm_ti(ti_norm, n_min=5, n_max=30):
+    pos_ti = np.arange(n_min, n_max + 1)
+    step_ti = (GENE_SIZE + 1) / (n_max-n_min))
+    i = int(np.floor(ti_norm / step_ti))
+    return int(pos_ti[i])
+
+
 ############################
 #     Global Variables     #
 ############################
 GENE_SIZE = 100000
 END_VALUE = 0.9  # MEXER
-MAX_N_GEN = 1000  # max of generations per simulation # MEXER
-N_TOP = 10 # MEXER
-MAX_NO_EVOL = 30 # MEXER
-H_FAME_SIZE = 10 # MEXER
+MAX_N_GEN = 100  # max of generations per simulation # MEXER
+N_TOP = 5 # MEXER
+MAX_NO_EVOL = 5 # MEXER
+H_FAME_SIZE = 5 # MEXER
 
 N_PARENTS = 1  # initialization
 N_CHILDREN = 1  # initialization
@@ -58,7 +65,7 @@ def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
 
 def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
              mutation_rate, mutation_std, method_1pop,
-             method_ps, method_crov, eval_start, eval_end, technical_signals):
+             method_ps, method_crov, eval_start, eval_end):
     set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
                    mutation_std, method_1pop, method_ps, method_crov)
     pop = Population(pop_size, chromo_size)
@@ -66,7 +73,7 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
     epoch = 1
     while True:
         print('G1 generation nr: ' + str(pop.get_generation() + 1))
-        pop.evaluation_phase(eval_start, eval_end, technical_signals, use_trading=False)
+        pop.evaluation_phase(eval_start, eval_end, use_trading=False)
         pop.update_h_fame()
         end = pop.check_end_phase()
 
@@ -553,12 +560,12 @@ class Population:
                 new_gen.append(parents.pop(index))
 
     # TODO INTRODUZIR A LISTA COMPLETA DE EMPRESAS
-    def evaluation_phase(self, eval_start, eval_end, technical_signals, use_trading=False):
+    def evaluation_phase(self, eval_start, eval_end, use_trading=False):
         tickers = data.open_sp500_tickers_to_list()
         cnt = 1  # TODO tirar
         for chro in self.get_chromo_list():
-            print('evaluating ' + str(cnt) + ' of ' + str(self.get_pop_size()) + ' chromossomes')  # TODO tirar
-            [forecast, orders] = forecast_orders(chro.get_gene_list(), technical_signals, tickers, self.get_chr_size())
+            print('evaluating ' + 'chromossome ' + str(cnt) + ' (' + str(self.get_pop_size()) + ')') # TODO tirar
+            [forecast, orders] = forecast_orders(chro.get_gene_list(), tickers, self.get_chr_size())
             if use_trading:
                 portfolio = ts.trade(eval_start, eval_end, orders)
                 score = portfolio.get_ROI()['value'].iloc[-1]
@@ -646,22 +653,36 @@ def crov_random(chromo1, chromo2):
 #        forecast          #
 ############################
 # TODO METER O RESTO DOS INDICADORES...
-def forecast_orders(genes, technical_signals, tickers, chr_size):
+def forecast_orders(genes, tickers, chr_size):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
-    chr_signals = technical_signals.copy()
+
+    fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-6])) + 'vix_rsi.csv'
+    fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-5])) + 'vix_roc.csv'
+    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-4])) + 'stock_rsi.csv'
+    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-3])) + 'stock_roc.csv'
+    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-2])) + 'ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-1])) + 'ivol_roc.csv'
+
+    vix_rsi = pd.read_csv(fp_vix_rsi, index_col='Date', parse_dates=True)
+    vix_roc = pd.read_csv(fp_vix_roc, index_col='Date', parse_dates=True)
+    stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
+    stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
+    ivol_rsi = pd.read_csv(fp_ivol_rsi, index_col='Date', parse_dates=True)
+    ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
+
     gene_sum = 0
 
     for gene in genes:
         gene_sum += gene.get_value()
     for ticker in tickers:
         for date in chr_signals.index:
-            fc = (chr_signals.loc[date, 'vix_rsi'] * genes[0].get_value() +
-                  chr_signals.loc[date, 'vix_roc'] * genes[1].get_value() +
-                  chr_signals.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
-                  chr_signals.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
-                  chr_signals.loc[date, 'ivol_' + ticker + '_rsi'] * genes[4].get_value() +
-                  chr_signals.loc[date, 'ivol_' + ticker + '_roc'] * genes[5].get_value()) / \
+            fc = (vix_rsi.loc[date, 'vix_rsi'] * genes[0].get_value() +
+                  vix_roc.loc[date, 'vix_roc'] * genes[1].get_value() +
+                  stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
+                  stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
+                  ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[4].get_value() +
+                  ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[5].get_value()) / \
                  gene_sum  # TODO ... AQUI
             # print('---------------------------')
             # print(ticker)
