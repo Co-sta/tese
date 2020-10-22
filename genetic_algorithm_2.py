@@ -161,7 +161,7 @@ def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_
 
     while True:
         print('G2 generation nr: ' + str(pop.get_generation()))
-        pop.evaluation_phase(eval_start, eval_end)
+        pop.evaluation_phase(eval_start, eval_end, 5)
         pop.update_h_fame()
         [end, best_chromo] = pop.check_end_phase()
 
