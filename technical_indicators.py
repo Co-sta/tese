@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import yfinance as yf
 import data as d
+from multiprocessing import Pool
 
 
 def compute_technical_signals(n):
@@ -52,11 +53,13 @@ def compute_technical_signals(n):
 ############################
 #       extra methods      #
 ############################
+def compute_all_technical_signals(n_threads= 5, min=5, max=30):
+    n = np.arange(min, max+1)
+    print(n)
+    with Pool(n_threads) as p:
+        print(p.map(compute_technical_signals, n))
 
-def compute_all_technical_signals(min=5, max=30):
-    for n in range(min, max):
-        print(n)
-        compute_technical_signals(n)
+
 
 def normalization(signal, s_min=0, s_max=0):
     signal_norm = signal.copy()
