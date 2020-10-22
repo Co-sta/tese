@@ -12,7 +12,7 @@ import data
 
 def unnorm_ti(ti_norm, n_min=5, n_max=30):
     pos_ti = np.arange(n_min, n_max + 1)
-    step_ti = (GENE_SIZE + 1) / (n_max-n_min))
+    step_ti = (GENE_SIZE + 1) / (n_max-n_min)
     i = int(np.floor(ti_norm / step_ti))
     return int(pos_ti[i])
 
@@ -458,7 +458,6 @@ class Population:
         for chromo_h_fame in h_fame:
             for chromo in chromo_list:
                 if check_same_chromo(chromo_h_fame, chromo):
-                    print('same')
                     chromo_list.remove(chromo)
         #  TODO CONTINUAR AQUI
         # for chromo in chromo_list:
@@ -511,7 +510,6 @@ class Population:
 
     def parent_selection_phase(self):
         method_ps = self.get_method_ps()
-        print('method' + str(method_ps))
         method = self.ps_tournament  # to eliminate warnings
         if method_ps == 1:
             method = self.ps_top
@@ -526,7 +524,6 @@ class Population:
     def crossover_phase(self):
         method_crov = self.get_method_crov()
         method = crov_2points  # to eliminate warnings
-        print(self.get_parents())
         parents = self.get_parents().copy()
         new_gen = []
 
@@ -569,7 +566,6 @@ class Population:
             if use_trading:
                 portfolio = ts.trade(eval_start, eval_end, orders)
                 score = portfolio.get_ROI()['value'].iloc[-1]
-                print(score)
             else:
                 score = forecast_check(forecast, tickers)
             chro.set_score(score)
@@ -657,12 +653,12 @@ def forecast_orders(genes, tickers, chr_size):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
 
-    fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-6])) + 'vix_rsi.csv'
-    fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-5])) + 'vix_roc.csv'
-    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-4])) + 'stock_rsi.csv'
-    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-3])) + 'stock_roc.csv'
-    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-2])) + 'ivol_rsi.csv'
-    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-1])) + 'ivol_roc.csv'
+    fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_vix_rsi.csv'
+    fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_vix_roc.csv'
+    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_stock_rsi.csv'
+    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_stock_roc.csv'
+    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-1].get_value())) + '_ivol_roc.csv'
 
     vix_rsi = pd.read_csv(fp_vix_rsi, index_col='Date', parse_dates=True)
     vix_roc = pd.read_csv(fp_vix_roc, index_col='Date', parse_dates=True)
@@ -676,7 +672,7 @@ def forecast_orders(genes, tickers, chr_size):
     for gene in genes:
         gene_sum += gene.get_value()
     for ticker in tickers:
-        for date in chr_signals.index:
+        for date in vix_rsi.index:
             fc = (vix_rsi.loc[date, 'vix_rsi'] * genes[0].get_value() +
                   vix_roc.loc[date, 'vix_roc'] * genes[1].get_value() +
                   stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +

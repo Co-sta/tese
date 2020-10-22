@@ -4,6 +4,7 @@ from random import randrange
 from math import floor
 from math import sqrt
 from scipy.stats import truncnorm
+from functools import partial
 from copy import deepcopy
 from multiprocessing import Pool
 # import statistics as stats
@@ -51,10 +52,8 @@ def unnorm(gene_list, g1_pop_size=0, g1_gene_size=0):
 
 def unnorm_n_parents(n_parents_norm, g1_pop_size, g1_gene_size):
     pos_n_parents = np.arange(2, g1_pop_size + 1)
-    print(pos_n_parents)
     step_n_parents = (g1_gene_size + 1) / len(pos_n_parents)
     i = int(np.floor(n_parents_norm / step_n_parents))
-    print('number of parents: ' + str(int(pos_n_parents[i])))
     return int(pos_n_parents[i])
 
 def unnorm_n_children(n_children_norm, ga1_n_parents, g1_pop_size, g1_gene_size):
@@ -529,28 +528,27 @@ class Population:
         for chromo_h_fame in h_fame:
             for chromo in chromo_list:
                 if check_same_chromo(chromo_h_fame, chromo):
-                    print('same')
                     chromo_list.remove(chromo)
         #  TODO CONTINUAR AQUI
-        for chromo in chromo_list:
-            print('G2: score: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in chromo_list:
+        #     print('G2: score: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         chromo_list.sort(key=lambda x: x.score, reverse=True)
-        for chromo in chromo_list:
-            print('G2: score ordenado: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in chromo_list:
+        #     print('G2: score ordenado: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         h_fame.extend(chromo_list)
-        for chromo in h_fame:
-            print('G2: h_fame + list: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in h_fame:
+        #     print('G2: h_fame + list: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         h_fame.sort(key=lambda x: x.score, reverse=True)
-        for chromo in h_fame:
-            print('G2: h_fame + list ordenado: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in h_fame:
+        #     print('G2: h_fame + list ordenado: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         new_h_fame = deepcopy(h_fame[0:h_fame_size])
-        for chromo in new_h_fame:
-            print('G2: H_FAME: ' + str(chromo.get_score()))
-        print('------------------------------------')
+        # for chromo in new_h_fame:
+        #     print('G2: H_FAME: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         new_best_score = new_h_fame[0].get_score()
 
         if new_best_score > old_best_score:
@@ -631,11 +629,9 @@ class Population:
         self.set_chromo_list(new_gen)
 
     def evaluation_phase(self, eval_start, eval_end, n_threads=5):
-        print(self.get_chromo_list[0].get_score)
         with Pool(n_threads) as p:
             eval_multi=partial(evaluate_multi, eval_start=eval_start, eval_end=eval_end)
             self.chromo_list = p.map(eval_multi, self.get_chromo_list())
-        print(self.get_chromo_list[0].get_score)
 
 
     # def evaluation_phase(self, eval_start, eval_end):
