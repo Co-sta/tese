@@ -24,7 +24,7 @@ GENE_SIZE = 100000
 END_VALUE = 0.9  # MEXER
 MAX_N_GEN = 100  # max of generations per simulation # MEXER
 N_TOP = 5 # MEXER
-MAX_NO_EVOL = 5 # MEXER
+MAX_NO_EVOL = 10 # MEXER
 H_FAME_SIZE = 5 # MEXER
 
 N_PARENTS = 1  # initialization
@@ -37,7 +37,7 @@ METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
-FORECAST_DIST = 30  # forecast with 15 days of distance
+# FORECAST_DIST = 30  # forecast with 15 days of distance
 IVOL_CHANGE_STEP = 0.05  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
@@ -141,9 +141,9 @@ def get_MAX_NO_EVOL():
     return MAX_NO_EVOL
 
 
-def get_FORECAST_DIST():
-    global FORECAST_DIST
-    return FORECAST_DIST
+# def get_FORECAST_DIST():
+#     global FORECAST_DIST
+#     return FORECAST_DIST
 
 
 def get_IVOL_CHANGE_STEP():
@@ -458,6 +458,7 @@ class Population:
         for chromo_h_fame in h_fame:
             for chromo in chromo_list:
                 if check_same_chromo(chromo_h_fame, chromo):
+                    print('same')
                     chromo_list.remove(chromo)
         #  TODO CONTINUAR AQUI
         # for chromo in chromo_list:
@@ -476,9 +477,10 @@ class Population:
         #     print('h_fame + list ordenado: ' + str(chromo.get_score()))
         # print('------------------------------------')
         new_h_fame = deepcopy(h_fame[0:h_fame_size])
-        # for chromo in new_h_fame:
-        #     print('H_FAME: ' + str(chromo.get_score()))
-        # print('------------------------------------')
+        for chromo in new_h_fame:
+            print('H_FAME: ' + str(chromo.get_score()))
+        print('------------------------------------')
+        self.print_chromo_list()
         new_best_score = new_h_fame[0].get_score()
 
         if new_best_score > old_best_score:
@@ -567,7 +569,7 @@ class Population:
                 portfolio = ts.trade(eval_start, eval_end, orders)
                 score = portfolio.get_ROI()['value'].iloc[-1]
             else:
-                score = forecast_check(forecast, tickers)
+                score = forecast_check(forecast, tickers, unnorm_ti(chro.get_gene_list()[-1].get_value()))
             chro.set_score(score)
             cnt += 1
 
@@ -653,12 +655,12 @@ def forecast_orders(genes, tickers, chr_size):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
 
-    fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_vix_rsi.csv'
-    fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_vix_roc.csv'
-    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_stock_rsi.csv'
-    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_stock_roc.csv'
-    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_rsi.csv'
-    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-1].get_value())) + '_ivol_roc.csv'
+    fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_vix_rsi.csv'
+    fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_vix_roc.csv'
+    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_stock_rsi.csv'
+    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_stock_roc.csv'
+    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_roc.csv'
 
     vix_rsi = pd.read_csv(fp_vix_rsi, index_col='Date', parse_dates=True)
     vix_roc = pd.read_csv(fp_vix_roc, index_col='Date', parse_dates=True)
@@ -702,8 +704,8 @@ def forecast_orders(genes, tickers, chr_size):
     return forecast, orders
 
 
-def forecast_check(forecast, tickers):
-    for_dist = get_FORECAST_DIST()
+def forecast_check(forecast, tickers, forecast_dist):
+    for_dist = forecast_dist
     change_step = get_IVOL_CHANGE_STEP()
     correct_days = 0
     trading_days = 0

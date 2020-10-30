@@ -34,12 +34,12 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
         if i == 4: print('     ivol_rsi_weight: ' + str(chr1.get_value()))
         if i == 5: print('     ivol_roc_weight: ' + str(chr1.get_value()))
 
-        if i == 6: print('     n_vix_rsi: ' + str(ti.unnorm_ti(chr1.get_value())))
-        if i == 7: print('     n_vix_roc: ' + str(ti.unnorm_ti(chr1.get_value())))
-        if i == 8: print('     n_stock_rsi: ' + str(ti.unnorm_ti(chr1.get_value())))
-        if i == 9: print('     n_stock_roc: ' + str(ti.unnorm_ti(chr1.get_value())))
-        if i == 10: print('     n_ivol_rsi: ' + str(ti.unnorm_ti(chr1.get_value())))
-        if i == 11: print('     n_ivol_roc: ' + str(ti.unnorm_ti(chr1.get_value())))
+        if i == 6: print('     n_vix_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 7: print('     n_vix_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 8: print('     n_stock_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 9: print('     n_stock_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 10: print('     n_ivol_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 11: print('     n_ivol_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
 
 
 def graph_score(filename):
