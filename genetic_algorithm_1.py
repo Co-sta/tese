@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import trading_simulator as ts
 from random import randrange
+import math
 from math import floor
 from math import sqrt
 from scipy.stats import truncnorm
@@ -564,7 +565,7 @@ class Population:
         cnt = 1  # TODO tirar
         for chro in self.get_chromo_list():
             print('evaluating ' + 'chromossome ' + str(cnt) + ' (' + str(self.get_pop_size()) + ')') # TODO tirar
-            [forecast, orders] = forecast_orders(chro.get_gene_list(), tickers, self.get_chr_size())
+            [forecast, orders] = forecast_orders(chro.get_gene_list(), tickers, self.get_chr_size(), eval_start, eval_end)
             if use_trading:
                 portfolio = ts.trade(eval_start, eval_end, orders)
                 score = portfolio.get_ROI()['value'].iloc[-1]
@@ -651,7 +652,7 @@ def crov_random(chromo1, chromo2):
 #        forecast          #
 ############################
 # TODO METER O RESTO DOS INDICADORES...
-def forecast_orders(genes, tickers, chr_size):
+def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
 
@@ -670,42 +671,45 @@ def forecast_orders(genes, tickers, chr_size):
     ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
 
     gene_sum = 0
-
     for gene in genes:
         gene_sum += gene.get_value()
     for ticker in tickers:
         for date in vix_rsi.index:
-            fc = (vix_rsi.loc[date, 'vix_rsi'] * genes[0].get_value() +
-                  vix_roc.loc[date, 'vix_roc'] * genes[1].get_value() +
-                  stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
-                  stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
-                  ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[4].get_value() +
-                  ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[5].get_value()) / \
-                 gene_sum  # TODO ... AQUI
-            # print('---------------------------')
-            # print(ticker)
-            # print('\nvix rsi: ' + str(chr_signals.loc[date, 'vix_rsi']))
-            # print('\ngene vix rsi: ' + str(genes[0].get_value()))
-            # print('\nvix roc: ' + str(chr_signals.loc[date, 'vix_roc']))
-            # print('\ngene vix roc: ' + str(genes[1].get_value()))
-            # print('\nAAPL rsi: ' + str(chr_signals.loc[date, ticker + '_rsi']))
-            # print('\ngene AAPl roc: ' + str(genes[2].get_value()))
-            # print('\nAAPL roc: ' + str(chr_signals.loc[date, ticker + '_roc']))
-            # print('\ngene AAPL roc: ' + str(genes[3].get_value()))
-            # print('foretasted value: ' + str(fc))
-            forecast.at[ticker, date] = fc
-            if fc >= 55:  # TODO VERIFICAR O VALOR
-                orders.at[ticker, date] = 1
-            elif fc <= 45:  # TODO VERIFICAR O VALOR
-                orders.at[ticker, date] = -1
+            if date < eval_start:
+                continue
+            elif date > eval_end:
+                break
             else:
-                orders.at[ticker, date] = 0
+                fc = (vix_rsi.loc[date, 'vix_rsi'] * genes[0].get_value() +
+                      vix_roc.loc[date, 'vix_roc'] * genes[1].get_value() +
+                      stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
+                      stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
+                      ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[4].get_value() +
+                      ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[5].get_value()) / \
+                     gene_sum  # TODO ... AQUI
+                # print('---------------------------')
+                # print(ticker)
+                # print('\nvix rsi: ' + str(chr_signals.loc[date, 'vix_rsi']))
+                # print('\ngene vix rsi: ' + str(genes[0].get_value()))
+                # print('\nvix roc: ' + str(chr_signals.loc[date, 'vix_roc']))
+                # print('\ngene vix roc: ' + str(genes[1].get_value()))
+                # print('\nAAPL rsi: ' + str(chr_signals.loc[date, ticker + '_rsi']))
+                # print('\ngene AAPl roc: ' + str(genes[2].get_value()))
+                # print('\nAAPL roc: ' + str(chr_signals.loc[date, ticker + '_roc']))
+                # print('\ngene AAPL roc: ' + str(genes[3].get_value()))
+                # print('foretasted value: ' + str(fc))
+                forecast.at[ticker, date] = fc
+                if fc >= 55:  # TODO VERIFICAR O VALOR
+                    orders.at[ticker, date] = 1
+                elif fc <= 45:  # TODO VERIFICAR O VALOR
+                    orders.at[ticker, date] = -1
+                else:
+                    orders.at[ticker, date] = 0
 
     return forecast, orders
 
 
-def forecast_check(forecast, tickers, forecast_dist):
-    for_dist = forecast_dist
+def forecast_check(forecast, tickers, for_dist):
     change_step = get_IVOL_CHANGE_STEP()
     correct_days = 0
     trading_days = 0
@@ -722,8 +726,9 @@ def forecast_check(forecast, tickers, forecast_dist):
                 if ivol_fut_idx > ivol.size - 1 - for_dist:
                     break
                 ivol_fut_value = ivol.iloc[ivol_fut_idx]
-                change = (ivol_fut_value - ivol_pre_value) / ivol_pre_value  # percentage of increase of ivol
-
+                change = (ivol_fut_value - ivol_pre_value) / ivol_pre_value  # percentage increase of ivol
+                if math.isnan(change):
+                    continue
                 # TODO VERIFICAR OS VALOR
                 if (forecast.at[ticker, date] >= 55 and change >= change_step) \
                         or (forecast.at[ticker, date] <= 45 and change <= -change_step) \

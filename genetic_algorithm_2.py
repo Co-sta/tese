@@ -160,7 +160,7 @@ def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_
 
     while True:
         print('G2 generation nr: ' + str(pop.get_generation()))
-        pop.evaluation_phase(eval_start, eval_end, 5)
+        pop.evaluation_phase(eval_start, eval_end, 6)
         pop.update_h_fame()
         [end, best_chromo] = pop.check_end_phase()
 
@@ -630,6 +630,7 @@ class Population:
 
     def evaluation_phase(self, eval_start, eval_end, n_threads=5):
         with Pool(n_threads) as p:
+            self.print_chromo_list()
             eval_multi=partial(evaluate_multi, eval_start=eval_start, eval_end=eval_end)
             self.chromo_list = p.map(eval_multi, self.get_chromo_list())
 
