@@ -19,7 +19,7 @@ ga2_method_crov = 5  # crossover methods. [1,2,3,4,5] # MEXER
 
 
 # GA 1 - LOWER
-ga1_pop_size = 30  # MEXER
+ga1_pop_size = 100  # MEXER
 ga1_chr_size = 13    # 6 INDICADORES PARA CADA EMPRESA + 6 GENES PARA O 'N' DE CADA INDICADOR +1 para a dist de forecast
 ga1_gene_size = 100000
 
@@ -44,5 +44,5 @@ def tese():
     data.save_best(best_chromo, time_period)
 
 tese()
-# ui.print_result('1st_period-23-10-2020:03:09:53 AM.pickle', ga1_pop_size, ga1_gene_size)
-# ui.graph_score('1st_period-23-10-2020:03:09:53 AM.pickle')
+# ui.print_result('1st_period-09-11-2020:01:05:07 PM.pickle', ga1_pop_size, ga1_gene_size)
+# ui.graph_score('1st_period-09-11-2020:01:05:07 PM.pickle')

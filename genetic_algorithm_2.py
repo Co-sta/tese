@@ -69,7 +69,7 @@ def unnorm_mutation_rate(mutation_rate_norm):
     return mutation_rate_norm / 100000
 
 def unnorm_mutation_std(mutation_std_norm, g1_gene_size):
-    pos_mutation_std = np.arange(0, 15000 + 1)
+    pos_mutation_std = np.arange(0, 50000 + 1)
     step_mutation_std = (g1_gene_size + 1) / len(pos_mutation_std)
     i = int(np.floor(mutation_std_norm / step_mutation_std))
     return int(pos_mutation_std[i])
@@ -160,7 +160,7 @@ def simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_
 
     while True:
         print('G2 generation nr: ' + str(pop.get_generation()))
-        pop.evaluation_phase(eval_start, eval_end, 6)
+        pop.evaluation_phase(eval_start, eval_end, 5)
         pop.update_h_fame()
         [end, best_chromo] = pop.check_end_phase()
 

@@ -11,7 +11,7 @@ from copy import deepcopy
 import data
 
 
-def unnorm_ti(ti_norm, n_min=5, n_max=30):
+def unnorm_ti(ti_norm, n_min=5, n_max=60):
     pos_ti = np.arange(n_min, n_max + 1)
     step_ti = (GENE_SIZE + 1) / (n_max-n_min)
     i = int(np.floor(ti_norm / step_ti))
@@ -39,7 +39,7 @@ METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
 # FORECAST_DIST = 30  # forecast with 15 days of distance
-IVOL_CHANGE_STEP = 0.05  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
+IVOL_CHANGE_STEP = 0.10  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
 def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
@@ -415,10 +415,12 @@ class Population:
         if (get_N_PARENTS() - ntop > 0):
             for i in range(len(chromo_list)):
                 sum_scores = sum_scores + chromo_list[i].get_score()
-            if sum_scores:
+            try:
                 for i in range(len(chromo_list)):
                     scores.append(chromo_list[i].score / sum_scores)
                 parents_i = (np.random.choice(len(chromo_list), get_N_PARENTS() - ntop, replace=False, p=scores).tolist())
+            except:
+                print('Fewer non-zero entries in p than size (há demasiados poucos pais com score diferente de zero)')
             else:
                 parents_i = (np.random.choice(len(chromo_list), get_N_PARENTS() - ntop, replace=False).tolist())
             for i in parents_i:
@@ -562,6 +564,7 @@ class Population:
     # TODO INTRODUZIR A LISTA COMPLETA DE EMPRESAS
     def evaluation_phase(self, eval_start, eval_end, use_trading=False):
         tickers = data.open_sp500_tickers_to_list()
+        # tickers = data.open_all_sp500_tickers_to_list()
         cnt = 1  # TODO tirar
         for chro in self.get_chromo_list():
             print('evaluating ' + 'chromossome ' + str(cnt) + ' (' + str(self.get_pop_size()) + ')') # TODO tirar
@@ -671,8 +674,8 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
 
     gene_sum = 0
-    for gene in genes:
-        gene_sum += gene.get_value()
+    for i in range(6):
+        gene_sum += genes[i].get_value()
     for ticker in tickers:
         for date in vix_rsi.index:
             if date < eval_start:
@@ -689,15 +692,21 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                      gene_sum  # TODO ... AQUI
                 # print('---------------------------')
                 # print(ticker)
-                # print('\nvix rsi: ' + str(chr_signals.loc[date, 'vix_rsi']))
-                # print('\ngene vix rsi: ' + str(genes[0].get_value()))
-                # print('\nvix roc: ' + str(chr_signals.loc[date, 'vix_roc']))
-                # print('\ngene vix roc: ' + str(genes[1].get_value()))
-                # print('\nAAPL rsi: ' + str(chr_signals.loc[date, ticker + '_rsi']))
-                # print('\ngene AAPl roc: ' + str(genes[2].get_value()))
-                # print('\nAAPL roc: ' + str(chr_signals.loc[date, ticker + '_roc']))
-                # print('\ngene AAPL roc: ' + str(genes[3].get_value()))
+                # print('vix rsi: ' + str(vix_rsi.loc[date, 'vix_rsi']))
+                # print('gene vix rsi: ' + str(genes[0].get_value()))
+                # print('vix roc: ' + str(vix_roc.loc[date, 'vix_roc']))
+                # print('gene vix roc: ' + str(genes[1].get_value()))
+                # print('stock rsi: ' + str(stock_rsi.loc[date, 'stock_' + ticker + '_rsi']))
+                # print('gene stock rsi: ' + str(genes[2].get_value()))
+                # print('stock roc: ' + str(stock_roc.loc[date, 'stock_' + ticker + '_roc']))
+                # print('gene stock roc: ' + str(genes[3].get_value()))
+                # print('ivol rsi: ' + str(ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi']))
+                # print('gene ivols rsi: ' + str(genes[4].get_value()))
+                # print('ivol roc: ' + str(ivol_roc.loc[date, 'ivol_' + ticker + '_roc']))
+                # print('gene ivol roc: ' + str(genes[5].get_value()))
                 # print('foretasted value: ' + str(fc))
+                # print('genesum: ' + str(gene_sum))
+                # print('---------------------------')
                 forecast.at[ticker, date] = fc
                 if fc >= 55:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = 1
@@ -730,12 +739,17 @@ def forecast_check(forecast, tickers, for_dist):
                 if math.isnan(change):
                     continue
                 # TODO VERIFICAR OS VALOR
+                # print('--------')
+                # print(forecast.at[ticker, date])
+                # print(change)
+                # print('--------')
                 if (forecast.at[ticker, date] >= 55 and change >= change_step) \
                         or (forecast.at[ticker, date] <= 45 and change <= -change_step) \
                         or (45 >= forecast.at[ticker, date] >= 55 and abs(change) < change_step):
                     correct_days += 1
                 trading_days += 1
-
+    print('CORRECT DAYS: ' + str(correct_days))
+    print('TRADING DAYS: ' + str(trading_days))
     score = correct_days / trading_days
     return score
 

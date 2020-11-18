@@ -55,7 +55,6 @@ def compute_technical_signals(n):
 ############################
 def compute_all_technical_signals(n_threads= 5, min=5, max=30):
     n = np.arange(min, max+1)
-    print(n)
     with Pool(n_threads) as p:
         print(p.map(compute_technical_signals, n))
 
@@ -75,7 +74,6 @@ def normalization(signal, s_min=0, s_max=0):
 
 def save_technical_indicator(signal, filename):
     filepath = 'data/technical_indicators/' + filename + '.csv'
-    signal = signal.applymap(nan_to_50)
     signal.to_csv(filepath)
 
 
@@ -149,7 +147,7 @@ def RSI(raw_signal, n=14):
         calc.at[calc.index[i], 'avg_down'] = (n - 1 * calc.iloc[i-1].at['avg_down'] + calc.iloc[i].at['down']) / n
         calc.at[calc.index[i], 'rsi'] = 100 - 100 / (1 + calc.iloc[i].at['avg_up'] / calc.iloc[i].at['avg_down'])
 
-    signal = pd.DataFrame()
+    signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['rsi']
     return signal
 
@@ -160,7 +158,8 @@ def ROC(raw_signal, n=14):
 
     for i in range(n, len(calc)):
         calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] / calc.iloc[i-n]['close'] - 1) * 100
-    # calc = normalization(calc, -100, 100)
-    signal = pd.DataFrame()
+    calc = normalization(calc, -100, 100)
+
+    signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
     return signal

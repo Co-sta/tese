@@ -41,6 +41,9 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
         if i == 10: print('     n_ivol_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
         if i == 11: print('     n_ivol_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
 
+        if i == 12: print('     n_prediction: ' + str(ga1.unnorm_ti(chr1.get_value())))
+
+
 
 def graph_score(filename):
     filepath = 'data/results/' + filename
