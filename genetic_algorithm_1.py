@@ -10,6 +10,7 @@ from scipy.stats import truncnorm
 from copy import deepcopy
 import data
 
+# o que interessa da implied volatility é a varaiação absoludta e não a variação precentual a implied volatility
 
 def unnorm_ti(ti_norm, n_min=5, n_max=60):
     pos_ti = np.arange(n_min, n_max + 1)
@@ -38,8 +39,7 @@ METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
-# FORECAST_DIST = 30  # forecast with 15 days of distance
-IVOL_CHANGE_STEP = 0.10  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
+IVOL_CHANGE_STEP = 0.05  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
 def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
@@ -708,9 +708,9 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                 # print('genesum: ' + str(gene_sum))
                 # print('---------------------------')
                 forecast.at[ticker, date] = fc
-                if fc >= 55:  # TODO VERIFICAR O VALOR
+                if fc >= 52.5:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = 1
-                elif fc <= 45:  # TODO VERIFICAR O VALOR
+                elif fc <= 47.5:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = -1
                 else:
                     orders.at[ticker, date] = 0
@@ -743,9 +743,9 @@ def forecast_check(forecast, tickers, for_dist):
                 # print(forecast.at[ticker, date])
                 # print(change)
                 # print('--------')
-                if (forecast.at[ticker, date] >= 55 and change >= change_step) \
-                        or (forecast.at[ticker, date] <= 45 and change <= -change_step) \
-                        or (45 >= forecast.at[ticker, date] >= 55 and abs(change) < change_step):
+                if (forecast.at[ticker, date] >= 52.5 and change >= change_step) \
+                        or (forecast.at[ticker, date] <= 47.5 and change <= -change_step) \
+                        or (47.5 >= forecast.at[ticker, date] >= 525 and abs(change) < change_step):
                     correct_days += 1
                 trading_days += 1
     print('CORRECT DAYS: ' + str(correct_days))

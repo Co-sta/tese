@@ -27,8 +27,8 @@ def compute_technical_signals(n):
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
         print('stock: ' + tic)
         data['close'] = data_all_tic[tic]
-        rsi_tic = RSI(data, n).rename(columns={'value': 'stock_' + tic + '_rsi', 'Unnamed: 0':'Date'})
-        roc_tic = ROC(data, n).rename(columns={'value': 'stock_' + tic + '_roc', 'Unnamed: 0':'Date'})
+        rsi_tic = RSI(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_rsi', 'Unnamed: 0':'Date'})
+        roc_tic = ROC(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_roc', 'Unnamed: 0':'Date'})
         rsi_stock_signals = pd.concat([rsi_stock_signals, rsi_tic], axis=1)
         roc_stock_signals = pd.concat([roc_stock_signals, roc_tic], axis=1)
     save_technical_indicator(rsi_stock_signals, str(n)+'_stock_rsi')
@@ -53,7 +53,7 @@ def compute_technical_signals(n):
 ############################
 #       extra methods      #
 ############################
-def compute_all_technical_signals(n_threads= 5, min=5, max=30):
+def compute_all_technical_signals(n_threads= 5, min=5, max=60):
     n = np.arange(min, max+1)
     with Pool(n_threads) as p:
         print(p.map(compute_technical_signals, n))
@@ -109,7 +109,7 @@ def nan_to_50(value):
 #   Technical Indicators   #
 ############################
 # TODO CORRIGIR A FUNÇÃO
-def RSI(raw_signal, n=14):
+def RSI(raw_signal, n=14, stock=False):
     calc = raw_signal.copy()
     calc['up'] = np.nan
     calc['down'] = np.nan
@@ -147,18 +147,28 @@ def RSI(raw_signal, n=14):
         calc.at[calc.index[i], 'avg_down'] = (n - 1 * calc.iloc[i-1].at['avg_down'] + calc.iloc[i].at['down']) / n
         calc.at[calc.index[i], 'rsi'] = 100 - 100 / (1 + calc.iloc[i].at['avg_up'] / calc.iloc[i].at['avg_down'])
 
+    if stock:
+        for i in range(n, len(calc)):
+            value = calc.at[calc.index[i], 'rsi']
+            calc.at[calc.index[i], 'rsi'] = abs((value-50)*2)
+
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['rsi']
     return signal
 
 
-def ROC(raw_signal, n=14):
+def ROC(raw_signal, n=14, stock=False):
     calc = raw_signal.copy()
     calc['value'] = np.nan
 
     for i in range(n, len(calc)):
         calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] / calc.iloc[i-n]['close'] - 1) * 100
-    calc = normalization(calc, -100, 100)
+
+    if stock:
+        for i in range(n, len(calc)):
+            calc.at[calc.index[i], 'value'] = abs(calc.at[calc.index[i], 'value'])
+    else:
+        calc = normalization(calc, -100, 100)
 
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']

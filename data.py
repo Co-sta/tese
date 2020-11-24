@@ -215,4 +215,13 @@ def save_best(best, title):
     now = now.strftime('%d-%m-%Y:%r')
     filepath = 'data/results/' + title + '-' + now + '.pickle'
     pickle.dump(best, open( filepath, "wb" ))
-    print('result saved')
+    print('best population saved')
+    return filepath
+
+def save_portfolio(portfolio, filepath):
+    if not filepath:
+        now = pd.to_datetime("now")
+        now = now.strftime('%d-%m-%Y:%r')
+        filepath = 'data/results/' + title + '-' + now + '.pickle'
+    pickle.dump(portfolio, open( filepath, "wb" ))
+    print('portfolio saved')

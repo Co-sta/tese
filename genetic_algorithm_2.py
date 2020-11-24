@@ -272,10 +272,6 @@ class Chromosome:
     def get_gene_list(self):
         return self.gene_list
 
-
-    def get_sub_max_score(self):
-        return self.sub_max_score
-
     def get_sub_pop(self):
         return self.sub_pop
     ###########################

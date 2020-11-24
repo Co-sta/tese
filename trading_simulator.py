@@ -14,6 +14,7 @@ def trade(eval_start, eval_end, orders):
             action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
             print('current day:     ' + str(port.get_current_date()))
             print('action:    ' + str(action))
+            print('ROI: '+ str(port.get_ROI()['value'].iloc[-1]))
             if action == 1:
                 # print('current day :  ' + str(port.current_date))
                 # print((port.get_current_date() + MIN_DIS_TIME))
@@ -127,7 +128,7 @@ class Portfolio:
 
         self.log = {self.current_date: []}
         self.ROI = pd.DataFrame(data={'value': 0}, index=[start_date])
-        self.stock_splits = pd.read_csv('data/stock_splits.csv', index_col='date', parse_dates=True)
+        self.stock_splits = pd.read_csv('data/stock_splits/stock_splits.csv', index_col='date', parse_dates=True)
 
     #  GETTERS  #
     def get_max_position(self):
