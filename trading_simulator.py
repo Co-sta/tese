@@ -347,7 +347,7 @@ class Portfolio:
 
     def sell_exercise_options(self, ticker=0, root=0):
         if not root:  # sells or exercises all options from that company
-            for option in self.portfolio:
+            for option in self.portfolio.values():
                 if option.get_company() == ticker:
                     root = option.get_root()
                     option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
