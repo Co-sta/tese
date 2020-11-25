@@ -10,11 +10,11 @@ def trade(eval_start, eval_end, orders):
     port = Portfolio(eval_start, eval_end)
     while port.new_day():
         daily_orders = orders[port.current_date].copy()
+        print('current day:     ' + str(port.get_current_date()))
         for ticker in daily_orders.index:
             action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
-            print('current day:     ' + str(port.get_current_date()))
-            print('action:    ' + str(action))
-            print('ROI: '+ str(port.get_ROI()['value'].iloc[-1]))
+            # print('action:    ' + str(action))
+            # print('ROI: '+ str(port.get_ROI()['value'].iloc[-1]))
             if action == 1:
                 # print('current day :  ' + str(port.current_date))
                 # print((port.get_current_date() + MIN_DIS_TIME))
@@ -179,8 +179,7 @@ class Portfolio:
         underlying_price = \
             self.dataset.loc[self.dataset['UnderlyingSymbol'] == ticker]['UnderlyingPrice'].iloc[-1]
 
-        print(underlying_price)
-
+        # print(underlying_price)
         t1 = self.get_current_date() + MIN_DIS_TIME
         t2 = self.get_current_date() + MAX_DIS_TIME
 
@@ -268,6 +267,7 @@ class Portfolio:
 
     def new_day(self):
         current_date = self.get_current_date()
+
         while True:
             current_date = current_date + pd.to_timedelta(1, unit='d')
             [dataset, date_exists] = self.get_option_dataset(current_date)
@@ -323,12 +323,13 @@ class Portfolio:
         return n_options, option_price
 
     def sell_options(self, root):
-        print('selling.... ' + root)
-        option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
-        n_options = self.portfolio[root].get_quantity()
-        self.current_capital += option_price * n_options
-        self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
-        self.to_clean_portfolio.append(root)
+        if root not in self.to_clean_portfolio:
+            print('selling.... ' + root)
+            option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
+            n_options = self.portfolio[root].get_quantity()
+            self.current_capital += option_price * n_options
+            self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
+            self.to_clean_portfolio.append(root)
 
     def exercise_options(self, root):
         print('exercising.... ' + root)
@@ -364,8 +365,8 @@ class Portfolio:
                     else:
                         self.exercise_options(root)
         else:  # sells or exercises a specific option
-            print('root para ser vendido:    ' + root)  # TODO TIRAR
-            print(self.dataset.loc[self.dataset['OptionRoot'] == root])
+            print('expiring:    ' + root)  # TODO TIRAR
+            # print(self.dataset.loc[self.dataset['OptionRoot'] == root])
             option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
             stock_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['UnderlyingPrice']
             strike = self.portfolio[root].get_strike()
@@ -387,6 +388,7 @@ class Portfolio:
     def clean_portfolio(self):
         to_clean = self.get_to_clean_portfolio()
         for root in to_clean:
+            # print(root in self.portfolio)
             self.portfolio.pop(root)
         self.empty_to_clean()
 
