@@ -46,18 +46,16 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
 
 
 def graph_score(filename):
-    filepath = 'data/results/' + filename
+    filepath = 'data/results/train/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
     score_evol =  best_chromo.get_sub_pop().get_max_score()
     print(score_evol)
     fig = px.line(score_evol, x="epoch", y="score")
     fig.show()
 
-# def graph_ROI(filename):
-#     filepath = 'data/results/' + filename
-#     best_chromo = pickle.load( open( filepath, "rb" ))
-#
-#     roi_evol =  best_chromo.get_sub_pop().get_max_score()
-#     print(score_evol)
-#     fig = px.line(score_evol, x="epoch", y="score")
-#     fig.show()
+def graph_ROI(filename):
+    filepath = 'data/results/test/' + filename
+    portfolio = pickle.load( open( filepath, "rb" ))
+    roi_evol = portfolio.get_ROI()
+    fig = px.line(roi_evol, x="index", y="value")
+    fig.show()

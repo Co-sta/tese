@@ -213,7 +213,7 @@ def create_yfinance_dataset():
 def save_best(best, title):
     now = pd.to_datetime("now")
     now = now.strftime('%d-%m-%Y:%r')
-    filepath = 'data/results/' + title + '-' + now + '.pickle'
+    filepath = 'data/results/train/' + title + '-' + now + '.pickle'
     pickle.dump(best, open( filepath, "wb" ))
     print('best population saved')
     return filepath
@@ -222,6 +222,6 @@ def save_portfolio(portfolio, filepath):
     if not filepath:
         now = pd.to_datetime("now")
         now = now.strftime('%d-%m-%Y:%r')
-        filepath = 'data/results/' + title + '-' + now + '.pickle'
+        filepath = 'data/results/test/' + title + '-' + now + '.pickle'
     pickle.dump(portfolio, open( filepath, "wb" ))
     print('portfolio saved')
