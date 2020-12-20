@@ -141,6 +141,7 @@ def open_sp500_tickers_to_list():
         tickers = f.read().splitlines()
     return tickers
 
+
 def open_all_sp500_tickers_to_list():
     with open('data/SP500/sp500_tickers_all_all.txt') as f:
         tickers = f.read().splitlines()
@@ -196,6 +197,7 @@ def create_ivol_dataset():
     print("File Saved!")
     return all_ivol
 
+
 def create_yfinance_dataset():
     tickers = open_all_sp500_tickers_to_list()
     filename = 'data/yfinance/all_tickers_yfinance.csv'
@@ -218,10 +220,11 @@ def save_best(best, title):
     print('best population saved')
     return filepath
 
-def save_portfolio(portfolio, filepath):
+
+def save_portfolio(portfolio, time_period=0, filepath=0):
     if not filepath:
         now = pd.to_datetime("now")
         now = now.strftime('%d-%m-%Y:%r')
-        filepath = 'data/results/test/' + title + '-' + now + '.pickle'
+        filepath = 'data/results/test/' + time_period + '-' + now + '.pickle'
     pickle.dump(portfolio, open( filepath, "wb" ))
     print('portfolio saved')

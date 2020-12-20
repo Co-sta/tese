@@ -7,7 +7,7 @@ import plotly.express as px
 
 
 def print_result(filename, ga1_pop_size, ga1_gene_size):
-    filepath = 'data/results/' + filename
+    filepath = 'data/results/train/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
     genes2 = best_chromo.get_gene_list()
     print('G2-Chromossome :' + '(score=' +str(best_chromo.get_score())+ ')')

@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import yfinance as yf
 import data as d
+import os.path
 from multiprocessing import Pool
 
 
@@ -10,42 +11,83 @@ def compute_technical_signals(n):
     tickers = d.open_all_sp500_tickers_to_list()
     rsi_stock_signals = pd.DataFrame()
     roc_stock_signals = pd.DataFrame()
+    sto_stock_signals = pd.DataFrame()
+
     rsi_ivol_signals = pd.DataFrame()
     roc_ivol_signals = pd.DataFrame()
+    sto_ivol_signals = pd.DataFrame()
+    macd_ivol_signals = pd.DataFrame()
+
+    exists_vix_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_vix_rsi.csv')
+    exists_vix_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_vix_roc.csv')
+
+    exists_stock_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_rsi.csv')
+    exists_stock_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_roc.csv')
+    exists_stock_sto = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_sto.csv')
+
+    exists_ivol_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_rsi.csv')
+    exists_ivol_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_roc.csv')
+    exists_ivol_sto = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_sto.csv')
+    exists_ivol_macd = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_macd.csv')
+
 
     # Vix signal
     filepath = 'data/VIX/VIX30D.csv'
     data = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    rsi_vix = RSI(data, n).rename(columns={'value': 'vix_rsi', 'Unnamed: 0':'Date'})
-    roc_vix = ROC(data, n).rename(columns={'value': 'vix_roc', 'Unnamed: 0':'Date'})
-    save_technical_indicator(rsi_vix, str(n)+'_vix_rsi')
-    save_technical_indicator(roc_vix, str(n)+'_vix_roc')
+    if not exists_vix_rsi:
+        rsi_vix = RSI(data, n).rename(columns={'value': 'vix_rsi', 'Unnamed: 0':'Date'})
+        save_technical_indicator(rsi_vix, str(n)+'_vix_rsi')
+    if not exists_vix_roc:
+        roc_vix = ROC(data, n).rename(columns={'value': 'vix_roc', 'Unnamed: 0':'Date'})
+        save_technical_indicator(roc_vix, str(n)+'_vix_roc')
 
     # Stock signals
     filepath = 'data/yfinance/all_tickers_yfinance.csv'
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
-        print('stock: ' + tic)
         data['close'] = data_all_tic[tic]
-        rsi_tic = RSI(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_rsi', 'Unnamed: 0':'Date'})
-        roc_tic = ROC(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_roc', 'Unnamed: 0':'Date'})
-        rsi_stock_signals = pd.concat([rsi_stock_signals, rsi_tic], axis=1)
-        roc_stock_signals = pd.concat([roc_stock_signals, roc_tic], axis=1)
-    save_technical_indicator(rsi_stock_signals, str(n)+'_stock_rsi')
-    save_technical_indicator(roc_stock_signals, str(n)+'_stock_roc')
+        if not exists_stock_rsi:
+            print('stock rsi: ' + tic + ' - ' + str(n))
+            rsi_tic = RSI(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_rsi', 'Unnamed: 0':'Date'})
+            rsi_stock_signals = pd.concat([rsi_stock_signals, rsi_tic], axis=1)
+        if not exists_stock_roc:
+            print('stock roc: ' + tic + ' - ' + str(n))
+            roc_tic = ROC(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_roc', 'Unnamed: 0':'Date'})
+            roc_stock_signals = pd.concat([roc_stock_signals, roc_tic], axis=1)
+        if not exists_stock_sto:
+            print('stock sto: ' + tic + ' - ' + str(n))
+            sto_tic = StO(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_sto', 'Unnamed: 0':'Date'})
+            sto_stock_signals = pd.concat([sto_stock_signals, sto_tic], axis=1)
+
+    if not exists_stock_rsi: save_technical_indicator(rsi_stock_signals, str(n)+'_stock_rsi')
+    if not exists_stock_roc: save_technical_indicator(roc_stock_signals, str(n)+'_stock_roc')
+    if not exists_stock_sto: save_technical_indicator(sto_stock_signals, str(n)+'_stock_sto')
 
     # Implied volatility
     filepath = 'data/implied_volatility/all_tickers_ivol.csv'
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
-        print('ivol: ' + tic)
         data['close'] = data_all_tic[tic]
-        rsi_tic = RSI(data, n).rename(columns={'value': 'ivol_' + tic + '_rsi', 'Unnamed: 0':'Date'})
-        roc_tic = ROC(data, n).rename(columns={'value': 'ivol_' + tic + '_roc', 'Unnamed: 0':'Date'})
-        rsi_ivol_signals = pd.concat([rsi_ivol_signals, rsi_tic], axis=1)
-        roc_ivol_signals = pd.concat([roc_ivol_signals, roc_tic], axis=1)
-    save_technical_indicator(rsi_ivol_signals, str(n)+'_ivol_rsi')
-    save_technical_indicator(roc_ivol_signals, str(n)+'_ivol_roc')
+        if not exists_ivol_rsi:
+            print('ivol rsi: ' + tic + ' - ' + str(n))
+            rsi_tic = RSI(data, n).rename(columns={'value': 'ivol_' + tic + '_rsi', 'Unnamed: 0':'Date'})
+            rsi_ivol_signals = pd.concat([rsi_ivol_signals, rsi_tic], axis=1)
+        if not exists_ivol_roc:
+            print('ivol roc: ' + tic + ' - ' + str(n))
+            roc_tic = ROC(data, n).rename(columns={'value': 'ivol_' + tic + '_roc', 'Unnamed: 0':'Date'})
+            roc_ivol_signals = pd.concat([roc_ivol_signals, roc_tic], axis=1)
+        if not exists_ivol_sto:
+            print('ivol sto: ' + tic + ' - ' + str(n))
+            sto_tic = StO(data, n).rename(columns={'value': 'ivol_' + tic + '_sto', 'Unnamed: 0':'Date'})
+            sto_ivol_signals = pd.concat([sto_ivol_signals, sto_tic], axis=1)
+        if not exists_ivol_macd:
+            print('ivol macd: ' + tic + ' - ' + str(n))
+            macd_tic = MACD(data, n, n+14).rename(columns={'value': 'ivol_' + tic + '_macd', 'Unnamed: 0':'Date'})
+            macd_ivol_signals = pd.concat([macd_ivol_signals, macd_tic], axis=1)
+    if not exists_ivol_rsi:save_technical_indicator(rsi_ivol_signals, str(n)+'_ivol_rsi')
+    if not exists_ivol_roc: save_technical_indicator(roc_ivol_signals, str(n)+'_ivol_roc')
+    if not exists_ivol_sto: save_technical_indicator(sto_ivol_signals, str(n)+'_ivol_sto')
+    if not exists_ivol_macd: save_technical_indicator(macd_ivol_signals, str(n)+'_ivol_macd')
 
     # Other signals
 
@@ -56,8 +98,7 @@ def compute_technical_signals(n):
 def compute_all_technical_signals(n_threads= 5, min=5, max=60):
     n = np.arange(min, max+1)
     with Pool(n_threads) as p:
-        print(p.map(compute_technical_signals, n))
-
+        p.map(compute_technical_signals, n)
 
 
 def normalization(signal, s_min=0, s_max=0):
@@ -108,7 +149,6 @@ def nan_to_50(value):
 ############################
 #   Technical Indicators   #
 ############################
-# TODO CORRIGIR A FUNÇÃO
 def RSI(raw_signal, n=14, stock=False):
     calc = raw_signal.copy()
     calc['up'] = np.nan
@@ -173,3 +213,58 @@ def ROC(raw_signal, n=14, stock=False):
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
     return signal
+
+
+def StO(raw_signal, n=14, stock=False):
+    calc = raw_signal.copy()
+    calc['value'] = np.nan
+    values = np.array([calc.iloc[0:n]['close']])
+    for i in range(n, len(calc)):
+        values = np.append(values, calc.iloc[i]['close'])
+        max = values.max()
+        min = values.min()
+        if max and min and max!=min:
+            calc.at[calc.index[i], 'value'] = ((calc.iloc[i]['close'] - min) / (max - min)) * 100
+        else:
+            calc.at[calc.index[i], 'value'] = 50 # no data to compute
+        values = np.delete(values, 0)
+
+    if stock:
+        for i in range(n, len(calc)):
+            value = calc.at[calc.index[i], 'value']
+            calc.at[calc.index[i], 'value'] = abs((value-50)*2)
+
+    signal = pd.DataFrame(index=calc.index)
+    signal['value'] = calc['value']
+    return signal
+
+
+def EMA(raw_signal, n=14):
+    calc = raw_signal.copy()
+    k = 2 / (n-1)
+    sum = 0
+
+    for i in range(n):
+        sum += calc.iloc[i]['close']
+    calc.at[calc.index[n], 'value'] = sum/n
+    for i in range(n+1, len(calc)):
+        calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
+    return calc
+
+
+def MACD(raw_signal, n1=12, n2=26):
+    calc = raw_signal.copy()
+    calc['value'] = np.nan
+    ema1 = EMA(calc, n1)
+    ema2 = EMA(calc, n2)
+
+    for i in range(n2, len(calc)):
+        calc.at[calc.index[i], 'value'] = ((ema1.iloc[i]['value'] - ema2.iloc[i]['value']) / ema2.iloc[i]['value']) * 100
+
+    calc = normalization(calc, -50, 100)
+
+    signal = pd.DataFrame(index=calc.index)
+    signal['value'] = calc['value']
+    return signal
+
+# compute_all_technical_signals()

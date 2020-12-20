@@ -9,6 +9,8 @@ from math import sqrt
 from scipy.stats import truncnorm
 from copy import deepcopy
 import data
+import time
+
 
 # o que interessa da implied volatility é a varaiação absoludta e não a variação precentual a implied volatility
 
@@ -26,7 +28,10 @@ GENE_SIZE = 100000
 END_VALUE = 0.9  # MEXER
 MAX_N_GEN = 100  # max of generations per simulation # MEXER
 N_TOP = 5 # MEXER
-MAX_NO_EVOL = 10 # MEXER
+MAX_NO_EVOL = 15 # MEXERNO_EVOL_STD_INCREASE
+NO_EVOL_STD_INCREASE = 5 # MEXER
+DEFAULT_MUTATION_STD = 1 # initialization
+
 H_FAME_SIZE = 5 # MEXER
 
 N_PARENTS = 1  # initialization
@@ -34,12 +39,12 @@ N_CHILDREN = 1  # initialization
 CROV_W = 1.0  # initialization
 MUTATION_RATE = 1.0  # initialization
 MUTATION_STD = 1  # initialization
-
+NO_EVOL_STD_INCREASE
 METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
-IVOL_CHANGE_STEP = 0.05  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
+IVOL_CHANGE_STEP = 0.15  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
 def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
@@ -56,6 +61,8 @@ def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
     MUTATION_RATE = mutation_rate
     global MUTATION_STD
     MUTATION_STD = mutation_std
+    global DEFAULT_MUTATION_STD
+    DEFAULT_MUTATION_STD = mutation_std
     global METHOD_1POP
     METHOD_1POP = method_1pop
     global METHOD_PS
@@ -137,9 +144,19 @@ def get_MUTATION_STD():
     return MUTATION_STD
 
 
+def get_DEFAULT_MUTATION_STD():
+    global DEFAULT_MUTATION_STD
+    return DEFAULT_MUTATION_STD
+
+
 def get_MAX_NO_EVOL():
     global MAX_NO_EVOL
     return MAX_NO_EVOL
+
+
+def get_NO_EVOL_STD_INCREASE():
+    global NO_EVOL_STD_INCREASE
+    return NO_EVOL_STD_INCREASE
 
 
 # def get_FORECAST_DIST():
@@ -487,9 +504,16 @@ class Population:
         new_best_score = new_h_fame[0].get_score()
 
         if new_best_score > old_best_score:
+            print(self.no_evolution)
             self.reset_no_evol()
+            print('RESET')
+            print(self.no_evolution)
+
         else:
+            print(self.no_evolution)
+            print('INCRESE')
             self.incr_no_evol()
+            print(self.no_evolution)
         self.set_h_fame(new_h_fame)
 
     ############################
@@ -582,6 +606,18 @@ class Population:
         score = 0
         best_chromo = deepcopy(self.h_fame[0])
 
+        # if there is no evolution increase mutation_std 10 000, turns back to default otherwise
+        if self.get_no_evol() >= get_NO_EVOL_STD_INCREASE():
+            print('AUMENTOU')
+            print(get_MUTATION_STD())
+            global MUTATION_STD
+            MUTATION_STD = get_MUTATION_STD() + 10000
+            print(get_MUTATION_STD())
+        else:
+            print('MANTEVE')
+            print(get_MUTATION_STD())
+            MUTATION_STD = get_DEFAULT_MUTATION_STD()
+            print(get_MUTATION_STD()    )
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():
             return 1
@@ -659,58 +695,70 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
 
-    fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_vix_rsi.csv'
-    fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_vix_roc.csv'
-    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_stock_rsi.csv'
-    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_stock_roc.csv'
-    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_rsi.csv'
-    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_roc.csv'
+    # fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_vix_rsi.csv'
+    # fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_vix_roc.csv'
+    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-8].get_value())) + '_stock_rsi.csv'
+    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_stock_roc.csv'
+    fp_stock_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_stock_sto.csv'
+    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_roc.csv'
+    fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_sto.csv'
+    fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
 
-    vix_rsi = pd.read_csv(fp_vix_rsi, index_col='Date', parse_dates=True)
-    vix_roc = pd.read_csv(fp_vix_roc, index_col='Date', parse_dates=True)
+    # vix_rsi = pd.read_csv(fp_vix_rsi, index_col='Date', parse_dates=True)
+    # vix_roc = pd.read_csv(fp_vix_roc, index_col='Date', parse_dates=True)
     stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
     stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
+    stock_sto = pd.read_csv(fp_stock_sto, index_col='Date', parse_dates=True)
     ivol_rsi = pd.read_csv(fp_ivol_rsi, index_col='Date', parse_dates=True)
     ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
+    ivol_sto = pd.read_csv(fp_ivol_sto, index_col='Date', parse_dates=True)
+    ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
 
     gene_sum = 0
-    for i in range(6):
+    for i in range(4):
         gene_sum += genes[i].get_value()
     for ticker in tickers:
-        for date in vix_rsi.index:
+        for date in stock_rsi.index:
             if date < eval_start:
                 continue
             elif date > eval_end:
                 break
             else:
-                fc = (vix_rsi.loc[date, 'vix_rsi'] * genes[0].get_value() +
-                      vix_roc.loc[date, 'vix_roc'] * genes[1].get_value() +
-                      stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
-                      stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
-                      ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[4].get_value() +
-                      ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[5].get_value()) / \
-                     gene_sum  # TODO ... AQUI
+                fc = (stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[0].get_value() +
+                      stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[1].get_value() +
+                      stock_sto.loc[date, 'stock_' + ticker + '_sto'] * genes[2].get_value() +
+                      ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[3].get_value() +
+                      ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[4].get_value() +
+                      ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[5].get_value() +
+                      ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[6].get_value()) / gene_sum  # TODO ... AQUI
+                      # stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
+                      # stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
+                      # ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[2].get_value() +
+                      # ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[3].get_value()) \
+
                 # print('---------------------------')
                 # print(ticker)
                 # print('vix rsi: ' + str(vix_rsi.loc[date, 'vix_rsi']))
                 # print('gene vix rsi: ' + str(genes[0].get_value()))
                 # print('vix roc: ' + str(vix_roc.loc[date, 'vix_roc']))
                 # print('gene vix roc: ' + str(genes[1].get_value()))
-                # print('stock rsi: ' + str(stock_rsi.loc[date, 'stock_' + ticker + '_rsi']))
-                # print('gene stock rsi: ' + str(genes[2].get_value()))
-                # print('stock roc: ' + str(stock_roc.loc[date, 'stock_' + ticker + '_roc']))
-                # print('gene stock roc: ' + str(genes[3].get_value()))
+                # # print('stock rsi: ' + str(stock_rsi.loc[date, 'stock_' + ticker + '_rsi']))
+                # # print('gene stock rsi: ' + str(genes[2].get_value()))
+                # # print('stock roc: ' + str(stock_roc.loc[date, 'stock_' + ticker + '_roc']))
+                # # print('gene stock roc: ' + str(genes[3].get_value()))
                 # print('ivol rsi: ' + str(ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi']))
-                # print('gene ivols rsi: ' + str(genes[4].get_value()))
+                # print('gene ivols rsi: ' + str(genes[2].get_value()))
                 # print('ivol roc: ' + str(ivol_roc.loc[date, 'ivol_' + ticker + '_roc']))
-                # print('gene ivol roc: ' + str(genes[5].get_value()))
+                # print('gene ivol roc: ' + str(genes[3].get_value()))
                 # print('foretasted value: ' + str(fc))
                 # print('genesum: ' + str(gene_sum))
                 # print('---------------------------')
+                # time.sleep(1)
                 forecast.at[ticker, date] = fc
-                if fc >= 52.5:  # TODO VERIFICAR O VALOR
+                if fc >= 65:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = 1
-                elif fc <= 47.5:  # TODO VERIFICAR O VALOR
+                elif fc <= 35:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = -1
                 else:
                     orders.at[ticker, date] = 0
@@ -735,7 +783,7 @@ def forecast_check(forecast, tickers, for_dist):
                 if ivol_fut_idx > ivol.size - 1 - for_dist:
                     break
                 ivol_fut_value = ivol.iloc[ivol_fut_idx]
-                change = (ivol_fut_value - ivol_pre_value) / ivol_pre_value  # percentage increase of ivol
+                change = ivol_fut_value - ivol_pre_value
                 if math.isnan(change):
                     continue
                 # TODO VERIFICAR OS VALOR
@@ -743,9 +791,9 @@ def forecast_check(forecast, tickers, for_dist):
                 # print(forecast.at[ticker, date])
                 # print(change)
                 # print('--------')
-                if (forecast.at[ticker, date] >= 52.5 and change >= change_step) \
-                        or (forecast.at[ticker, date] <= 47.5 and change <= -change_step) \
-                        or (47.5 >= forecast.at[ticker, date] >= 525 and abs(change) < change_step):
+                if (forecast.at[ticker, date] >= 65 and change >= change_step) \
+                        or (forecast.at[ticker, date] <= 35 and change <= -change_step) \
+                        or (35 >= forecast.at[ticker, date] >= 65 and abs(change) < change_step):
                     correct_days += 1
                 trading_days += 1
     print('CORRECT DAYS: ' + str(correct_days))

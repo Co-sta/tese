@@ -7,22 +7,22 @@ import data
 import pickle
 
 # GA 2 - UPPER
-ga2_pop_size = 5 # MEXER
+ga2_pop_size = 10 # MEXER
 ga2_chromo_size = 8
 ga2_gene_size = 100000
 
-ga2_n_parents = 2  # range [2 G] # MEXER
-ga2_n_children = 5  # range [G-n_parents G]  # MEXER
+ga2_n_parents = 4  # range [2 G] # MEXER
+ga2_n_children = 7  # range [G-n_parents G]  # MEXER
 ga2_crow_w = 0.5  # range [0 1] # MEXER
-ga2_mutation_rate = 0.8  # range [0 1] # MEXER
-ga2_mutation_std = 10000  # range [0 15000] # MEXER
+ga2_mutation_rate = 0.3  # range [0 1] # MEXER
+ga2_mutation_std = 15000  # range [0 15000] # MEXER
 ga2_method_1pop = 2  # 1st generation creation methods. [1,2,3] # MEXER
 ga2_method_ps = 2  # parent selection methods. [1,2,3,4] # MEXER
 ga2_method_crov = 5  # crossover methods. [1,2,3,4,5] # MEXER
 
 # GA 1 - LOWER
-ga1_pop_size = 50  # MEXER
-ga1_chr_size = 13    # 6 INDICADORES PARA CADA EMPRESA + 6 GENES PARA O 'N' DE CADA INDICADOR +1 para a dist de forecast
+ga1_pop_size = 100  # MEXER
+ga1_chr_size = 15    # 7 INDICADORES PARA CADA EMPRESA + 7 GENES PARA O 'N' DE CADA INDICADOR +1 para a dist de forecast
 ga1_gene_size = 100000
 
 ################################################################################
@@ -38,8 +38,11 @@ def test(chromo, filepath=False):
     tickers = data.open_sp500_tickers_to_list()
     # tickers = data.open_all_sp500_tickers_to_list()
     [forecast, orders] = ga1.forecast_orders(chromo.get_gene_list(), tickers, ga1_chr_size, eval_start, eval_end)
+    print(forecast)
+    forecast.to_csv('forecast.csv')
+    print(orders)
     portfolio = ts.trade(eval_start, eval_end, orders)
-    data.save_portfolio(portfolio, time_period)
+    data.save_portfolio(portfolio, time_period=time_period)
     print('ROI: '+ str(portfolio.get_ROI()['value'].iloc[-1]))
 
 
@@ -56,16 +59,18 @@ time_period = '1st_period'
 # time_period = '2nd_period'
 
 ################################################################################
-# [best_chromo, filepath] = train()
-# test(best_chromo, filepath)
+[best_chromo, filepath] = train()
+test(best_chromo, filepath=filepath)
 
 ################################################################################
-# filepath = 'data/results/' + '1st_period-09-11-2020:01:05:07 PM.pickle'
-# best_pop = pickle.load( open( filepath, "rb" ))
+# file = '1st_period-28-11-2020:02:03:50 AM.pickle'
+# test_filepath = 'data/results/test/' + file
+# train_filepath = 'data/results/train/' + file
+# best_pop = pickle.load( open( train_filepath, "rb" ))
 # best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
-# test(best_chromo, filepath)
+# test(best_chromo, filepath=test_filepath)
 
 ################################################################################
-# ui.print_result('1st_period-09-11-2020:01:05:07 PM.pickle', ga1_pop_size, ga1_gene_size)
-# ui.graph_score('1st_period-09-11-2020:01:05:07 PM.pickle')
-ui.graph_ROI('1st_period-09-11-2020:01:05:07 PM.pickle')
+# ui.print_result('1st_period-26-11-2020:01:00:30 AM.pickle', ga1_pop_size, ga1_gene_size)
+# ui.graph_score('1st_period-26-11-2020:01:00:30 AM.pickle')
+# ui.graph_ROI('1st_period-26-11-2020:01:00:30 AM.pickle')
