@@ -95,7 +95,7 @@ def compute_technical_signals(n):
 ############################
 #       extra methods      #
 ############################
-def compute_all_technical_signals(n_threads= 5, min=5, max=60):
+def compute_all_technical_signals(n_threads= 5, min=2, max=30):
     n = np.arange(min, max+1)
     with Pool(n_threads) as p:
         p.map(compute_technical_signals, n)
@@ -267,4 +267,4 @@ def MACD(raw_signal, n1=12, n2=26):
     signal['value'] = calc['value']
     return signal
 
-# compute_all_technical_signals()
+compute_all_technical_signals()
