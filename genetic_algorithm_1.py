@@ -77,7 +77,6 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
     set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
                    mutation_std, method_1pop, method_ps, method_crov)
     pop = Population(pop_size, chromo_size)
-    max_score = pd.DataFrame({'epoch':[], 'score':[]})
     epoch = 1
     while True:
         print('G1 generation nr: ' + str(pop.get_generation() + 1))
