@@ -199,8 +199,8 @@ class Chromosome:
         self.gene_list = gene_list
         self.size = len(gene_list)
         self.score = 0
-        self.forecast = pd.DataFrame(columns=['date', 'value'])
-        self.orders = pd.DataFrame(columns=['date', 'value'])
+        self.forecast = pd.DataFrame()
+        self.orders = pd.DataFrame()
 
     ###########################
     #     general methods     #
@@ -594,6 +594,8 @@ class Population:
         for chro in self.get_chromo_list():
             print('evaluating ' + 'chromossome ' + str(cnt) + ' (' + str(self.get_pop_size()) + ')') # TODO tirar
             [forecast, orders] = forecast_orders(chro.get_gene_list(), tickers, self.get_chr_size(), eval_start, eval_end)
+            chro.forecast = forecast
+            chro.orders = orders
             if use_trading:
                 portfolio = ts.trade(eval_start, eval_end, orders)
                 score = portfolio.get_ROI()['value'].iloc[-1]
