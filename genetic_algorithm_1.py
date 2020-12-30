@@ -199,6 +199,8 @@ class Chromosome:
         self.gene_list = gene_list
         self.size = len(gene_list)
         self.score = 0
+        self.forecast = pd.DataFrame(columns=['date', 'value'])
+        self.orders = pd.DataFrame(columns=['date', 'value'])
 
     ###########################
     #     general methods     #
