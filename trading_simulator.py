@@ -1,8 +1,8 @@
 import pandas as pd
 import math
 
-MAX_DIS_TIME = pd.to_timedelta('41 days')  # max distance from current date to option expiration in order do buy
-MIN_DIS_TIME = pd.to_timedelta('6 days')  # min distance from current date to option expiration in order to buy
+MAX_DIS_TIME = pd.to_timedelta('100 days')  # max distance from current date to option expiration in order do buy
+MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
 TYPE_STRIKE = 1  # 0-out of the money | 1-in the money
 
 
