@@ -114,7 +114,7 @@ class Option:
 class Portfolio:
 
     def __init__(self, start_date, end_date, initial_capital=1000000):
-        self.max_position = 1000  # o valor máximo por posição é de 1000€
+        self.max_position = 100000  # o valor máximo por posição é de 1000€
         self.current_capital = initial_capital
         self.initial_capital = initial_capital
         self.start_date = start_date

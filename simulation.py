@@ -59,8 +59,8 @@ time_period = '1st_period'
 # time_period = '2nd_period'
 
 ################################################################################
-[best_chromo, filepath] = train()
-test(best_chromo, filepath=filepath)
+# [best_chromo, filepath] = train()
+# test(best_chromo, filepath=filepath)
 
 ################################################################################
 # file = '1st_period-28-11-2020:02:03:50 AM.pickle'
@@ -71,6 +71,9 @@ test(best_chromo, filepath=filepath)
 # test(best_chromo, filepath=test_filepath)
 
 ################################################################################
-# ui.print_result('1st_period-26-11-2020:01:00:30 AM.pickle', ga1_pop_size, ga1_gene_size)
-# ui.graph_score('1st_period-26-11-2020:01:00:30 AM.pickle')
-# ui.graph_ROI('1st_period-26-11-2020:01:00:30 AM.pickle')
+# train
+ui.print_result('1st_period-26-12-2020:06:25:55 PM.pickle', ga1_pop_size, ga1_gene_size)
+ui.graph_score('1st_period-26-12-2020:06:25:55 PM.pickle')
+
+# test
+ui.graph_ROI('1st_period-26-12-2020:06:40:03 PM.pickle')

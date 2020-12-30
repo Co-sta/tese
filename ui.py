@@ -57,5 +57,5 @@ def graph_ROI(filename):
     filepath = 'data/results/test/' + filename
     portfolio = pickle.load( open( filepath, "rb" ))
     roi_evol = portfolio.get_ROI()
-    fig = px.line(roi_evol, x="index", y="value")
+    fig = px.line(roi_evol, x=roi_evol.index, y="value")
     fig.show()

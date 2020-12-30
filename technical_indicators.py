@@ -84,7 +84,7 @@ def compute_technical_signals(n):
             print('ivol macd: ' + tic + ' - ' + str(n))
             macd_tic = MACD(data, n, n+14).rename(columns={'value': 'ivol_' + tic + '_macd', 'Unnamed: 0':'Date'})
             macd_ivol_signals = pd.concat([macd_ivol_signals, macd_tic], axis=1)
-    if not exists_ivol_rsi:save_technical_indicator(rsi_ivol_signals, str(n)+'_ivol_rsi')
+    if not exists_ivol_rsi: save_technical_indicator(rsi_ivol_signals, str(n)+'_ivol_rsi')
     if not exists_ivol_roc: save_technical_indicator(roc_ivol_signals, str(n)+'_ivol_roc')
     if not exists_ivol_sto: save_technical_indicator(sto_ivol_signals, str(n)+'_ivol_sto')
     if not exists_ivol_macd: save_technical_indicator(macd_ivol_signals, str(n)+'_ivol_macd')

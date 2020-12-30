@@ -44,7 +44,7 @@ METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
-IVOL_CHANGE_STEP = 0.15  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
+IVOL_CHANGE_STEP = 5  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
 def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
@@ -716,7 +716,7 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
 
     gene_sum = 0
-    for i in range(4):
+    for i in range(7):
         gene_sum += genes[i].get_value()
     for ticker in tickers:
         for date in stock_rsi.index:
@@ -756,9 +756,9 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                 # print('---------------------------')
                 # time.sleep(1)
                 forecast.at[ticker, date] = fc
-                if fc >= 65:  # TODO VERIFICAR O VALOR
+                if fc >= 60:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = 1
-                elif fc <= 35:  # TODO VERIFICAR O VALOR
+                elif fc <= 40:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = -1
                 else:
                     orders.at[ticker, date] = 0
@@ -768,8 +768,10 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
 
 def forecast_check(forecast, tickers, for_dist):
     change_step = get_IVOL_CHANGE_STEP()
-    correct_days = 0
-    trading_days = 0
+    correct_days, trading_days = 0,0
+    correct_buy, correct_sell, correct_stay = 0,0,0
+    n_buy, n_sell, n_stay = 0,0,0
+
     all_ivol = pd.read_csv('data/implied_volatility/all_tickers_ivol.csv')
     all_ivol['Date'] = pd.to_datetime(all_ivol['Date'])
     all_ivol = all_ivol.set_index('Date')
@@ -791,12 +793,28 @@ def forecast_check(forecast, tickers, for_dist):
                 # print(forecast.at[ticker, date])
                 # print(change)
                 # print('--------')
-                if (forecast.at[ticker, date] >= 65 and change >= change_step) \
-                        or (forecast.at[ticker, date] <= 35 and change <= -change_step) \
-                        or (35 >= forecast.at[ticker, date] >= 65 and abs(change) < change_step):
-                    correct_days += 1
+
+                if change >= change_step:
+                    n_buy += 1
+                    if forecast.at[ticker, date] >= 60:
+                        correct_buy += 1
+                        correct_days += 1
+                elif change <= -change_step:
+                    n_sell += 1
+                    if forecast.at[ticker, date] <= 40:
+                        correct_sell += 1
+                        correct_days += 1
+                else:
+                    n_stay +=1
+                    if 40 >= forecast.at[ticker, date] >= 60:
+                        correct_stay += 1
+                        correct_days += 1
+
                 trading_days += 1
     print('CORRECT DAYS: ' + str(correct_days))
+    print('correct buy: ' + str(correct_buy) +' ('+ str(n_buy) +')')
+    print('correct sell: ' + str(correct_sell) +' ('+ str(n_sell) +')')
+    print('correct stay: ' + str(correct_stay) +' ('+ str(n_stay) +')')
     print('TRADING DAYS: ' + str(trading_days))
     score = correct_days / trading_days
     return score
