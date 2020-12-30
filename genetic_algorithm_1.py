@@ -201,6 +201,15 @@ class Chromosome:
         self.score = 0
         self.forecast = pd.DataFrame()
         self.orders = pd.DataFrame()
+        self.ti_values = pd.DataFrame()
+        self.nr_trading_days = 0
+        self.nr_correct_days = 0
+        self.nr_up_days = 0
+        self.nr_stay_days = 0
+        self.nr_down_days = 0
+        self.nr_correct_ups = 0
+        self.nr_correct_stays = 0
+        self.nr_correct_downs = 0
 
     ###########################
     #     general methods     #
@@ -600,8 +609,18 @@ class Population:
                 portfolio = ts.trade(eval_start, eval_end, orders)
                 score = portfolio.get_ROI()['value'].iloc[-1]
             else:
-                score = forecast_check(forecast, tickers, unnorm_ti(chro.get_gene_list()[-1].get_value()))
+                [score, nr_trading_days, nr_correct_days,
+                nr_up_days, nr_stay_days, nr_down_days,
+                nr_correct_ups, nr_correct_stays, nr_correct_downs] = forecast_check(forecast, tickers, unnorm_ti(chro.get_gene_list()[-1].get_value()))
             chro.set_score(score)
+            chro.nr_trading_days = nr_trading_days
+            chro.nr_correct_days = nr_correct_days
+            chro.nr_up_days = nr_up_days
+            chro.nr_stay_days = nr_stay_days
+            chro.nr_down_days = nr_down_days
+            chro.nr_correct_ups = nr_correct_ups
+            chro.nr_correct_stays = nr_correct_stays
+            chro.nr_correct_downs = nr_correct_downs
             cnt += 1
 
     # TODO verificar se estão todas as condições
@@ -771,9 +790,9 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
 
 def forecast_check(forecast, tickers, for_dist):
     change_step = get_IVOL_CHANGE_STEP()
-    correct_days, trading_days = 0,0
-    correct_buy, correct_sell, correct_stay = 0,0,0
-    n_buy, n_sell, n_stay = 0,0,0
+    nr_correct_days, nr_trading_days = 0,0
+    nr_correct_ups, nr_correct_downs, nr_correct_stays = 0,0,0
+    nr_up_days, nr_down_days, nr_stay_days = 0,0,0
 
     all_ivol = pd.read_csv('data/implied_volatility/all_tickers_ivol.csv')
     all_ivol['Date'] = pd.to_datetime(all_ivol['Date'])
@@ -798,30 +817,31 @@ def forecast_check(forecast, tickers, for_dist):
                 # print('--------')
 
                 if change >= change_step:
-                    n_buy += 1
+                    nr_up_days += 1
                     if forecast.at[ticker, date] >= 60:
-                        correct_buy += 1
-                        correct_days += 1
+                        nr_correct_ups += 1
+                        nr_correct_days += 1
                 elif change <= -change_step:
-                    n_sell += 1
+                    nr_down_days += 1
                     if forecast.at[ticker, date] <= 40:
-                        correct_sell += 1
-                        correct_days += 1
+                        nr_correct_downs += 1
+                        nr_correct_days += 1
                 else:
-                    n_stay +=1
+                    nr_stay_days +=1
                     if 40 >= forecast.at[ticker, date] >= 60:
-                        correct_stay += 1
-                        correct_days += 1
+                        nr_correct_stays += 1
+                        nr_correct_days += 1
 
-                trading_days += 1
-    print('CORRECT DAYS: ' + str(correct_days))
-    print('correct buy: ' + str(correct_buy) +' ('+ str(n_buy) +')')
-    print('correct sell: ' + str(correct_sell) +' ('+ str(n_sell) +')')
-    print('correct stay: ' + str(correct_stay) +' ('+ str(n_stay) +')')
-    print('TRADING DAYS: ' + str(trading_days))
-    score = correct_days / trading_days
-    return score
-
+                nr_trading_days += 1
+    print('CORRECT DAYS: ' + str(nr_correct_days))
+    print('correct buy: ' + str(nr_correct_ups) +' ('+ str(nr_up_days) +')')
+    print('correct sell: ' + str(nr_correct_downs) +' ('+ str(nr_down_days) +')')
+    print('correct stay: ' + str(nr_correct_stays) +' ('+ str(nr_stay_days) +')')
+    print('TRADING DAYS: ' + str(nr_trading_days))
+    score = nr_correct_days / nr_trading_days
+    return [score, nr_trading_days, nr_correct_days,
+            nr_up_days, nr_stay_days, nr_down_days,
+            nr_correct_ups, nr_correct_stays, nr_correct_downs]
 
 ############################
 #          other           #
