@@ -716,8 +716,6 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
 
-    # fp_vix_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_vix_rsi.csv'
-    # fp_vix_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_vix_roc.csv'
     fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-8].get_value())) + '_stock_rsi.csv'
     fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_stock_roc.csv'
     fp_stock_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_stock_sto.csv'
@@ -726,8 +724,6 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_sto.csv'
     fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
 
-    # vix_rsi = pd.read_csv(fp_vix_rsi, index_col='Date', parse_dates=True)
-    # vix_roc = pd.read_csv(fp_vix_roc, index_col='Date', parse_dates=True)
     stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
     stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
     stock_sto = pd.read_csv(fp_stock_sto, index_col='Date', parse_dates=True)

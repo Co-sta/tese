@@ -93,16 +93,38 @@ def graph_TI(filename):
                                                          'ivol_' + ticker + '_rsi',
                                                          'ivol_' + ticker + '_roc',
                                                          'ivol_' + ticker + '_sto',
-                                                         'ivol_' + ticker + '_macd'])
+                                                         'ivol_' + ticker + '_macd'],
+                                                         title="Technical Indicators")
         fig.show()
 
+###########################
+#         SIGNALS         #
+###########################
 def graph_IVol():
     tickers = data.open_sp500_tickers_to_list()
     filepath = 'data/implied_volatility/all_tickers_ivol.csv'
-    data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    for tic in tickers:
+    iv_signals = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    for ticker in tickers:
+        fig = px.line(iv_signals, x=iv_signals.index, y=ticker,
+                      title="Implied Volatility of " + ticker)
+        fig.show()
 
-        
+def graph_Stocks():
+    tickers = data.open_sp500_tickers_to_list()
+    filepath = 'data/yfinance/all_tickers_yfinance.csv'
+    stock_signals = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    for ticker in tickers:
+        fig = px.line(stock_signals, x=stock_signals.index, y=ticker,
+                      title="Stock Value of " + ticker)
+        fig.show()
+
+def graph_VIX():
+    filepath = 'data/VIX/VIX_all.csv'
+    vix_signals = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    fig = px.line(vix_signals, x=vix_signals.index, y=['9 days', '30 days', '3 months', '6 months'], title='Vix signals')
+    fig.show()
+
+
 ##########################
 #          TEST          #
 ##########################
@@ -111,5 +133,5 @@ def graph_ROI(filename):
     filepath = 'data/results/test/' + filename
     portfolio = pickle.load( open( filepath, "rb" ))
     roi_evol = portfolio.get_ROI()
-    fig = px.line(roi_evol, x=roi_evol.index, y="value")
+    fig = px.line(roi_evol, x=roi_evol.index, y="value", title=' Rate of Income (ROI)')
     fig.show()

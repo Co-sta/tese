@@ -49,14 +49,14 @@ def test(chromo, filepath=False):
 
 ################################################################################
 # 1st EVALUATION
-eval_start = pd.to_datetime('01-02-2011')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
-eval_end = pd.to_datetime('12-31-2011')
-time_period = '1st_period'
+# eval_start = pd.to_datetime('01-02-2011')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
+# eval_end = pd.to_datetime('12-31-2011')
+# time_period = '1st_period'
 
 # 2nd EVALUATION
-# eval_start = pd.to_datetime('01-02-2012')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
-# eval_end = pd.to_datetime('12-31-2012')
-# time_period = '2nd_period'
+eval_start = pd.to_datetime('01-02-2012')   # COMECA SEMPRE UM DIA DEPOIS DE eval_star
+eval_end = pd.to_datetime('12-31-2012')
+time_period = '2nd_period'
 
 ################################################################################
 # print('STARTING FULL TRAIN AND TEST')
@@ -74,10 +74,15 @@ time_period = '1st_period'
 
 ################################################################################
 print('STARTING UI ENVIRONMENT')
-# train
+# TRAIN
 # ui.print_result('1st_period-26-12-2020:06:25:55 PM.pickle', ga1_pop_size, ga1_gene_size)
 # ui.graph_score('1st_period-26-12-2020:06:25:55 PM.pickle')
-ui.graph_TI('1st_period-26-12-2020:06:25:55 PM.pickle')
+# ui.graph_TI('1st_period-26-12-2020:06:25:55 PM.pickle')
 
-# test
+# SIGNALS
+# ui.graph_IVol()
+# ui.graph_Stocks()
+# ui.graph_VIX()
+
+# TEST
 # ui.graph_ROI('1st_period-26-12-2020:06:40:03 PM.pickle')
