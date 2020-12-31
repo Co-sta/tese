@@ -75,9 +75,9 @@ time_period = '1st_period'
 ################################################################################
 print('STARTING UI ENVIRONMENT')
 # train
-ui.print_result('1st_period-26-12-2020:06:25:55 PM.pickle', ga1_pop_size, ga1_gene_size)
-ui.graph_score('1st_period-26-12-2020:06:25:55 PM.pickle')
+# ui.print_result('1st_period-26-12-2020:06:25:55 PM.pickle', ga1_pop_size, ga1_gene_size)
+# ui.graph_score('1st_period-26-12-2020:06:25:55 PM.pickle')
 ui.graph_TI('1st_period-26-12-2020:06:25:55 PM.pickle')
 
 # test
-ui.graph_ROI('1st_period-26-12-2020:06:40:03 PM.pickle')
+# ui.graph_ROI('1st_period-26-12-2020:06:40:03 PM.pickle')

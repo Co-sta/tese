@@ -1,9 +1,12 @@
 import genetic_algorithm_2 as ga2
 import genetic_algorithm_1 as ga1
 import data as data
+import pandas as pd
 import technical_indicators as ti
 import pickle
+
 import plotly.express as px
+import plotly.graph_objects as go
 
 ###########################
 #          TRAIN          #
@@ -64,13 +67,13 @@ def graph_TI(filename):
     chromo = best_chromo.get_sub_pop().get_h_fame()[0]
     gene_list = chromo.get_gene_list()
 
-    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(gene_list[-8].get_value())) + '_stock_rsi.csv'
-    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(gene_list[-7].get_value())) + '_stock_roc.csv'
-    fp_stock_sto = 'data/technical_indicators/' + str(unnorm_ti(gene_list[-6].get_value())) + '_stock_sto.csv'
-    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(gene_list[-5].get_value())) + '_ivol_rsi.csv'
-    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(gene_list[-4].get_value())) + '_ivol_roc.csv'
-    fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(gene_list[-3].get_value())) + '_ivol_sto.csv'
-    fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(gene_list[-2].get_value())) + '_ivol_macd.csv'
+    fp_stock_rsi = 'data/technical_indicators/' + str(ga1.unnorm_ti(gene_list[-8].get_value())) + '_stock_rsi.csv'
+    fp_stock_roc = 'data/technical_indicators/' + str(ga1.unnorm_ti(gene_list[-7].get_value())) + '_stock_roc.csv'
+    fp_stock_sto = 'data/technical_indicators/' + str(ga1.unnorm_ti(gene_list[-6].get_value())) + '_stock_sto.csv'
+    fp_ivol_rsi = 'data/technical_indicators/' + str(ga1.unnorm_ti(gene_list[-5].get_value())) + '_ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/' + str(ga1.unnorm_ti(gene_list[-4].get_value())) + '_ivol_roc.csv'
+    fp_ivol_sto = 'data/technical_indicators/' + str(ga1.unnorm_ti(gene_list[-3].get_value())) + '_ivol_sto.csv'
+    fp_ivol_macd = 'data/technical_indicators/' + str(ga1.unnorm_ti(gene_list[-2].get_value())) + '_ivol_macd.csv'
 
     stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
     stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
@@ -80,29 +83,26 @@ def graph_TI(filename):
     ivol_sto = pd.read_csv(fp_ivol_sto, index_col='Date', parse_dates=True)
     ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
 
+    ti_signals = pd.concat([stock_rsi, stock_roc, stock_sto, ivol_rsi,
+                                ivol_roc, ivol_sto, ivol_macd], axis=1)
+
     for ticker in tickers:
-        fig = px.line((stock_rsi, x=(stock_rsi.index, y='stock_' + ticker + '_rsi'))
+        fig = px.line(ti_signals, x=ti_signals.index, y=['stock_' + ticker + '_rsi',
+                                                         'stock_' + ticker + '_roc',
+                                                         'stock_' + ticker + '_sto',
+                                                         'ivol_' + ticker + '_rsi',
+                                                         'ivol_' + ticker + '_roc',
+                                                         'ivol_' + ticker + '_sto',
+                                                         'ivol_' + ticker + '_macd'])
         fig.show()
 
-                # fc = (stock_rsi.loc[date, 'stock_' + ticker + '_rsi']
-                #       stock_roc.loc[date, 'stock_' + ticker + '_roc']
-                #       stock_sto.loc[date, 'stock_' + ticker + '_sto']
-                #       ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi']
-                #       ivol_roc.loc[date, 'ivol_' + ticker + '_roc']
-                #       ivol_sto.loc[date, 'ivol_' + ticker + '_sto']
-                #       ivol_macd.loc[date, 'ivol_' + ticker + '_macd']
+def graph_IVol():
+    tickers = data.open_sp500_tickers_to_list()
+    filepath = 'data/implied_volatility/all_tickers_ivol.csv'
+    data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    for tic in tickers:
 
-
-##########################
-#          TEST          #
-##########################
-def graph_ROI(filename):
-    filepath = 'data/results/test/' + filename
-    portfolio = pickle.load( open( filepath, "rb" ))
-    roi_evol = portfolio.get_ROI()
-    fig = px.line(roi_evol, x=roi_evol.index, y="value")
-    fig.show()
-
+        
 ##########################
 #          TEST          #
 ##########################
