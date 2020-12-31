@@ -201,7 +201,6 @@ class Chromosome:
         self.score = 0
         self.forecast = pd.DataFrame()
         self.orders = pd.DataFrame()
-        self.ti_values = pd.DataFrame()
         self.nr_trading_days = 0
         self.nr_correct_days = 0
         self.nr_up_days = 0
@@ -754,10 +753,6 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                       ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[4].get_value() +
                       ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[5].get_value() +
                       ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[6].get_value()) / gene_sum  # TODO ... AQUI
-                      # stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[2].get_value() +
-                      # stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[3].get_value() +
-                      # ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[2].get_value() +
-                      # ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[3].get_value()) \
 
                 # print('---------------------------')
                 # print(ticker)
