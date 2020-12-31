@@ -59,10 +59,12 @@ time_period = '1st_period'
 # time_period = '2nd_period'
 
 ################################################################################
+# print('STARTING FULL TRAIN AND TEST')
 # [best_chromo, filepath] = train()
 # test(best_chromo, filepath=filepath)
 
 ################################################################################
+# print('STARTING TEST')
 # file = '1st_period-28-11-2020:02:03:50 AM.pickle'
 # test_filepath = 'data/results/test/' + file
 # train_filepath = 'data/results/train/' + file
@@ -71,6 +73,7 @@ time_period = '1st_period'
 # test(best_chromo, filepath=test_filepath)
 
 ################################################################################
+print('STARTING UI ENVIRONMENT')
 # train
 ui.print_result('1st_period-26-12-2020:06:25:55 PM.pickle', ga1_pop_size, ga1_gene_size)
 ui.graph_score('1st_period-26-12-2020:06:25:55 PM.pickle')
