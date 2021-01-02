@@ -76,9 +76,9 @@ time_period = '2nd_period'
 # print('STARTING UI ENVIRONMENT')
 # TRAIN
 # ui.print_result('2nd_period-01-01-2021:09:12:17 AM.pickle', ga1_pop_size, ga1_gene_size)
-ui.print_train_stats('2nd_period-01-01-2021:09:12:17 AM.pickle')
+# ui.print_train_stats('2nd_period-01-01-2021:09:12:17 AM.pickle')
 # ui.graph_score('2nd_period-01-01-2021:09:12:17 AM.pickle')
-# ui.graph_TI('2nd_period-01-01-2021:09:12:17 AM.pickle')
+ui.graph_TI('2nd_period-01-01-2021:09:12:17 AM.pickle')
 # ui.graph_forecast('2nd_period-01-01-2021:09:12:17 AM.pickle')
 # ui.graph_orders('2nd_period-01-01-2021:09:12:17 AM.pickle')
 

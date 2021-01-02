@@ -190,7 +190,7 @@ def RSI(raw_signal, n=14, stock=False):
     if stock:
         for i in range(n, len(calc)):
             value = calc.at[calc.index[i], 'rsi']
-            calc.at[calc.index[i], 'rsi'] = abs((value-50)*2)
+            calc.at[calc.index[i], 'rsi'] = abs(value)
 
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['rsi']
@@ -207,8 +207,7 @@ def ROC(raw_signal, n=14, stock=False):
     if stock:
         for i in range(n, len(calc)):
             calc.at[calc.index[i], 'value'] = abs(calc.at[calc.index[i], 'value'])
-    else:
-        calc = normalization(calc, -100, 100)
+    calc = normalization(calc, -100, 100)
 
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
@@ -232,7 +231,7 @@ def StO(raw_signal, n=14, stock=False):
     if stock:
         for i in range(n, len(calc)):
             value = calc.at[calc.index[i], 'value']
-            calc.at[calc.index[i], 'value'] = abs((value-50)*2)
+            calc.at[calc.index[i], 'value'] = abs(value)
 
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
