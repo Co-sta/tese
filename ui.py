@@ -50,6 +50,33 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
 
         if i == 15: print('     n_prediction: ' + str(ga1.unnorm_ti(chr1.get_value())))
 
+def print_train_stats(filename):
+    print('printing train statistics...')
+    filepath = 'data/results/train/' + filename
+    best_chromo = pickle.load( open( filepath, "rb" ))
+
+    nr_trading_days =  best_chromo.get_sub_pop().get_h_fame()[0].nr_trading_days
+    nr_correct_days = best_chromo.get_sub_pop().get_h_fame()[0].nr_correct_days
+    nr_up_days = best_chromo.get_sub_pop().get_h_fame()[0].nr_up_days
+    nr_stay_days = best_chromo.get_sub_pop().get_h_fame()[0].nr_stay_days
+    nr_down_days = best_chromo.get_sub_pop().get_h_fame()[0].nr_down_days
+    nr_correct_ups = best_chromo.get_sub_pop().get_h_fame()[0].nr_correct_ups
+    nr_correct_stays = best_chromo.get_sub_pop().get_h_fame()[0].nr_correct_stays
+    nr_correct_downs = best_chromo.get_sub_pop().get_h_fame()[0].nr_correct_downs
+
+    print('------Trading Days: ' + str(nr_trading_days))
+    print('-----------Up Days: ' + str(nr_up_days))
+    print('---------Stay Days: ' + str(nr_stay_days))
+    print('---------Down Days: ' + str(nr_down_days))
+    print('------Correct Days: ' + str(nr_correct_days))
+    print('---Correct Up Days: ' + str(nr_correct_ups))
+    print('-Correct Stay Days: ' + str(nr_correct_stays))
+    print('-Correct Down Days: ' + str(nr_correct_downs))
+
+    print('---% of Correct Up Days: ' + str(100*nr_correct_ups/nr_up_days) + ' %')
+    print('-% of Correct Stay Days: ' + str(100*nr_correct_stays/nr_stay_days) + ' %')
+    print('-% of Correct Down Days: ' + str(100*nr_correct_downs/nr_down_days) + ' %')
+
 def graph_score(filename):
     print('printing score...')
     filepath = 'data/results/train/' + filename
@@ -109,7 +136,7 @@ def graph_forecast(filename):
 
 def graph_orders(filename):
     fig = go.Figure()
-    print('printing forecast...')
+    print('printing orders...')
     filepath = 'data/results/train/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
     orders =  best_chromo.get_sub_pop().get_h_fame()[0].orders
@@ -117,6 +144,7 @@ def graph_orders(filename):
         fig.add_trace(go.Scatter(x=orders.columns.tolist(), y=orders.iloc[i].tolist()))
         fig.data[i].name = orders.index[i]
     fig.show()
+
 ###########################
 #         SIGNALS         #
 ###########################
