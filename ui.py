@@ -55,7 +55,6 @@ def graph_score(filename):
     filepath = 'data/results/train/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
     score_evol =  best_chromo.get_sub_pop().get_max_score()
-    print(score_evol)
     fig = px.line(score_evol, x="epoch", y="score")
     fig.show()
 
@@ -97,6 +96,27 @@ def graph_TI(filename):
                                                          title="Technical Indicators")
         fig.show()
 
+def graph_forecast(filename):
+    fig = go.Figure()
+    print('printing forecast...')
+    filepath = 'data/results/train/' + filename
+    best_chromo = pickle.load( open( filepath, "rb" ))
+    forecast =  best_chromo.get_sub_pop().get_h_fame()[0].forecast
+    for i in range(len(forecast)):
+        fig.add_trace(go.Scatter(x=forecast.columns.tolist(), y=forecast.iloc[i].tolist()))
+        fig.data[i].name = forecast.index[i]
+    fig.show()
+
+def graph_orders(filename):
+    fig = go.Figure()
+    print('printing forecast...')
+    filepath = 'data/results/train/' + filename
+    best_chromo = pickle.load( open( filepath, "rb" ))
+    orders =  best_chromo.get_sub_pop().get_h_fame()[0].orders
+    for i in range(len(orders)):
+        fig.add_trace(go.Scatter(x=orders.columns.tolist(), y=orders.iloc[i].tolist()))
+        fig.data[i].name = orders.index[i]
+    fig.show()
 ###########################
 #         SIGNALS         #
 ###########################

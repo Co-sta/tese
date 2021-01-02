@@ -73,11 +73,13 @@ time_period = '2nd_period'
 # test(best_chromo, filepath=test_filepath)
 
 ################################################################################
-print('STARTING UI ENVIRONMENT')
+# print('STARTING UI ENVIRONMENT')
 # TRAIN
-# ui.print_result('1st_period-26-12-2020:06:25:55 PM.pickle', ga1_pop_size, ga1_gene_size)
-# ui.graph_score('1st_period-26-12-2020:06:25:55 PM.pickle')
-# ui.graph_TI('1st_period-26-12-2020:06:25:55 PM.pickle')
+# ui.print_result('2nd_period-01-01-2021:09:12:17 AM.pickle', ga1_pop_size, ga1_gene_size)
+# ui.graph_score('2nd_period-01-01-2021:09:12:17 AM.pickle')
+# ui.graph_TI('2nd_period-01-01-2021:09:12:17 AM.pickle')
+# ui.graph_forecast('2nd_period-01-01-2021:09:12:17 AM.pickle')
+ui.graph_orders('2nd_period-01-01-2021:09:12:17 AM.pickle')
 
 # SIGNALS
 # ui.graph_IVol()
@@ -85,4 +87,4 @@ print('STARTING UI ENVIRONMENT')
 # ui.graph_VIX()
 
 # TEST
-# ui.graph_ROI('1st_period-26-12-2020:06:40:03 PM.pickle')
+# ui.graph_ROI('2nd_period-01-01-2021:09:28:22 AM.pickle')
