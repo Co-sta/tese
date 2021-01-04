@@ -329,6 +329,7 @@ class Portfolio:
             n_options = self.portfolio[root].get_quantity()
             self.current_capital += option_price * n_options
             self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
+            self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
             self.to_clean_portfolio.append(root)
 
     def exercise_options(self, root):
