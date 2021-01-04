@@ -162,7 +162,7 @@ def graph_orders(filename):
         fig.data[i].name = orders.index[i]
     fig.show()
 
-def graph_forecast_IVOl(filename):
+def graph_forecast_ivol(filename):
     fig = go.Figure()
     filepath = 'data/results/train/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
