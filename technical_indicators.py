@@ -265,3 +265,5 @@ def MACD(raw_signal, n1=12, n2=26):
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
     return signal
+
+# compute_all_technical_signals()

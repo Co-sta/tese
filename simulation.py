@@ -59,12 +59,12 @@ eval_end = pd.to_datetime('12-31-2012')
 time_period = '2nd_period'
 
 ################################################################################
-# print('STARTING FULL TRAIN AND TEST')
+# STARTING FULL TRAIN AND TEST
 # [best_chromo, filepath] = train()
 # test(best_chromo, filepath=filepath)
 
 ################################################################################
-# print('STARTING TEST')
+# STARTING TEST
 # file = '1st_period-28-11-2020:02:03:50 AM.pickle'
 # test_filepath = 'data/results/test/' + file
 # train_filepath = 'data/results/train/' + file
@@ -73,14 +73,16 @@ time_period = '2nd_period'
 # test(best_chromo, filepath=test_filepath)
 
 ################################################################################
-# print('STARTING UI ENVIRONMENT')
+# STARTING UI ENVIRONMENT
 # TRAIN
 # ui.print_result('2nd_period-01-01-2021:09:12:17 AM.pickle', ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats('2nd_period-01-01-2021:09:12:17 AM.pickle')
 # ui.graph_score('2nd_period-01-01-2021:09:12:17 AM.pickle')
-ui.graph_TI('2nd_period-01-01-2021:09:12:17 AM.pickle')
+# ui.graph_TI('2nd_period-01-01-2021:09:12:17 AM.pickle')
 # ui.graph_forecast('2nd_period-01-01-2021:09:12:17 AM.pickle')
 # ui.graph_orders('2nd_period-01-01-2021:09:12:17 AM.pickle')
+
+ui.graph_forecast_IVOl('2nd_period-01-01-2021:09:12:17 AM.pickle')
 
 # SIGNALS
 # ui.graph_IVol()
