@@ -31,53 +31,6 @@ def vix1_vix2_to_dataframe(vix1, vix2):
     return vix
 
 
-def vix_info():
-    path_VIX9D = "data/VIX/VIX9D.ods"
-    path_VIX30D = "data/VIX/VIX30D.ods"
-    path_VIX3M = "data/VIX/VIX3M.ods"
-    path_VIX6M = "data/VIX/VIX6M.ods"
-
-    VIX9D = read_ods(path_VIX9D, 1)  # takes data from spreadsheet
-    VIX9D = vix_to_dataframe(VIX9D)  # transforms data into a dataframename
-    VIX30D = read_ods(path_VIX30D, 1)
-    VIX30D = vix_to_dataframe(VIX30D)
-    VIX3M = read_ods(path_VIX3M, 1)
-    VIX3M = vix_to_dataframe(VIX3M)
-    VIX6M = read_ods(path_VIX6M, 1)
-    VIX6M = vix_to_dataframe(VIX6M)
-
-    # st.graph_vix(VIX9D, "VIX 9 Days", 1)
-    # st.graph_vix(VIX30D, "VIX 30 Days", 2)
-    # st.graph_vix(VIX3M, "VIX 3 Months", 3)
-    # st.graph_vix(VIX6M, "VIX 6 Months", 4)
-
-    VIX_9D_30D = vix1_vix2_to_dataframe(VIX9D, VIX30D)
-    VIX_9D_3M = vix1_vix2_to_dataframe(VIX9D, VIX3M)
-    VIX_9D_6M = vix1_vix2_to_dataframe(VIX9D, VIX6M)
-    VIX_30D_9D = vix1_vix2_to_dataframe(VIX30D, VIX9D)
-    VIX_30D_3M = vix1_vix2_to_dataframe(VIX30D, VIX3M)
-    VIX_30D_6M = vix1_vix2_to_dataframe(VIX30D, VIX6M)
-    VIX_3M_9D = vix1_vix2_to_dataframe(VIX3M, VIX9D)
-    VIX_3M_30D = vix1_vix2_to_dataframe(VIX3M, VIX30D)
-    VIX_3M_6M = vix1_vix2_to_dataframe(VIX3M, VIX6M)
-    VIX_6M_9D = vix1_vix2_to_dataframe(VIX6M, VIX9D)
-    VIX_6M_30D = vix1_vix2_to_dataframe(VIX6M, VIX30D)
-    VIX_6M_3M = vix1_vix2_to_dataframe(VIX6M, VIX3M)
-
-    st.graph_vix(VIX_9D_30D, 'VIX 9 days minus VIX 30 days', 1)
-    # st.graph_vix(VIX_9D_3M, 'VIX 9 days minus VIX 3 months', 2)
-    # st.graph_vix(VIX_9D_6M, 'VIX 9 days minus VIX 6 months', 3)
-    # st.graph_vix(VIX_30D_9D, 'VIX 30 days minus VIX 9 days', 4)
-    # st.graph_vix(VIX_30D_3M, 'VIX 30 days minus VIX 3 months', 5)
-    # st.graph_vix(VIX_30D_6M, 'VIX 30 days minus VIX 6 months', 6)
-    # st.graph_vix(VIX_3M_9D, 'VIX 3 months minus VIX 9 days', 7)
-    # st.graph_vix(VIX_3M_30D, 'VIX 3 months minus VIX 30 days', 8)
-    # st.graph_vix(VIX_3M_6M, 'VIX 3 months minus VIX 6 months', 9)
-    # st.graph_vix(VIX_6M_9D, 'VIX 6 months minus VIX 9 days', 10)
-    # st.graph_vix(VIX_6M_30D, 'VIX 6 months minus VIX 30 days', 11)
-    # st.graph_vix(VIX_6M_3M, 'VIX 6 months minus VIX 3 months', 12)
-
-
 def load_option_dataset(tic):
     filepath = 'data/companies_options/' + tic + '_dataset.pickle'
     if os.path.exists(filepath):

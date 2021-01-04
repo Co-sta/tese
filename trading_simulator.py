@@ -10,7 +10,7 @@ def trade(eval_start, eval_end, orders):
     port = Portfolio(eval_start, eval_end)
     while port.new_day():
         daily_orders = orders[port.current_date].copy()
-        print('current day:     ' + str(port.get_current_date()))
+        # print('current day:     ' + str(port.get_current_date()))
         for ticker in daily_orders.index:
             action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
             # print('action:    ' + str(action))
@@ -113,8 +113,8 @@ class Option:
 
 class Portfolio:
 
-    def __init__(self, start_date, end_date, initial_capital=1000000):
-        self.max_position = 100000  # o valor máximo por posição é de 1000€
+    def __init__(self, start_date, end_date, initial_capital=pow(1000000, 1000000)):
+        self.max_position = 100000  # o valor máximo por posição é de 100000
         self.current_capital = initial_capital
         self.initial_capital = initial_capital
         self.start_date = start_date
@@ -236,9 +236,6 @@ class Portfolio:
         current_value = self.holdings.at[self.get_current_date(), 'net_value']
         investment = self.get_initial_capital()
         roi = (current_value - investment) / investment
-        # print(current_value)
-        # print(investment)
-        # print(roi)
         self.ROI.at[self.get_current_date()] = roi
 
     def holdings_new_day(self):
@@ -389,7 +386,6 @@ class Portfolio:
     def clean_portfolio(self):
         to_clean = self.get_to_clean_portfolio()
         for root in to_clean:
-            # print(root in self.portfolio)
             self.portfolio.pop(root)
         self.empty_to_clean()
 
