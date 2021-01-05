@@ -8,7 +8,7 @@ TRADING_TYPE = 1 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
 
 def trade(eval_start, eval_end, orders): # TODO REVIEW
     port = Portfolio(eval_start, eval_end)
-    while port.new_day():
+    while port.new_day(): #CONTINUAR AQUI
         daily_orders = orders[port.current_date].copy()
         for ticker in daily_orders.index:
             action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
@@ -41,7 +41,7 @@ class Transaction:
         self.type = ty
         self.init_value = value
         self.quantity = quantity
-        self.final_value = 0
+        self.final_value = -1
 
     def get_date(self):
         return self.date
@@ -121,8 +121,11 @@ class Portfolio:
         self.holdings = pd.DataFrame({'net_value': initial_capital, 'capital': initial_capital}, index=[start_date])
 
         self.log = {self.current_date: []}
-        self.ROI = pd.DataFrame(data={'value': 0}, index=[start_date])
+        self.ROI = pd.DataFrame(data={'total': 0}, index=[start_date])
         self.stock_splits = pd.read_csv('data/stock_splits/stock_splits.csv', index_col='date', parse_dates=True)
+
+        self.nr_pos_trades = 0
+        self.nr_neg_trades = 0
 
     #  GETTERS  #
     def get_max_position(self):
@@ -168,7 +171,7 @@ class Portfolio:
         return self.stock_splits
 
     # GENERAL
-    def new_day(self): # TODO REVIEW
+    def new_day(self): # TODO REVIEW TYPE 3
         current_date = self.get_current_date()
         while True:
             current_date = current_date + pd.to_timedelta(1, unit='d')
@@ -187,7 +190,9 @@ class Portfolio:
                         self.update_ROI()
                         return 0
                     elif TRADING_TYPE == 2: # sell(puts)
-                        # CONTINUAR
+                        self.buyback_all_options()
+                        self.update_holdings()
+                        self.update_ROI()
                         return 0
                     elif TRADING_TYPE == 3: # sell(calls)
                         return 0
@@ -206,7 +211,7 @@ class Portfolio:
             elif TRADING_TYPE == 3: # sell(calls)
                 pass
 
-    def get_option_dataset(self, date): # TODO REVIEW
+    def get_option_dataset(self, date): # TODO VOLUE = 0?
         str_date = date.strftime('%Y%m%d')
         option_dataset = []
         for filename in self.filenames:
@@ -224,6 +229,43 @@ class Portfolio:
             for transaction in daily_transactions:
                 if transaction.get_root() == root:
                     transaction.set_final_value(value)
+
+    def update_holdings(self): # TODO REVIEW TYPE 3
+        capital = self.holdings.at[self.current_date, "capital"]
+        options_value = 0
+
+        for option in self.portfolio.values():
+            value = self.dataset.loc[self.dataset['OptionRoot'] == option.get_root()].iloc[0]['Ask'] * \
+                    option.get_quantity()
+            options_value += value
+
+        if TRADING_TYPE == 1: # buy(calls/puts)
+            self.holdings.at[self.current_date, 'net_value'] = capital + options_value
+        elif TRADING_TYPE == 2: # sell(puts)
+            self.holdings.at[self.current_date, 'net_value'] = capital - options_value
+        elif TRADING_TYPE == 3: # sell(calls)
+            pass
+
+    def update_ROI(self):
+        roi = self.get_ROI()
+        old_data = pd.DataFrame(roi[-1:].values,
+                                     index=[self.current_date],
+                                     columns=roi.columns)
+        roi = roi.append(old_data)
+        last_transactions = self.log.values()[-1]
+        for transaction in last_transactions:
+            if transaction.get_final_value() != -1:
+                ticker = Option(transaction.get_root()).get_company()
+                if transaction.get_type() == 'sell':
+                    profit = transaction.get_init_value() - transaction.get_final_value()
+                    investment = transaction.get_final_value()
+                else: #transaction.type == buy
+                    profit = transaction.get_final_value() - transaction.get_init_value()
+                    investment = transaction.get_init_value()
+                roi.at[self.current_date, ticker] += profit/investment
+                roi.at[self.current_date, 'total'] += profit/investment
+
+        self.ROI = roi
 
     # TYPE 1 (BUY)
     def search_root(self, ticker, option_type): # TODO REVIEW
@@ -284,35 +326,9 @@ class Portfolio:
                         # print(')))))))))))))))))))))))))))))))))))))))))))))))))))))')
                         option.set_root_strike_nr(new_root, new_strike, new_quantity)
 
-    def update_ROI(self): # TODO REVIEW
-        current_value = self.holdings.at[self.get_current_date(), 'net_value']
-        investment = self.get_initial_capital()
-        roi = (current_value - investment) / investment
-        self.ROI.at[self.get_current_date()] = roi
-
     def holdings_new_day(self): # TODO REVIEW
         self.holdings.at[self.current_date] = [self.holdings.iloc[len(self.holdings) - 1].net_value,
                                                self.holdings.iloc[len(self.holdings) - 1].capital]
-
-    def update_holdings(self): # TODO REVIEW
-        capital = self.holdings.at[self.current_date, "capital"]
-        options_value = 0
-
-        for option in self.portfolio.values():
-            #            print('dataset portfolio')
-            #            print(option.get_root())
-            #            print(self.current_date)
-            # print(self.dataset.loc[self.dataset['OptionRoot'] == option.get_root()])
-            # print(option.get_root())
-            # print(option.get_expiration_date())
-
-            # print(option.get_root())
-            # print(self.dataset.loc[self.dataset['OptionRoot'] == option.get_root()])
-            value = self.dataset.loc[self.dataset['OptionRoot'] == option.get_root()].iloc[0]['Ask'] * \
-                    option.get_quantity()
-            options_value += value
-
-        self.holdings.at[self.current_date, 'net_value'] = capital + options_value
 
     def buy_options(self, root, n_options=0): # TODO REVIEW
         print('buying.... ' + root)
@@ -398,7 +414,7 @@ class Portfolio:
             else:
                 self.exercise_options(root)
 
-    def sell_exercise_all_options(self): # TODO REVIEW
+    def sell_exercise_all_options(self):
         for root in self.portfolio.keys():
             self.sell_exercise_options(root=root)
 
@@ -431,3 +447,7 @@ class Portfolio:
             self.holdings.at[self.current_date, 'capital'] = self.current_capital
             self.close_transations(root, option_price)
             self.to_clean_portfolio.append(root)
+
+    def buyback_all_options(self):
+        for root in self.portfolio.keys():
+            self.buyback_options(root=root)
