@@ -1,45 +1,32 @@
 import pandas as pd
 import math
 
-MAX_DIS_TIME = pd.to_timedelta('100 days')  # max distance from current date to option expiration in order do buy
+MAX_DIS_TIME = pd.to_timedelta('90 days')  # max distance from current date to option expiration in order do buy
 MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
-TYPE_STRIKE = 1  # 0-out of the money | 1-in the money
+TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
+TRADING_TYPE = 1 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
 
-
-def trade(eval_start, eval_end, orders):
+def trade(eval_start, eval_end, orders): # TODO REVIEW
     port = Portfolio(eval_start, eval_end)
     while port.new_day():
         daily_orders = orders[port.current_date].copy()
-        # print('current day:     ' + str(port.get_current_date()))
         for ticker in daily_orders.index:
             action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
-            # print('action:    ' + str(action))
-            # print('ROI: '+ str(port.get_ROI()['value'].iloc[-1]))
-            if action == 1:
-                # print('current day :  ' + str(port.current_date))
-                # print((port.get_current_date() + MIN_DIS_TIME))
-                # print(port.get_current_date() + MAX_DIS_TIME)
-                # print(put_strike)
-                # print(ticker)
-
-                # print(port.dataset.loc[(port.dataset['UnderlyingSymbol'] == ticker) &
-                #                           (port.dataset['Strike'] == put_strike) &
-                #                           (port.dataset['Type'] == 'put') &
-                #                           (port.get_current_date() + MIN_DIS_TIME < port.dataset['Expiration']) &
-                #                           (port.dataset['Expiration'] < port.get_current_date() + MAX_DIS_TIME)])
-
-                put_root = port.search_root(ticker, 'put')
-                call_root = port.search_root(ticker, 'call')
-
-                n_options = min(port.get_n_options(put_root)[0], port.get_n_options(call_root)[0])
-
-                if n_options:
-                    port.buy_options(put_root, n_options)  # buys a put and a call so that the return is not influenced
-                    port.buy_options(call_root, n_options)  # by the variation of the underlying price
-
-            elif action == -1:
-                port.sell_exercise_options(ticker)
-
+            switch
+            if TRADING_TYPE == 1: # buy(calls/puts)
+                if action == 1:
+                    put_root = port.search_root(ticker, 'put')
+                    call_root = port.search_root(ticker, 'call')
+                    n_options = min(port.get_n_options(put_root)[0], port.get_n_options(call_root)[0])
+                    if n_options:
+                        port.buy_options(put_root, n_options)  # buys a put and a call so that the return is not influenced
+                        port.buy_options(call_root, n_options)  # by the variation of the underlying price
+                elif action == -1:
+                    port.sell_exercise_options(ticker)
+            elif TRADING_TYPE == 2: # sell(puts)
+                pass
+            elif TRADING_TYPE == 3: # sell(calls)
+                pass
         port.clean_portfolio()
         port.update_holdings()
         port.update_ROI()
@@ -52,8 +39,9 @@ class Transaction:
         self.date = date
         self.root = root
         self.type = ty
-        self.value = value
+        self.init_value = value
         self.quantity = quantity
+        self.final_value = 0
 
     def get_date(self):
         return self.date
@@ -64,11 +52,17 @@ class Transaction:
     def get_type(self):
         return self.type
 
-    def get_value(self):
-        return self.value
+    def get_init_value(self):
+        return self.init_value
 
     def get_quantity(self):
         return self.quantity
+
+    def get_final_value(self):
+        return self.final_value
+
+    def set_final_value(self, value):
+        self.final_value = value
 
 
 class Option:
@@ -173,8 +167,59 @@ class Portfolio:
     def get_stock_splits(self):
         return self.stock_splits
 
-    # GENERAL #
-    def search_root(self, ticker, option_type):
+    # GENERAL
+    def new_day(self): # TODO REVIEW
+        current_date = self.get_current_date()
+        while True:
+            current_date = current_date + pd.to_timedelta(1, unit='d')
+            [dataset, date_exists] = self.get_option_dataset(current_date)
+            if date_exists:
+                self.current_date = current_date
+                self.dataset = dataset
+                self.log[current_date] = []
+                self.check_stock_split()
+                self.holdings_new_day()
+                self.verify_mature_options()
+                if current_date >= self.get_end_date():  # sees if it's already in the final day
+                    self.sell_exercise_all_options()
+                    self.update_holdings()
+                    self.update_ROI()
+                    return 0
+                return 1
+
+    def verify_mature_options(self): # TODO REVIEW
+        current_date = self.get_current_date()
+        for option in self.portfolio.values():
+            if TRADING_TYPE == 1: # buy(calls/puts)
+                if option.get_expiration_date() <= current_date + pd.to_timedelta('1 day'):
+                    self.sell_exercise_options(root=option.get_root())
+            elif TRADING_TYPE == 2: # sell(puts)
+                if option.get_expiration_date() <= current_date + pd.to_timedelta(MIN_DIS_TIME):
+                    # self.sell_exercise_options(root=option.get_root())
+            elif TRADING_TYPE == 3: # sell(calls)
+                pass
+
+    def get_option_dataset(self, date): # TODO REVIEW
+        str_date = date.strftime('%Y%m%d')
+        option_dataset = []
+        for filename in self.filenames:
+            if str_date in filename:
+                option_dataset = pd.read_csv(filename.rstrip('\n'))  # rstrip removes \n from the end of string
+                # TODO VERIFICAR SE É PRECISO VOLTAR RETIRAR OS VOLUMES = 0
+                # option_dataset = option_dataset.drop(option_dataset[option_dataset.Volume == 0].index)  # drops from
+                # data all rows with Volume = 0
+                option_dataset['Expiration'] = pd.to_datetime(option_dataset['Expiration'])
+                return option_dataset, 1
+        return option_dataset, 0
+
+    def close_transations(self, root, price):
+        for daily_transactions in self.log.values():
+            for transaction in daily_transactions:
+                if transaction.get_root() == root:
+                    transaction.set_final_value(value)
+
+    # TYPE 1 (BUY)
+    def search_root(self, ticker, option_type): # TODO REVIEW
 
         underlying_price = \
             self.dataset.loc[self.dataset['UnderlyingSymbol'] == ticker]['UnderlyingPrice'].iloc[-1]
@@ -211,7 +256,7 @@ class Portfolio:
                     if options_strikes[i] > underlying_price:
                         return options_roots[i]
 
-    def check_stock_split(self):
+    def check_stock_split(self): # TODO REVIEW
         stock_splits = self.get_stock_splits()
         date = self.get_current_date()
         if date in stock_splits.index:
@@ -232,17 +277,17 @@ class Portfolio:
                         # print(')))))))))))))))))))))))))))))))))))))))))))))))))))))')
                         option.set_root_strike_nr(new_root, new_strike, new_quantity)
 
-    def update_ROI(self):
+    def update_ROI(self): # TODO REVIEW
         current_value = self.holdings.at[self.get_current_date(), 'net_value']
         investment = self.get_initial_capital()
         roi = (current_value - investment) / investment
         self.ROI.at[self.get_current_date()] = roi
 
-    def holdings_new_day(self):
+    def holdings_new_day(self): # TODO REVIEW
         self.holdings.at[self.current_date] = [self.holdings.iloc[len(self.holdings) - 1].net_value,
                                                self.holdings.iloc[len(self.holdings) - 1].capital]
 
-    def update_holdings(self):
+    def update_holdings(self): # TODO REVIEW
         capital = self.holdings.at[self.current_date, "capital"]
         options_value = 0
 
@@ -262,40 +307,7 @@ class Portfolio:
 
         self.holdings.at[self.current_date, 'net_value'] = capital + options_value
 
-    def new_day(self):
-        current_date = self.get_current_date()
-
-        while True:
-            current_date = current_date + pd.to_timedelta(1, unit='d')
-            [dataset, date_exists] = self.get_option_dataset(current_date)
-            if date_exists:
-                self.current_date = current_date
-                self.dataset = dataset
-                self.log[current_date] = []
-                self.holdings_new_day()
-                self.check_stock_split()
-                self.verify_mature_options()
-                if current_date >= self.get_end_date():  # sees if it's already in the final day
-                    self.sell_exercise_all_options()
-                    self.update_holdings()
-                    self.update_ROI()
-                    return 0
-                return 1
-
-    def get_option_dataset(self, date):
-        str_date = date.strftime('%Y%m%d')
-        option_dataset = []
-        for filename in self.filenames:
-            if str_date in filename:
-                option_dataset = pd.read_csv(filename.rstrip('\n'))  # rstrip removes \n from the end of string
-                # TODO VERIFICAR SE É PRECISO VOLTAR RETIRAR OS VOLUMES = 0
-                # option_dataset = option_dataset.drop(option_dataset[option_dataset.Volume == 0].index)  # drops from
-                # data all rows with Volume = 0
-                option_dataset['Expiration'] = pd.to_datetime(option_dataset['Expiration'])
-                return option_dataset, 1
-        return option_dataset, 0
-
-    def buy_options(self, root, n_options=0):
+    def buy_options(self, root, n_options=0): # TODO REVIEW
         print('buying.... ' + root)
         [_n_options, option_price] = self.get_n_options(root)
         if not n_options:
@@ -311,7 +323,7 @@ class Portfolio:
             else:
                 self.portfolio[root] = Option(root, n_options)  # adds the option to the portfolio
 
-    def get_n_options(self, root):
+    def get_n_options(self, root): # TODO REVIEW
         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
         if option_price > self.current_capital:
             # print('Not enough money to buy this option: ' + root)
@@ -319,7 +331,7 @@ class Portfolio:
         n_options = int(float(self.get_max_position()) / float(option_price))
         return n_options, option_price
 
-    def sell_options(self, root):
+    def sell_options(self, root): # TODO REVIEW
         if root not in self.to_clean_portfolio:
             print('selling.... ' + root)
             option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
@@ -329,7 +341,7 @@ class Portfolio:
             self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
             self.to_clean_portfolio.append(root)
 
-    def exercise_options(self, root):
+    def exercise_options(self, root): # TODO REVIEW
         print('exercising.... ' + root)
         stock_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['UnderlyingPrice']
         strike = self.portfolio[root].get_strike()
@@ -344,7 +356,7 @@ class Portfolio:
         self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
         self.to_clean_portfolio.append(root)
 
-    def sell_exercise_options(self, ticker=0, root=0):
+    def sell_exercise_options(self, ticker=0, root=0): # TODO REVIEW
         if not root:  # sells or exercises all options from that company
             for option in self.portfolio.values():
                 if option.get_company() == ticker:
@@ -379,19 +391,36 @@ class Portfolio:
             else:
                 self.exercise_options(root)
 
-    def sell_exercise_all_options(self):
+    def sell_exercise_all_options(self): # TODO REVIEW
         for root in self.portfolio.keys():
             self.sell_exercise_options(root=root)
 
-    def clean_portfolio(self):
+    def clean_portfolio(self): # TODO REVIEW
         to_clean = self.get_to_clean_portfolio()
         for root in to_clean:
             self.portfolio.pop(root)
         self.empty_to_clean()
 
-    def verify_mature_options(self):
-        current_date = self.get_current_date()
-        for option in self.portfolio.values():
-            # print(option.get_expiration_date())
-            if option.get_expiration_date() <= current_date + pd.to_timedelta('1 day'):
-                self.sell_exercise_options(root=option.get_root())
+    # TYPE 2/3 (SELL)
+
+    def buyback_options(self, ticker=0, root=0):
+        to_buy_back = []
+        if root: # buys back options of a specific root
+            if root not in self.to_clean_portfolio:
+                to_buy_back.append(root)
+
+        else: # buys back all options from that company
+            for option in self.portfolio.values():
+                if option.get_company() == ticker:
+                    root = option.get_root()
+                    if root not in self.to_clean_portfolio:
+                        to_buy_back.append(root)
+
+        for root in to_buy_back:
+            print('buying back.... ' + root)
+            option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
+            n_options = self.portfolio[root].get_quantity()
+            self.current_capital -= option_price * n_options
+            self.holdings.at[self.current_date, 'capital'] = self.current_capital
+            self.close_transations(root, option_price)
+            self.to_clean_portfolio.append(root)
