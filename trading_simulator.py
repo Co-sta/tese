@@ -181,13 +181,20 @@ class Portfolio:
                 self.holdings_new_day()
                 self.verify_mature_options()
                 if current_date >= self.get_end_date():  # sees if it's already in the final day
-                    self.sell_exercise_all_options()
-                    self.update_holdings()
-                    self.update_ROI()
-                    return 0
-                return 1
+                    if TRADING_TYPE == 1: # buy(calls/puts)
+                        self.sell_exercise_all_options()
+                        self.update_holdings()
+                        self.update_ROI()
+                        return 0
+                    elif TRADING_TYPE == 2: # sell(puts)
+                        # CONTINUAR
+                        return 0
+                    elif TRADING_TYPE == 3: # sell(calls)
+                        return 0
+                else:
+                    return 1
 
-    def verify_mature_options(self): # TODO REVIEW
+    def verify_mature_options(self): # TODO REVIEW TYPE 3
         current_date = self.get_current_date()
         for option in self.portfolio.values():
             if TRADING_TYPE == 1: # buy(calls/puts)
@@ -195,7 +202,7 @@ class Portfolio:
                     self.sell_exercise_options(root=option.get_root())
             elif TRADING_TYPE == 2: # sell(puts)
                 if option.get_expiration_date() <= current_date + pd.to_timedelta(MIN_DIS_TIME):
-                    # self.sell_exercise_options(root=option.get_root())
+                    self.buyback_options(root=option.get_root())
             elif TRADING_TYPE == 3: # sell(calls)
                 pass
 
