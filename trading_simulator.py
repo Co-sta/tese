@@ -4,27 +4,32 @@ import math
 MAX_DIS_TIME = pd.to_timedelta('90 days')  # max distance from current date to option expiration in order do buy
 MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
 TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
+PRICE_RANGE = [30, 80]
 TRADING_TYPE = 1 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
 
 def trade(eval_start, eval_end, orders): # TODO REVIEW
     port = Portfolio(eval_start, eval_end)
-    while port.new_day(): #CONTINUAR AQUI
+    while port.new_day():
         daily_orders = orders[port.current_date].copy()
         for ticker in daily_orders.index:
             action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
-            switch
             if TRADING_TYPE == 1: # buy(calls/puts)
                 if action == 1:
                     put_root = port.search_root(ticker, 'put')
                     call_root = port.search_root(ticker, 'call')
-                    n_options = min(port.get_n_options(put_root)[0], port.get_n_options(call_root)[0])
-                    if n_options:
-                        port.buy_options(put_root, n_options)  # buys a put and a call so that the return is not influenced
-                        port.buy_options(call_root, n_options)  # by the variation of the underlying price
+                    if put_root and call_root:
+                        n_options = min(port.get_n_options(put_root)[0], port.get_n_options(call_root)[0])
+                        if n_options:
+                            port.buy_options(put_root, n_options)  # buys a put and a call so that the return is not influenced
+                            port.buy_options(call_root, n_options)  # by the variation of the underlying price
                 elif action == -1:
-                    port.sell_exercise_options(ticker)
+                    port.sell_exercise_options(ticker=ticker)
             elif TRADING_TYPE == 2: # sell(puts)
-                pass
+                if action == 1 or close_VIX(): # CONTINUAR AQUI
+                    port.buyback_options(ticker=ticker)
+                elif action == -1:
+                    put_root = port.search_root(ticker, 'put')
+                    port.create_options(put_root)
             elif TRADING_TYPE == 3: # sell(calls)
                 pass
         port.clean_portfolio()
@@ -45,24 +50,22 @@ class Transaction:
 
     def get_date(self):
         return self.date
-
     def get_root(self):
         return self.root
-
     def get_type(self):
         return self.type
-
     def get_init_value(self):
         return self.init_value
-
     def get_quantity(self):
         return self.quantity
-
     def get_final_value(self):
         return self.final_value
-
     def set_final_value(self, value):
         self.final_value = value
+    def set_root_init_value_quantity(self, new_root, new_init_value, new_quantity):
+        self.root = new_root
+        self.init_value = new_init_value
+        self.quantity = new_quantity
 
 
 class Option:
@@ -80,28 +83,21 @@ class Option:
 
     def get_root(self):
         return self.root
-
     def get_strike(self):
         return self.strike
-
     def get_type(self):
         return self.type
-
     def get_expiration_date(self):
         return self.expiration_date
-
     def get_company(self):
         return self.company
-
     def get_quantity(self):
         return self.quantity
-
     def add_quantity(self, quantity):
         self.quantity += quantity
-
-    def set_root_strike(self, new_root, new_strike, new_quantity):
+    def set_root_strike_nr(self, new_root, new_strike, new_quantity):
         self.root = new_root
-        self.strike = int(new_strike) / 1000
+        self.strike = new_strike
         self.quantity = new_quantity
 
 
@@ -122,53 +118,47 @@ class Portfolio:
 
         self.log = {self.current_date: []}
         self.ROI = pd.DataFrame(data={'total': 0}, index=[start_date])
-        self.stock_splits = pd.read_csv('data/stock_splits/stock_splits.csv', index_col='date', parse_dates=True)
+        self.stock_splits = pd.read_csv('data/stock_splits/stock_splits.csv', parse_dates=True)
 
-        self.nr_pos_trades = 0
-        self.nr_neg_trades = 0
+        self.nr_pos_trades = {}
+        self.nr_neg_trades = {}
+        self.VIX = pd.read_csv('data/VIX/VIX30D.csv', index_col='Date', parse_dates=True)
 
     #  GETTERS  #
     def get_max_position(self):
         return self.max_position
-
     def get_current_capital(self):
         return self.current_capital
-
     def get_initial_capital(self):
         return self.initial_capital
-
     def get_start_date(self):
         return self.start_date
-
     def get_end_date(self):
         return self.end_date
-
     def get_filenames(self):
         return self.filenames
-
     def get_dataset(self):
         return self.dataset
-
     def get_current_date(self):
         return self.current_date
-
     def get_portfolio(self):
         return self.portfolio
-
     def get_to_clean_portfolio(self):
         return self.to_clean_portfolio
-
     def empty_to_clean(self):
         self.to_clean_portfolio = []
-
     def get_holdings(self):
         return self.holdings
-
     def get_ROI(self):
         return self.ROI
-
     def get_stock_splits(self):
         return self.stock_splits
+    def get_nr_pos_trades(self):
+        return self.nr_pos_trades
+    def get_nr_neg_trades(self):
+        return self.nr_neg_trades
+    def get_VIX(self):
+        return self.VIX
 
     # GENERAL
     def new_day(self): # TODO REVIEW TYPE 3
@@ -198,6 +188,48 @@ class Portfolio:
                         return 0
                 else:
                     return 1
+
+    def search_root(self, ticker, option_type):
+        underlying_price = \
+            self.dataset.loc[self.dataset['UnderlyingSymbol'] == ticker]['UnderlyingPrice'].iloc[-1]
+
+        # print(underlying_price)
+        t1 = self.get_current_date() + MIN_DIS_TIME
+        t2 = self.get_current_date() + MAX_DIS_TIME
+
+        options_roots = self.dataset.loc[(self.dataset['UnderlyingSymbol'] == ticker) &
+                                         (self.dataset['Type'] == option_type) &
+                                         (t1 < self.dataset['Expiration']) &
+                                         (self.dataset['Expiration'] < t2) &
+                                         (self.dataset['Ask'] >= PRICE_RANGE[0]) &
+                                         (self.dataset['Ask'] <= PRICE_RANGE[1])
+                                         ]['OptionRoot'].values
+
+        options_strikes = self.dataset.loc[(self.dataset['UnderlyingSymbol'] == ticker) &
+                                           (self.dataset['Type'] == option_type) &
+                                           (t1 < self.dataset['Expiration']) &
+                                           (self.dataset['Expiration'] < t2) &
+                                           (self.dataset['Ask'] >= PRICE_RANGE[0]) &
+                                           (self.dataset['Ask'] <= PRICE_RANGE[1])
+                                           ]['Strike'].values
+
+        for i in range(len(options_strikes)):
+            if option_type == 'put':
+                if TYPE_STRIKE:  # 1-in the money
+                    if options_strikes[i] > underlying_price:
+                        return options_roots[i]
+                else:  # 0-out of the money
+                    if options_strikes[i] > underlying_price:
+                        return options_roots[i - 1]
+            else:
+                if TYPE_STRIKE:  # 1-in the money
+                    if options_strikes[i] > underlying_price:
+                        return options_roots[i - 1]
+                else:  # 0-out of the money
+                    if options_strikes[i] > underlying_price:
+                        return options_roots[i]
+        # in case it doesnt find an option
+        return False
 
     def verify_mature_options(self): # TODO REVIEW TYPE 3
         current_date = self.get_current_date()
@@ -246,6 +278,47 @@ class Portfolio:
         elif TRADING_TYPE == 3: # sell(calls)
             pass
 
+    def check_stock_split(self):
+        stock_splits = self.get_stock_splits()
+        date = self.get_current_date()
+        if date in stock_splits['date'].tolist():
+            # rectifies portfolio
+            for option in self.get_portfolio().values():
+                for ticker in stock_splits.at[date, 'ticker']:
+                    if option.get_company() == ticker:
+                        ratio = stock_splits.loc[(stock_splits['date']==date) &
+                                                 (stock_splits['ticker']==ticker),
+                                                 'ratio'].values[0]
+                        ratio = stock_splits.at[date, 'ratio']
+                        [ratio_u, ratio_d] = ratio.split('/')
+                        ratio_u = int(ratio_u)
+                        ratio_d = int(ratio_d)
+                        new_quantity = (option.get_quantity() * ratio_u) / ratio_d
+                        root_strike = '00000000' + str(int(round((option.strike * ratio_d) / ratio_u, 2) * 1000))
+                        root_strike = root_strike[-8::]
+                        new_root = option.company + option.year + option.month + option.day + option.type + root_strike
+                        new_strike = int(root_strike) / 1000
+                        option.set_root_strike_nr(new_root, new_strike, new_quantity)
+            # rectifies transactions
+            for daily_transactions in self.log().values():
+                for transaction in daily_transactions:
+                    if transaction.get_final_value() != -1:
+                        for ticker in stock_splits.at[date, 'ticker']:
+                            option = Option(transaction.get_root())
+                            if option.get_company() == ticker
+                                ratio = stock_splits.loc[(stock_splits['date']==date) &
+                                                         (stock_splits['ticker']==ticker),
+                                                         'ratio'].values[0]
+                                [ratio_u, ratio_d] = ratio.split('/')
+                                ratio_u = int(ratio_u)
+                                ratio_d = int(ratio_d)
+                                new_quantity = (transaction.get_quantity() * ratio_u) / ratio_d
+                                root_strike = '00000000' + str(int(round((option.strike * ratio_d) / ratio_u, 2) * 1000))
+                                root_strike = root_strike[-8::]
+                                new_root = option.company + option.year + option.month + option.day + option.type + root_strike
+                                new_init_value = (transaction.get_init_value() * ratio_d) / ratio_u
+                                transaction.set_root_init_value_quantity(new_root, new_init_value, new_quantity)
+
     def update_ROI(self):
         roi = self.get_ROI()
         old_data = pd.DataFrame(roi[-1:].values,
@@ -267,65 +340,15 @@ class Portfolio:
 
         self.ROI = roi
 
+    def close_VIX(self):
+        vix = self.get_VIX().at[self.current_date, 'close']
+        if vix >= 20:
+            return True
+        else:
+            return False
+
+
     # TYPE 1 (BUY)
-    def search_root(self, ticker, option_type): # TODO REVIEW
-
-        underlying_price = \
-            self.dataset.loc[self.dataset['UnderlyingSymbol'] == ticker]['UnderlyingPrice'].iloc[-1]
-
-        # print(underlying_price)
-        t1 = self.get_current_date() + MIN_DIS_TIME
-        t2 = self.get_current_date() + MAX_DIS_TIME
-
-        options_roots = self.dataset.loc[(self.dataset['UnderlyingSymbol'] == ticker) &
-                                         (self.dataset['Type'] == option_type) &
-                                         (t1 < self.dataset['Expiration']) &
-                                         (self.dataset['Expiration'] < t2)
-                                         ]['OptionRoot'].values
-
-        options_strikes = self.dataset.loc[(self.dataset['UnderlyingSymbol'] == ticker) &
-                                           (self.dataset['Type'] == option_type) &
-                                           (t1 < self.dataset['Expiration']) &
-                                           (self.dataset['Expiration'] < t2)
-                                           ]['Strike'].values
-
-        for i in range(len(options_strikes)):
-            if option_type == 'put':
-                if TYPE_STRIKE:  # 1-in the money
-                    if options_strikes[i] > underlying_price:
-                        return options_roots[i]
-                else:  # 0-out of the money
-                    if options_strikes[i] > underlying_price:
-                        return options_roots[i - 1]
-            else:
-                if TYPE_STRIKE:  # 1-in the money
-                    if options_strikes[i] > underlying_price:
-                        return options_roots[i - 1]
-                else:  # 0-out of the money
-                    if options_strikes[i] > underlying_price:
-                        return options_roots[i]
-
-    def check_stock_split(self): # TODO REVIEW
-        stock_splits = self.get_stock_splits()
-        date = self.get_current_date()
-        if date in stock_splits.index:
-            for option in self.get_portfolio().values():
-                for ticker in stock_splits.at[date, 'ticker']:
-                    if option.get_company() == ticker:
-                        # print('(((((((((((((((((((((((((((((((((((((((((((((((((((((')
-                        # print('old root:   ' + option.get_root())
-                        ratio = stock_splits.at[date, 'ratio']
-                        [ratio_d, ratio_u] = ratio.split('/')
-                        ratio_u = int(ratio_u)
-                        ratio_d = int(ratio_d)
-                        new_quantity = (option.get_quantity() * ratio_u) / ratio_d
-                        new_strike = '00000000' + str(int(round((option.strike * ratio_u) / ratio_d, 2) * 1000))
-                        new_strike = new_strike[-8::]
-                        new_root = option.company + option.year + option.month + option.day + option.type + new_strike
-                        # print('new root:  ' + new_root)
-                        # print(')))))))))))))))))))))))))))))))))))))))))))))))))))))')
-                        option.set_root_strike_nr(new_root, new_strike, new_quantity)
-
     def holdings_new_day(self): # TODO REVIEW
         self.holdings.at[self.current_date] = [self.holdings.iloc[len(self.holdings) - 1].net_value,
                                                self.holdings.iloc[len(self.holdings) - 1].capital]
@@ -425,6 +448,9 @@ class Portfolio:
         self.empty_to_clean()
 
     # TYPE 2/3 (SELL)
+    def create_options(put_root):
+        # CONTINUAR AQUI
+        pass
 
     def buyback_options(self, ticker=0, root=0):
         to_buy_back = []
