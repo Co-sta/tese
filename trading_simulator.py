@@ -359,7 +359,7 @@ class Portfolio:
                    (txn.get_type() == 'sell' and profit < 0):
                     self.nr_pos_trades += 1
                 else:
-                    self.nr_neg_trades += 1:
+                    self.nr_neg_trades += 1
 
     # TYPE 1 (BUY)
     def holdings_new_day(self): # TODO REVIEW
