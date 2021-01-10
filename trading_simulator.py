@@ -349,7 +349,7 @@ class Portfolio:
         self.holdings.at[self.current_date] = [self.holdings.iloc[len(self.holdings) - 1].net_value,
                                                self.holdings.iloc[len(self.holdings) - 1].capital]
 
-    def buy_options(self, root, n_options=0): # TODO REVIEW
+    def buy_options(self, root, n_options=0):
         print('buying.... ' + root)
         [_n_options, option_price] = self.get_n_options(root)
         if not n_options:
@@ -361,9 +361,11 @@ class Portfolio:
             self.log[self.current_date].append(Transaction(self.current_date, root, 'buy', option_price, n_options))
             # adds the transaction to logs
             if root in self.portfolio:
-                self.portfolio[root].add_quantity(n_options)  # updates the number of options of a company
+                # updates the number of options of a company
+                self.portfolio[root].add_quantity(n_options)
             else:
-                self.portfolio[root] = Option(root, n_options)  # adds the option to the portfolio
+                # adds the option to the portfolio
+                self.portfolio[root] = Option(root, n_options)
 
     def get_n_options(self, root): # TODO REVIEW
         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
@@ -437,7 +439,7 @@ class Portfolio:
         for root in self.portfolio.keys():
             self.sell_exercise_options(root=root)
 
-    def clean_portfolio(self): # TODO REVIEW
+    def clean_portfolio(self):
         to_clean = self.get_to_clean_portfolio()
         for root in to_clean:
             self.portfolio.pop(root)
@@ -452,9 +454,11 @@ class Portfolio:
         self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
         self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
         if root in self.portfolio:
-            self.portfolio[root].add_quantity(n_options)  # updates the number of options of a company
+            # updates the number of options of a company
+            self.portfolio[root].add_quantity(n_options)
         else:
-            self.portfolio[root] = Option(root, n_options)  # adds the option to the portfolio
+            # adds the option to the portfolio
+            self.portfolio[root] = Option(root, n_options)
 
     def buyback_options(self, ticker=0, root=0):
         to_buy_back = []
