@@ -234,7 +234,9 @@ def graph_trades(filename):
                 yaxis={'title':'date'})
         for daily_transactions in port.get_log().values():
             for txn in daily_transactions:
-                if txn.get_company() == ticker and txn.get_result() == 'positive':
+                if txn.get_company() != ticker:
+                    continue
+                if txn.get_result() == 'positive':
                     line = go.Scatter(x=[txn.get_init_date(), txn.get_final_date()],
                                       y=[txn.get_init_value(), txn.get_final_value()],
                                       name="Positive",
