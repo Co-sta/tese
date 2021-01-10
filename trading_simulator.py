@@ -41,27 +41,32 @@ def trade(eval_start, eval_end, orders): # TODO REVIEW
 class Transaction:
 
     def __init__(self, date, root, ty, value, quantity):
-        self.date = date
         self.root = root
         self.type = ty
-        self.init_value = value
         self.quantity = quantity
+        self.init_value = value
+        self.init_date = date
         self.final_value = -1
+        self.final_date = -1
 
-    def get_date(self):
-        return self.date
     def get_root(self):
         return self.root
     def get_type(self):
         return self.type
-    def get_init_value(self):
-        return self.init_value
     def get_quantity(self):
         return self.quantity
+    def get_init_value(self):
+        return self.init_value
+    def get_init_date(self):
+        return self.ini_date
     def get_final_value(self):
         return self.final_value
+    def get_final_date(self):
+        return self.final_date
     def set_final_value(self, value):
         self.final_value = value
+    def set_final_date(self, date):
+        self.final_date = date
     def set_root_init_value_quantity(self, new_root, new_init_value, new_quantity):
         self.root = new_root
         self.init_value = new_init_value
@@ -120,8 +125,8 @@ class Portfolio:
         self.ROI = pd.DataFrame(data={'total': 0}, index=[start_date])
         self.stock_splits = pd.read_csv('data/stock_splits/stock_splits.csv', parse_dates=True)
 
-        self.nr_pos_trades = {}
-        self.nr_neg_trades = {}
+        self.nr_pos_trades = 0
+        self.nr_neg_trades = 0
         self.VIX = pd.read_csv('data/VIX/VIX30D.csv', index_col='Date', parse_dates=True)
 
     #  GETTERS  #
@@ -255,10 +260,11 @@ class Portfolio:
         return option_dataset, 0
 
     def close_transations(self, root, price):
-        for daily_transactions in self.log.values():
+        for daily_transactions in self.get_log().values():
             for transaction in daily_transactions:
                 if transaction.get_root() == root:
                     transaction.set_final_value(value)
+                    transaction.set_final_date(self.get_current_date())
 
     def update_holdings(self): # TODO REVIEW TYPE 3
         capital = self.holdings.at[self.current_date, "capital"]
@@ -346,7 +352,14 @@ class Portfolio:
             return False
 
     def evaluate_trades(self):
-        log =
+        for daily_transactions in self.get_log().values():
+            for txn in daily_transactions:
+                profit = txn.get_final_value()-txn.get_init_value()
+                if (txn.get_type() == 'buy' and profit > 0) or
+                   (txn.get_type() == 'sell' and profit < 0):
+                    self.nr_pos_trades += 1
+                else:
+                    self.nr_neg_trades += 1:
 
     # TYPE 1 (BUY)
     def holdings_new_day(self): # TODO REVIEW
