@@ -48,6 +48,7 @@ class Transaction:
         self.init_date = date
         self.final_value = -1
         self.final_date = -1
+        self.result = -1
 
     def get_root(self):
         return self.root
@@ -71,6 +72,15 @@ class Transaction:
         self.root = new_root
         self.init_value = new_init_value
         self.quantity = new_quantity
+    def check_result(self):
+        profit = self.get_final_value()-self.get_init_value()
+        if (self.get_type() == 'buy' and profit > 0) or
+           (self.get_type() == 'sell' and profit < 0):
+            self.result = 'positive'
+            return 'positive'
+        else:
+            self.result = 'negative'
+            return 'negative'
 
 
 class Option:
@@ -357,12 +367,13 @@ class Portfolio:
     def evaluate_trades(self):
         for daily_transactions in self.get_log().values():
             for txn in daily_transactions:
-                profit = txn.get_final_value()-txn.get_init_value()
-                if (txn.get_type() == 'buy' and profit > 0) or
-                   (txn.get_type() == 'sell' and profit < 0):
+                result = txn.check_result()
+                if result == 'positive':
                     self.nr_pos_trades += 1
-                else:
+                elif result == 'negative':
                     self.nr_neg_trades += 1
+                else:
+                    raise 'log with invalid result value'
 
     # TYPE 1 (BUY)
     def holdings_new_day(self): # TODO REVIEW
