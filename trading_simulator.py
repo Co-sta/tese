@@ -176,16 +176,14 @@ class Portfolio:
                 if current_date >= self.get_end_date():  # sees if it's already in the final day
                     if TRADING_TYPE == 1: # buy(calls/puts)
                         self.sell_exercise_all_options()
-                        self.update_holdings()
-                        self.update_ROI()
-                        return 0
                     elif TRADING_TYPE == 2: # sell(puts)
                         self.buyback_all_options()
-                        self.update_holdings()
-                        self.update_ROI()
-                        return 0
                     elif TRADING_TYPE == 3: # sell(calls)
-                        return 0
+                        pass
+                    self.update_holdings()
+                    self.update_ROI()
+                    return 0
+
                 else:
                     return 1
 
@@ -448,9 +446,17 @@ class Portfolio:
         self.empty_to_clean()
 
     # TYPE 2/3 (SELL)
-    def create_options(put_root):
-        # CONTINUAR AQUI
-        pass
+    def create_options(root, n_options):
+        print('creating.... ' + root +' ('+str(n_options)+')')
+        option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
+        position = option_price * n_options
+        self.current_capital += position
+        self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
+        self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
+        if root in self.portfolio:
+            self.portfolio[root].add_quantity(n_options)  # updates the number of options of a company
+        else:
+            self.portfolio[root] = Option(root, n_options)  # adds the option to the portfolio
 
     def buyback_options(self, ticker=0, root=0):
         to_buy_back = []
