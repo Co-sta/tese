@@ -5,7 +5,7 @@ MAX_DIS_TIME = pd.to_timedelta('90 days')  # max distance from current date to o
 MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
 TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
 PRICE_RANGE = [30, 80]
-TRADING_TYPE = 1 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
+TRADING_TYPE = 2 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
 
 def trade(eval_start, eval_end, orders, tickers): # TODO REVIEW
     port = Portfolio(eval_start, eval_end, tickers)
@@ -74,8 +74,7 @@ class Transaction:
         self.quantity = new_quantity
     def check_result(self):
         profit = self.get_final_value()-self.get_init_value()
-        if (self.get_type() == 'buy' and profit > 0) or
-           (self.get_type() == 'sell' and profit < 0):
+        if (self.get_type() == 'buy' and profit > 0) or (self.get_type() == 'sell' and profit < 0):
             self.result = 'positive'
             return 'positive'
         else:
@@ -322,7 +321,7 @@ class Portfolio:
                     if transaction.get_final_value() != -1:
                         for ticker in stock_splits.at[date, 'ticker']:
                             option = Option(transaction.get_root())
-                            if option.get_company() == ticker
+                            if option.get_company() == ticker:
                                 ratio = stock_splits.loc[(stock_splits['date']==date) &
                                                          (stock_splits['ticker']==ticker),
                                                          'ratio'].values[0]

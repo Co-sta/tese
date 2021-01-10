@@ -60,8 +60,8 @@ time_period = '2nd_period'
 
 ################################################################################
 # STARTING FULL TRAIN AND TEST
-# [best_chromo, filepath] = train()
-# test(best_chromo, filepath=filepath)
+[best_chromo, filepath] = train()
+test(best_chromo, filepath=filepath)
 
 ################################################################################
 # STARTING TEST
