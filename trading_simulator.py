@@ -145,8 +145,6 @@ class Portfolio:
         return self.portfolio
     def get_to_clean_portfolio(self):
         return self.to_clean_portfolio
-    def empty_to_clean(self):
-        self.to_clean_portfolio = []
     def get_holdings(self):
         return self.holdings
     def get_ROI(self):
@@ -443,7 +441,7 @@ class Portfolio:
         to_clean = self.get_to_clean_portfolio()
         for root in to_clean:
             self.portfolio.pop(root)
-        self.empty_to_clean()
+        self.to_clean_portfolio = []
 
     # TYPE 2/3 (SELL)
     def create_options(root, n_options):
