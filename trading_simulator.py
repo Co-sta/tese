@@ -147,6 +147,8 @@ class Portfolio:
         return self.to_clean_portfolio
     def get_holdings(self):
         return self.holdings
+    def get_log(self):
+        return self.log
     def get_ROI(self):
         return self.ROI
     def get_stock_splits(self):
@@ -343,6 +345,8 @@ class Portfolio:
         else:
             return False
 
+    def evaluate_trades(self):
+        log =
 
     # TYPE 1 (BUY)
     def holdings_new_day(self): # TODO REVIEW
@@ -355,8 +359,7 @@ class Portfolio:
         if not n_options:
             n_options = _n_options
         if n_options:
-            position = option_price * n_options
-            self.current_capital -= position
+            self.current_capital -= option_price * n_options
             self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
             self.log[self.current_date].append(Transaction(self.current_date, root, 'buy', option_price, n_options))
             # adds the transaction to logs
@@ -367,7 +370,7 @@ class Portfolio:
                 # adds the option to the portfolio
                 self.portfolio[root] = Option(root, n_options)
 
-    def get_n_options(self, root): # TODO REVIEW
+    def get_n_options(self, root):
         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
         if option_price > self.current_capital:
             # print('Not enough money to buy this option: ' + root)
@@ -375,14 +378,14 @@ class Portfolio:
         n_options = int(float(self.get_max_position()) / float(option_price))
         return n_options, option_price
 
-    def sell_options(self, root): # TODO REVIEW
+    def sell_options(self, root):
         if root not in self.to_clean_portfolio:
             print('selling.... ' + root)
             option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
             n_options = self.portfolio[root].get_quantity()
             self.current_capital += option_price * n_options
             self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
-            self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
+            self.close_transations(root, option_price)
             self.to_clean_portfolio.append(root)
 
     def exercise_options(self, root): # TODO REVIEW
@@ -449,8 +452,7 @@ class Portfolio:
     def create_options(root, n_options):
         print('creating.... ' + root +' ('+str(n_options)+')')
         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
-        position = option_price * n_options
-        self.current_capital += position
+        self.current_capital += option_price * n_options
         self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
         self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
         if root in self.portfolio:
