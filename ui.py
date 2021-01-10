@@ -222,3 +222,13 @@ def graph_ROI(filename):
     roi_evol = portfolio.get_ROI()
     fig = px.line(roi_evol, x=roi_evol.index, y="value", title=' Rate of Income (ROI)')
     fig.show()
+
+def print_nr_trades(filename):
+    print('printing nr of positive and negative trades...')
+    filepath = 'data/results/test/' + filename
+    portfolio = pickle.load( open( filepath, "rb" ))
+    nr_pos_trades = portfolio.get_nr_pos_trades()
+    nr_neg_trades = portfolio.get_nr_neg_trades()
+    print('\n   Nr of total trades: ' + str(nr_pos_trades+nr_neg_trades))
+    print('\n   Nr of positive trades: ' + str(nr_pos_trades))
+    print('\n   Nr of negative trades: ' + str(nr_neg_trades))
