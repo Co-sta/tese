@@ -7,11 +7,11 @@ TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
 PRICE_RANGE = [30, 80]
 TRADING_TYPE = 1 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
 
-def trade(eval_start, eval_end, orders): # TODO REVIEW
-    port = Portfolio(eval_start, eval_end)
+def trade(eval_start, eval_end, orders, tickers): # TODO REVIEW
+    port = Portfolio(eval_start, eval_end, tickers)
     while port.new_day():
-        daily_orders = orders[port.current_date].copy()
-        for ticker in daily_orders.index:
+        daily_orders = orders[port.get_current_date()].copy()
+        for ticker in port.get_tickers():
             action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
             if TRADING_TYPE == 1: # buy(calls/puts)
                 if action == 1:
@@ -108,7 +108,7 @@ class Option:
 
 class Portfolio:
 
-    def __init__(self, start_date, end_date, initial_capital=pow(1000000, 1000000)):
+    def __init__(self, start_date, end_date, tickers, initial_capital=pow(1000000, 1000000)):
         self.max_position = 100000  # o valor máximo por posição é de 100000
         self.current_capital = initial_capital
         self.initial_capital = initial_capital
@@ -128,6 +128,7 @@ class Portfolio:
         self.nr_pos_trades = 0
         self.nr_neg_trades = 0
         self.VIX = pd.read_csv('data/VIX/VIX30D.csv', index_col='Date', parse_dates=True)
+        self.tickers = tickers
 
     #  GETTERS  #
     def get_max_position(self):
@@ -164,6 +165,8 @@ class Portfolio:
         return self.nr_neg_trades
     def get_VIX(self):
         return self.VIX
+    def get_tickers(self):
+        return self.tickers
 
     # GENERAL
     def new_day(self): # TODO REVIEW TYPE 3

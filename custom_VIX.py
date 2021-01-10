@@ -79,7 +79,7 @@ def load_vix(filepath):
 
 
 def open_sp500_tickers_to_list():
-    with open('data/Options/sp500_tickers_all.txt') as f:
+    with open('data/Options/some_tickers.txt') as f:
         tickers = f.read().splitlines()
     return tickers
 

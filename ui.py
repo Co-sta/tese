@@ -223,6 +223,54 @@ def graph_ROI(filename):
     fig = px.line(roi_evol, x=roi_evol.index, y="value", title=' Rate of Income (ROI)')
     fig.show()
 
+def graph_trades(filename):
+    fig = go.Figure()
+    print('printing trades...')
+    filepath = 'data/results/test/' + filename
+    portfolio = pickle.load( open( filepath, "rb" ))
+    log = portfolio.get_log()
+
+    orders =  best_chromo.get_sub_pop().get_h_fame()[0].orders
+    for i in range(len(orders)):
+        fig.add_trace(go.Scatter(x=orders.columns.tolist(), y=orders.iloc[i].tolist()))
+        fig.data[i].name = orders.index[i]
+    fig.show()
+
+    print('printing trades graph...')
+    filepath = 'data/results/test/' + filename
+    portfolio = pickle.load( open( filepath, "rb" ))
+    log = portfolio.get_log()
+
+
+    fig = px.line(roi_evol, x=roi_evol.index, y="value", title=' Rate of Income (ROI)')
+    fig.show()
+
+
+
+
+
+    import plotly.graph_objects as go
+
+x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=x,
+    y=[10, 20, None, 15, 10, 5, 15, None, 20, 10, 10, 15, 25, 20, 10],
+    name = '<b>No</b> Gaps', # Style name/legend entry with html tags
+    connectgaps=True # override default to connect the gaps
+))
+fig.add_trace(go.Scatter(
+    x=x,
+    y=[5, 15, None, 10, 5, 0, 10, None, 15, 5, 5, 10, 20, 15, 5],
+    name='Gaps',
+))
+
+fig.show()
+
+
+
 def print_nr_trades(filename):
     print('printing nr of positive and negative trades...')
     filepath = 'data/results/test/' + filename

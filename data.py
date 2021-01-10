@@ -90,19 +90,19 @@ def create_custom_option_dataset(ticker):
 
 
 def open_sp500_tickers_to_list():
-    with open('data/SP500/sp500_tickers_all.txt') as f:
+    with open('data/SP500/some_tickers.txt') as f:
         tickers = f.read().splitlines()
     return tickers
 
 
 def open_all_sp500_tickers_to_list():
-    with open('data/SP500/sp500_tickers_all_all.txt') as f:
+    with open('data/SP500/all_tickers.txt') as f:
         tickers = f.read().splitlines()
     return tickers
 
 
 def open_sp500_tickers_to_str():
-    with open('data/SP500/sp500_tickers_all.txt') as f:
+    with open('data/SP500/some_tickers.txt') as f:
         tickers = f.read().replace('\n', ' ')  # transforms all strings in just one (separated by a space)
     return tickers
 
