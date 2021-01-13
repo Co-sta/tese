@@ -43,9 +43,6 @@ def test(chromo, filepath=False):
     # print(orders)
     portfolio = ts.trade(eval_start, eval_end, orders, tickers)
     data.save_portfolio(portfolio, time_period=time_period)
-    print('ROI: '+ str(portfolio.get_ROI()['value'].iloc[-1]))
-
-
 
 ################################################################################
 # 1st EVALUATION
@@ -60,12 +57,12 @@ time_period = '2nd_period'
 
 ################################################################################
 # STARTING FULL TRAIN AND TEST
-[best_chromo, filepath] = train()
-test(best_chromo, filepath=filepath)
+# [best_chromo, filepath] = train()
+# test(best_chromo, filepath=filepath)
 
 ################################################################################
 # STARTING TEST
-# file = '1st_period-28-11-2020:02:03:50 AM.pickle'
+# file = '2nd_period-13-01-2021:02:14:19 AM.pickle'
 # test_filepath = 'data/results/test/' + file
 # train_filepath = 'data/results/train/' + file
 # best_pop = pickle.load( open( train_filepath, "rb" ))
@@ -75,14 +72,14 @@ test(best_chromo, filepath=filepath)
 ################################################################################
 # STARTING UI ENVIRONMENT
 # TRAIN
-# ui.print_result('2nd_period-01-01-2021:09:12:17 AM.pickle', ga1_pop_size, ga1_gene_size)
-# ui.print_train_stats('2nd_period-01-01-2021:09:12:17 AM.pickle')
-# ui.graph_score('2nd_period-01-01-2021:09:12:17 AM.pickle')
-# ui.graph_TI('2nd_period-01-01-2021:09:12:17 AM.pickle')
-# ui.graph_forecast('2nd_period-01-01-2021:09:12:17 AM.pickle')
-# ui.graph_orders('2nd_period-01-01-2021:09:12:17 AM.pickle')
-
-# ui.graph_forecast_ivol('2nd_period-01-01-2021:09:12:17 AM.pickle')
+# train_filename = '2nd_period-13-01-2021:02:14:19 AM.pickle'
+# ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
+# ui.print_train_stats(train_filename)
+# ui.graph_score(train_filename)
+# ui.graph_TI(train_filename)
+# ui.graph_forecast(train_filename)
+# ui.graph_orders(train_filename)
+# ui.graph_forecast_ivol(train_filename)
 
 # SIGNALS
 # ui.graph_IVol()
@@ -90,4 +87,7 @@ test(best_chromo, filepath=filepath)
 # ui.graph_VIX()
 
 # TEST
-# ui.graph_ROI('2nd_period-01-01-2021:09:28:22 AM.pickle')
+test_filename = '2nd_period-13-01-2021:04:58:05 PM.pickle'
+ui.graph_ROI(test_filename)
+# ui.graph_trades(test_filename)
+# ui.print_nr_trades(test_filename)

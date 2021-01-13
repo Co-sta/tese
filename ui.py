@@ -217,9 +217,24 @@ def graph_VIX():
 ##########################
 def graph_ROI(filename):
     print('printing ROI graph...')
+    layout= go.Layout(title=go.layout.Title(text='Rate of Income (ROI)'),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'roi value'})
+    fig = go.Figure(layout=layout)
+    cnt = 0
     filepath = 'data/results/test/' + filename
     port = pickle.load( open( filepath, "rb" ))
-    roi_evol = port.get_ROI()
+    roi = port.get_ROI()
+    for ticker in port.get_tickers():
+        fig.add_trace(go.Scatter(x=roi.index, y=roi[ticker]))
+        fig.data[cnt].name = ticker
+        cnt += 1
+    fig.add_trace(go.Scatter(x=roi.index, y=roi['total']))
+    fig.data[cnt].name = 'Total'
+    fig.show()
+
+
+
     fig = px.line(roi_evol, x=roi_evol.index, y="value", title=' Rate of Income (ROI)')
     fig.show()
 
@@ -230,8 +245,8 @@ def graph_trades(filename):
     for ticker in port.get_tickers():
         data = []
         layout= go.Layout(title=go.layout.Title(text=ticker + ' Trades:'),
-                xaxis={'title':'option value'},
-                yaxis={'title':'date'})
+                xaxis={'title':'date'},
+                yaxis={'title':'option value'})
         for daily_transactions in port.get_log().values():
             for txn in daily_transactions:
                 if txn.get_company() != ticker:
@@ -247,7 +262,7 @@ def graph_trades(filename):
                                       name="Negative",
                                       legendgroup="Negative")
                 data.append(line)
-        go.Figure(data=point_plot, layout=layout1).show()
+        go.Figure(data=point_plot, layout=layout).show()
 
 def print_nr_trades(filename):
     print('printing nr of positive and negative trades...')

@@ -44,7 +44,7 @@ METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
-IVOL_CHANGE_STEP = 5  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
+IVOL_CHANGE_STEP = 2  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
 def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
@@ -824,11 +824,10 @@ def forecast_check(forecast, tickers, for_dist):
                         nr_correct_days += 1
 
                 nr_trading_days += 1
-    print('CORRECT DAYS: ' + str(nr_correct_days))
+    print('CORRECT DAYS: ' + str(nr_correct_days) +' ('+ str(nr_trading_days) +')')
     print('correct buy: ' + str(nr_correct_ups) +' ('+ str(nr_up_days) +')')
     print('correct sell: ' + str(nr_correct_downs) +' ('+ str(nr_down_days) +')')
     print('correct stay: ' + str(nr_correct_stays) +' ('+ str(nr_stay_days) +')')
-    print('TRADING DAYS: ' + str(nr_trading_days))
     score = nr_correct_days / nr_trading_days
     return [score, nr_trading_days, nr_correct_days,
             nr_up_days, nr_stay_days, nr_down_days,
