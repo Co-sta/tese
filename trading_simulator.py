@@ -6,6 +6,7 @@ MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to o
 TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
 PRICE_RANGE = [3, 80]
 TRADING_TYPE = 2 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
+CAPITAL_MODE = 0 # 1:max capital | 0:unlimited capital
 
 def trade(eval_start, eval_end, orders, tickers): # TODO REVIEW
     port = Portfolio(eval_start, eval_end, tickers)
@@ -61,11 +62,13 @@ class Transaction:
     def get_init_value(self):
         return self.init_value
     def get_init_date(self):
-        return self.ini_date
+        return self.init_date
     def get_final_value(self):
         return self.final_value
     def get_final_date(self):
         return self.final_date
+    def get_result(self):
+        return self.result
     def set_final_value(self, value):
         self.final_value = value
     def set_final_date(self, date):
@@ -204,6 +207,7 @@ class Portfolio:
                         pass
                     self.update_holdings()
                     self.update_ROI()
+                    self.evaluate_trades()
                     return 0
 
                 else:
@@ -405,7 +409,7 @@ class Portfolio:
 
     def get_n_options(self, root):
         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
-        if option_price > self.current_capital:
+        if option_price > self.current_capital and CAPITAL_MODE:
             # print('Not enough money to buy this option: ' + root)
             return 0, option_price
         n_options = int(float(self.get_max_position()) / float(option_price))

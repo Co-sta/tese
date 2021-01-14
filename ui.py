@@ -3,6 +3,7 @@ import genetic_algorithm_1 as ga1
 import data as data
 import pandas as pd
 import technical_indicators as ti
+import trading_simulator as ts
 import pickle
 
 import plotly.express as px
@@ -64,16 +65,12 @@ def print_train_stats(filename):
     nr_correct_stays = best_chromo.get_sub_pop().get_h_fame()[0].nr_correct_stays
     nr_correct_downs = best_chromo.get_sub_pop().get_h_fame()[0].nr_correct_downs
 
-    print('------Trading Days: ' + str(nr_trading_days))
-    print('-----------Up Days: ' + str(nr_up_days))
-    print('---------Stay Days: ' + str(nr_stay_days))
-    print('---------Down Days: ' + str(nr_down_days))
-    print('------Correct Days: ' + str(nr_correct_days))
-    print('---Correct Up Days: ' + str(nr_correct_ups))
-    print('-Correct Stay Days: ' + str(nr_correct_stays))
-    print('-Correct Down Days: ' + str(nr_correct_downs))
+    print('------Correct Days: ' + str(nr_correct_days) + '(' + str(nr_trading_days) + ')')
+    print('---Correct Up Days: ' + str(nr_correct_ups) + '(' + str(nr_up_days) + ')')
+    print('-Correct Stay Days: ' + str(nr_correct_stays) + '(' + str(nr_stay_days) + ')')
+    print('-Correct Down Days: ' + str(nr_correct_downs) + '(' + str(nr_down_days) + ')')
 
-    print('---% of Correct Up Days: ' + str(100*nr_correct_ups/nr_up_days) + ' %')
+    print('-% of Correct Up   Days: ' + str(100*nr_correct_ups/nr_up_days) + ' %')
     print('-% of Correct Stay Days: ' + str(100*nr_correct_stays/nr_stay_days) + ' %')
     print('-% of Correct Down Days: ' + str(100*nr_correct_downs/nr_down_days) + ' %')
 
@@ -249,20 +246,22 @@ def graph_trades(filename):
                 yaxis={'title':'option value'})
         for daily_transactions in port.get_log().values():
             for txn in daily_transactions:
-                if txn.get_company() != ticker:
+                if ts.Option(txn.get_root()).get_company() != ticker:
                     continue
                 if txn.get_result() == 'positive':
                     line = go.Scatter(x=[txn.get_init_date(), txn.get_final_date()],
                                       y=[txn.get_init_value(), txn.get_final_value()],
                                       name="Positive",
-                                      legendgroup="Positive")
+                                      legendgroup="Positive",
+                                      line=dict(color="blue"))
                 else:
                     line = go.Scatter(x=[txn.get_init_date(), txn.get_final_date()],
                                       y=[txn.get_init_value(), txn.get_final_value()],
                                       name="Negative",
-                                      legendgroup="Negative")
+                                      legendgroup="Negative",
+                                      line=dict(color="red"))
                 data.append(line)
-        go.Figure(data=point_plot, layout=layout).show()
+        go.Figure(data=data, layout=layout).show()
 
 def print_nr_trades(filename):
     print('printing nr of positive and negative trades...')

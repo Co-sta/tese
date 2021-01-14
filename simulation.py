@@ -72,13 +72,13 @@ time_period = '2nd_period'
 ################################################################################
 # STARTING UI ENVIRONMENT
 # TRAIN
-# train_filename = '2nd_period-13-01-2021:02:14:19 AM.pickle'
+train_filename = '2nd_period-13-01-2021:02:14:19 AM.pickle'
 # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats(train_filename)
 # ui.graph_score(train_filename)
 # ui.graph_TI(train_filename)
 # ui.graph_forecast(train_filename)
-# ui.graph_orders(train_filename)
+ui.graph_orders(train_filename)
 # ui.graph_forecast_ivol(train_filename)
 
 # SIGNALS
@@ -87,7 +87,7 @@ time_period = '2nd_period'
 # ui.graph_VIX()
 
 # TEST
-test_filename = '2nd_period-13-01-2021:04:58:05 PM.pickle'
-ui.graph_ROI(test_filename)
+test_filename = '2nd_period-13-01-2021:06:34:24 PM.pickle'
+# ui.graph_ROI(test_filename)
 # ui.graph_trades(test_filename)
 # ui.print_nr_trades(test_filename)
