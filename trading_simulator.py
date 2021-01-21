@@ -5,36 +5,50 @@ MAX_DIS_TIME = pd.to_timedelta('90 days')  # max distance from current date to o
 MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
 TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
 PRICE_RANGE = [3, 80]
-TRADING_TYPE = 2 # 1:buy(calls/puts) | 2:sell(puts) | 3:sell(calls)
+CASE_STUDY = 1 # 1:long calls | 2:long puts | 3:short calls | 4:short puts
 CAPITAL_MODE = 0 # 1:max capital | 0:unlimited capital
 
-def trade(eval_start, eval_end, orders, tickers): # TODO REVIEW
+trading_dic = {
+1: {'tra_type': 'long',
+    'opt_type': 'call',
+    'action': {1: 'open',
+               0: 'nothing',
+              -1: 'close'}},
+2: {'tra_type': 'long',
+    'opt_type': 'put',
+    'action': {1: 'close',
+               0: 'nothing',
+              -1: 'open'}},
+3: {'tra_type': 'short',
+    'opt_type': 'call',
+    'action': {1: 'close',
+               0: 'nothing',
+              -1: 'open'}},
+4: {'tra_type': 'short',
+    'opt_type': 'put',
+    'action': {1: 'open',
+               0: 'nothing',
+              -1: 'close'}},
+}
+
+
+def trade(eval_start, eval_end, orders, tickers):
     port = Portfolio(eval_start, eval_end, tickers)
     while port.new_day():
         print(port.get_current_date())
         daily_orders = orders[port.get_current_date()].copy()
         for ticker in port.get_tickers():
-            action = daily_orders.at[ticker]  # 1:comprar, 0:nada, -1:vender
-            if TRADING_TYPE == 1: # buy(calls/puts)
-                if action == 1:
-                    put_root = port.search_root(ticker, 'put')
-                    call_root = port.search_root(ticker, 'call')
-                    if put_root and call_root:
-                        n_options = min(port.get_n_options(put_root)[0], port.get_n_options(call_root)[0])
-                        if n_options:
-                            port.buy_options(put_root, n_options)  # buys a put and a call so that the return is not influenced
-                            port.buy_options(call_root, n_options)  # by the variation of the underlying price
-                elif action == -1:
-                    port.sell_exercise_options(ticker=ticker)
-            elif TRADING_TYPE == 2: # sell(puts)
-                if action == 1 or port.close_VIX(): # CONTINUAR AQUI
-                    port.buyback_options(ticker=ticker)
-                elif action == -1:
-                    put_root = port.search_root(ticker, 'put')
-                    if put_root:
-                        port.create_options(put_root, 10)
-            elif TRADING_TYPE == 3: # sell(calls)
-                pass
+            action = daily_orders.at[ticker]
+            position = trading_dic[CASE_STUDY]['action'][action]
+            transation_type = trading_dic[CASE_STUDY]['tra_type']
+            option_type = trading_dic[CASE_STUDY]['opt_type']
+            if position == 'open':
+                root = port.search_root(ticker, option_type)
+                if root:
+                    n_options = port.get_n_options(root)[0])
+                    port.open_position(transation_type, root, n_options)
+            elif position == 'close':
+                port.close_position(transation_type, ticker=ticker)
         port.clean_portfolio()
         port.update_holdings()
         port.update_ROI()
@@ -199,12 +213,7 @@ class Portfolio:
                 self.holdings_new_day()
                 self.verify_mature_options()
                 if current_date >= self.get_end_date():  # sees if it's already in the final day
-                    if TRADING_TYPE == 1: # buy(calls/puts)
-                        self.sell_exercise_all_options()
-                    elif TRADING_TYPE == 2: # sell(puts)
-                        self.buyback_all_options()
-                    elif TRADING_TYPE == 3: # sell(calls)
-                        pass
+                    self.close_all_positions(trading_dic[CASE_STUDY]['tra_type'])
                     self.update_holdings()
                     self.update_ROI()
                     self.evaluate_trades()
@@ -385,27 +394,15 @@ class Portfolio:
                 else:
                     raise 'log with invalid result value'
 
-    # TYPE 1 (BUY)
+    def clean_portfolio(self):
+        to_clean = self.get_to_clean_portfolio()
+        for root in to_clean:
+            self.portfolio.pop(root)
+        self.to_clean_portfolio = []
+
     def holdings_new_day(self): # TODO REVIEW
         self.holdings.at[self.current_date] = [self.holdings.iloc[len(self.holdings) - 1].net_value,
                                                self.holdings.iloc[len(self.holdings) - 1].capital]
-
-    def buy_options(self, root, n_options=0):
-        print('buying.... ' + root)
-        [_n_options, option_price] = self.get_n_options(root)
-        if not n_options:
-            n_options = _n_options
-        if n_options:
-            self.current_capital -= option_price * n_options
-            self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
-            self.log[self.current_date].append(Transaction(self.current_date, root, 'buy', option_price, n_options))
-            # adds the transaction to logs
-            if root in self.portfolio:
-                # updates the number of options of a company
-                self.portfolio[root].add_quantity(n_options)
-            else:
-                # adds the option to the portfolio
-                self.portfolio[root] = Option(root, n_options)
 
     def get_n_options(self, root):
         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
@@ -415,112 +412,142 @@ class Portfolio:
         n_options = int(float(self.get_max_position()) / float(option_price))
         return n_options, option_price
 
-    def sell_options(self, root):
-        if root not in self.to_clean_portfolio:
-            print('selling.... ' + root)
-            option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
-            n_options = self.portfolio[root].get_quantity()
-            self.current_capital += option_price * n_options
+    def open_position(self, type, root, n_options=0):
+        print('opening... ' type ': ' + root)
+        [_n_options, option_price] = self.get_n_options(root)
+        if not n_options:
+            n_options = _n_options
+        if n_options:
+            if type = 'long':
+                self.current_capital -= option_price * n_options
+            elif type = 'short':
+                self.current_capital += option_price * n_options
             self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
-            self.close_transations(root, option_price)
-            self.to_clean_portfolio.append(root)
-
-    def exercise_options(self, root): # TODO REVIEW
-        print('exercising.... ' + root)
-        stock_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['UnderlyingPrice']
-        strike = self.portfolio[root].get_strike()
-
-        if self.portfolio[root].get_type() == 'C':  # call options
-            profit = stock_price - strike
-        else:  # put options
-            profit = strike - stock_price
-
-        n_options = self.portfolio[root].get_quantity()
-        self.current_capital += profit * n_options
-        self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
-        self.to_clean_portfolio.append(root)
-
-    def sell_exercise_options(self, ticker=0, root=0): # TODO REVIEW
-        if not root:  # sells or exercises all options from that company
-            for option in self.portfolio.values():
-                if option.get_company() == ticker:
-                    root = option.get_root()
-                    option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
-                    stock_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['UnderlyingPrice']
-                    strike = self.portfolio[root].get_strike()
-
-                    if self.portfolio[root].get_type() == 'C':  # call options
-                        exercise_profit = stock_price - strike
-                    else:  # put options
-                        exercise_profit = strike - stock_price
-
-                    if option_price > exercise_profit:
-                        self.sell_options(root)
-                    else:
-                        self.exercise_options(root)
-        else:  # sells or exercises a specific option
-            print('expiring:    ' + root)  # TODO TIRAR
-            # print(self.dataset.loc[self.dataset['OptionRoot'] == root])
-            option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
-            stock_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['UnderlyingPrice']
-            strike = self.portfolio[root].get_strike()
-
-            if self.portfolio[root].get_type() == 'C':  # call options
-                exercise_profit = stock_price - strike
-            else:  # put options
-                exercise_profit = strike - stock_price
-
-            if option_price > exercise_profit:
-                self.sell_options(root)
+            self.log[self.current_date].append(Transaction(self.current_date, root, type, option_price, n_options))
+            # adds the transaction to logs
+            if root in self.portfolio:
+                # updates the number of options of a company
+                self.portfolio[root].add_quantity(n_options)
             else:
-                self.exercise_options(root)
+                # adds the option to the portfolio
+                self.portfolio[root] = Option(root, n_options)
 
-    def sell_exercise_all_options(self):
-        for root in self.portfolio.keys():
-            self.sell_exercise_options(root=root)
-
-    def clean_portfolio(self):
-        to_clean = self.get_to_clean_portfolio()
-        for root in to_clean:
-            self.portfolio.pop(root)
-        self.to_clean_portfolio = []
-
-    # TYPE 2/3 (SELL)
-    def create_options(self, root, n_options):
-        print('creating.... ' + root +' ('+str(n_options)+')')
-        option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
-        self.current_capital += option_price * n_options
-        self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
-        self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
-        if root in self.portfolio:
-            # updates the number of options of a company
-            self.portfolio[root].add_quantity(n_options)
-        else:
-            # adds the option to the portfolio
-            self.portfolio[root] = Option(root, n_options)
-
-    def buyback_options(self, ticker=0, root=0):
-        to_buy_back = []
-        if root: # buys back options of a specific root
+    def close_position(self, type, root=0, ticker=0):
+        to_close = []
+        if root: # closes position of a specific root
             if root not in self.to_clean_portfolio:
-                to_buy_back.append(root)
+                to_close.append(root)
 
-        else: # buys back all options from that company
+        else: # closes all positions from that company
             for option in self.portfolio.values():
                 if option.get_company() == ticker:
                     root = option.get_root()
                     if root not in self.to_clean_portfolio:
-                        to_buy_back.append(root)
+                        to_close.append(root)
 
-        for root in to_buy_back:
-            print('buying back.... ' + root)
+        for root in to_close:
+            print('closing... ' type ': ' + root)
             option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
             n_options = self.portfolio[root].get_quantity()
-            self.current_capital -= option_price * n_options
+            if type = 'long':
+                self.current_capital += option_price * n_options
+            elif type = 'short':
+                self.current_capital -= option_price * n_options
+            self.current_capital += option_price * n_options
             self.holdings.at[self.current_date, 'capital'] = self.current_capital
             self.close_transations(root, option_price)
             self.to_clean_portfolio.append(root)
 
-    def buyback_all_options(self):
+    def close_all_positions(self, type):
+        for root in self.portfolio.keys():
+            self.close_position(type, root=root)
+
+    # # TYPE 1 (BUY)
+    #
+    # def buy_options(self, root, n_options=0):
+    #     print('buying.... ' + root)
+    #     [_n_options, option_price] = self.get_n_options(root)
+    #     if not n_options:
+    #         n_options = _n_options
+    #     if n_options:
+    #         self.current_capital -= option_price * n_options
+    #         self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
+    #         self.log[self.current_date].append(Transaction(self.current_date, root, 'buy', option_price, n_options))
+    #         # adds the transaction to logs
+    #         if root in self.portfolio:
+    #             # updates the number of options of a company
+    #             self.portfolio[root].add_quantity(n_options)
+    #         else:
+    #             # adds the option to the portfolio
+    #             self.portfolio[root] = Option(root, n_options)
+    #
+    # def sell_options(self, ticker=0, root=0):
+    #     to_sell = []
+    #     if root: # sells options of a specific root
+    #         if root not in self.to_clean_portfolio:
+    #             to_sell.append(root)
+    #
+    #     else: # sells all options from that company
+    #         for option in self.portfolio.values():
+    #             if option.get_company() == ticker:
+    #                 root = option.get_root()
+    #                 if root not in self.to_clean_portfolio:
+    #                     to_sell.append(root)
+    #
+    #     for root in to_sell:
+    #         print('selling.... ' + root)
+    #         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
+    #         n_options = self.portfolio[root].get_quantity()
+    #         self.current_capital += option_price * n_options
+    #         self.holdings.at[self.current_date, 'capital'] = self.current_capital
+    #         self.close_transations(root, option_price)
+    #         self.to_clean_portfolio.append(root)
+    #
+    # def sell_all_options(self):
+    #     for root in self.portfolio.keys():
+    #         self.sell_options(root=root)
+    #
+    #
+    #
+    # # TYPE 2/3 (SELL)
+    # def create_options(self, root, n_options=0):
+    #     print('creating.... ' + root +' ('+str(n_options)+')')
+    #     [_n_options, option_price] = self.get_n_options(root)
+    #     if not n_options:
+    #         n_options = _n_options
+    #     if n_options:
+    #     self.current_capital += option_price * n_options
+    #     self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
+    #     self.log[self.current_date].append(Transaction(self.current_date, root, 'sell', option_price, n_options))
+    #     if root in self.portfolio:
+    #         # updates the number of options of a company
+    #         self.portfolio[root].add_quantity(n_options)
+    #     else:
+    #         # adds the option to the portfolio
+    #         self.portfolio[root] = Option(root, n_options)
+    #
+    # def buyback_options(self, ticker=0, root=0):
+    #     to_buy_back = []
+    #     if root: # buys back options of a specific root
+    #         if root not in self.to_clean_portfolio:
+    #             to_buy_back.append(root)
+    #
+    #     else: # buys back all options from that company
+    #         for option in self.portfolio.values():
+    #             if option.get_company() == ticker:
+    #                 root = option.get_root()
+    #                 if root not in self.to_clean_portfolio:
+    #                     to_buy_back.append(root)
+    #
+    #     for root in to_buy_back:
+    #         print('buying back.... ' + root)
+    #         option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
+    #         n_options = self.portfolio[root].get_quantity()
+    #         self.current_capital -= option_price * n_options
+    #         self.holdings.at[self.current_date, 'capital'] = self.current_capital
+    #         self.close_transations(root, option_price)
+    #         self.to_clean_portfolio.append(root)
+    #
+    # def buyback_all_options(self):
         for root in self.portfolio.keys():
             self.buyback_options(root=root)

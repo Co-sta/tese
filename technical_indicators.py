@@ -95,7 +95,7 @@ def compute_technical_signals(n):
 ############################
 #       extra methods      #
 ############################
-def compute_all_technical_signals(n_threads= 5, min=2, max=30):
+def compute_all_technical_signals(min=30, max=60, n_threads= 5):
     n = np.arange(min, max+1)
     with Pool(n_threads) as p:
         p.map(compute_technical_signals, n)
@@ -260,10 +260,10 @@ def MACD(raw_signal, n1=12, n2=26):
     for i in range(n2, len(calc)):
         calc.at[calc.index[i], 'value'] = ((ema1.iloc[i]['value'] - ema2.iloc[i]['value']) / ema2.iloc[i]['value']) * 100
 
-    calc = normalization(calc, -50, 100)
+    # calc = normalization(calc, -50, 100)
 
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
     return signal
 
-# compute_all_technical_signals()
+compute_all_technical_signals()

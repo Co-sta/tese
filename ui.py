@@ -230,11 +230,6 @@ def graph_ROI(filename):
     fig.data[cnt].name = 'Total'
     fig.show()
 
-
-
-    fig = px.line(roi_evol, x=roi_evol.index, y="value", title=' Rate of Income (ROI)')
-    fig.show()
-
 def graph_trades(filename):
     print('printing trades...')
     filepath = 'data/results/test/' + filename
@@ -272,3 +267,20 @@ def print_nr_trades(filename):
     print('\n   Nr of total trades: ' + str(nr_pos_trades+nr_neg_trades))
     print('\n   Nr of positive trades: ' + str(nr_pos_trades))
     print('\n   Nr of negative trades: ' + str(nr_neg_trades))
+
+def option_graph(root):
+    fig = go.Figure()
+    values = []
+    dates = []
+    filenames = open('data/Options/option_dataset_filenames.txt').readlines()
+    for filename in filenames:
+        print(filename)
+        option_dataset = pd.read_csv(filename.rstrip('\n'))
+        # if option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']:
+        values.append(option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask'])
+        print(dates)
+        dates.append(option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['DataDate'])
+    fig.add_trace(go.Scatter(x=values, y=dates))
+    fig.show()
+
+# option_graph('AAPL120121P00460000')

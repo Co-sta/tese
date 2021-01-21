@@ -57,8 +57,8 @@ time_period = '2nd_period'
 
 ################################################################################
 # STARTING FULL TRAIN AND TEST
-# [best_chromo, filepath] = train()
-# test(best_chromo, filepath=filepath)
+[best_chromo, filepath] = train()
+test(best_chromo, filepath=filepath)
 
 ################################################################################
 # STARTING TEST
@@ -78,7 +78,7 @@ train_filename = '2nd_period-13-01-2021:02:14:19 AM.pickle'
 # ui.graph_score(train_filename)
 # ui.graph_TI(train_filename)
 # ui.graph_forecast(train_filename)
-ui.graph_orders(train_filename)
+# ui.graph_orders(train_filename)
 # ui.graph_forecast_ivol(train_filename)
 
 # SIGNALS
