@@ -271,40 +271,78 @@ def print_nr_trades(filename):
     print('\n   Nr of positive trades: ' + str(nr_pos_trades))
     print('\n   Nr of negative trades: ' + str(nr_neg_trades))
 
-def options_graph(filename, start_date, end_date):
+def options_graph(test_filename, start_date, end_date):
 
-    roots = []
-    filenames = open('data/Options/option_dataset_filenames.txt').readlines()
-    mm_to_month = {'01':'January', '02':'February', '03':'March', '04':'April',
-                   '05':'May', '06':'June', '07':'July', '08':'August',
-                   '09':'September', '10':'October', '11':'November', '12':'December'}
+    try:
+        options = pd.read_csv('data/results/trades/'+test_filename.strip('.pickle\n')+'.csv',
+                              index_col='Date', parse_dates=True)
+    except:
+        values = []
+        roots = []
+        filenames = open('data/Options/option_dataset_filenames.txt').readlines()
+        mm_to_month = {'01':'January', '02':'February', '03':'March', '04':'April',
+                       '05':'May', '06':'June', '07':'July', '08':'August',
+                       '09':'September', '10':'October', '11':'November', '12':'December'}
 
-    filepath = 'data/results/test/' + filename
-    log = pickle.load( open( filepath, "rb" )).get_log()
-    for daily_transactions in log.values():
-        for txn in daily_transactions:
-            roots.append(txn.get_root())
-    roots = set(roots)
-    options = pd.DataFrame(columns=roots,index=[start_date])
-    dates = pd.date_range(start_date,end_date-timedelta(days=1),freq='d')
-    for date in dates:
-        # print(date)
-        yyyy = str(date.year)
-        mm = str('%02d' % date.month)
-        dd = str('%02d' % date.day)
-        month = mm_to_month[mm]
-        filename = 'data/Options/bb_'+yyyy+'_'+month+'/bb_options_'+yyyy+mm+dd+'.csv\n'
-        if filename in filenames:
-            print(filename)
-            option_dataset = pd.read_csv(filename.rstrip('\n'),usecols=["Ask", " DataDate", "OptionRoot"])
-            for root in roots:
-                if root in option_dataset.OptionRoot:
-                    value = option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']
-                    print(root)
-                    print(value)
+        filepath = 'data/results/test/' + test_filename
+        log = pickle.load( open( filepath, "rb" )).get_log()
+        for daily_transactions in log.values():
+            for txn in daily_transactions:
+                roots.append(txn.get_root())
+        roots = sorted(list(set(roots)))
+        options = pd.DataFrame(columns=roots,index=[start_date])
+        dates = pd.date_range(start_date,end_date-timedelta(days=1),freq='d')
+
+        for date in dates:
+            print(date)
+            yyyy = str(date.year)
+            mm = str('%02d' % date.month)
+            dd = str('%02d' % date.day)
+            month = mm_to_month[mm]
+            filename = 'data/Options/bb_'+yyyy+'_'+month+'/bb_options_'+yyyy+mm+dd+'.csv\n'
+            if filename in filenames:
+                values = value_from_df(filename, roots)
+                for (root, value) in zip(roots, values):
+                    options.at[date, root] = value
+        options.to_csv('data/results/trades/'+test_filename.strip('.pickle\n')+'.csv', index_label='Date')
+
+        a.columns = pd.MultiIndex.from_tuples([(c[0], c[1]) for c in a.columns])
+
+    finally:
+        filepath = 'data/results/test/' + test_filename
+        log = pickle.load( open( filepath, "rb" )).get_log()
+
+        fig = px.line(options, x=options.index, y=options.columns, title='Traded Options')
+        for trace in fig.data:
+            for daily_transactions in log.values():
+                for txn in daily_transactions:
+                    if txn.get_root() == trace.name:
+                        fig.add_trace(go.Scatter(x=[txn.get_init_date()],
+                            y=[txn.get_init_value()],
+                            name='open',
+                            legendgroup=trace.legendgroup,
+                            line=dict(color="blue")))
+                        fig.add_trace(go.Scatter(x=[txn.get_final_date()],
+                            y=[txn.get_final_value()],
+                            name='close',
+                            legendgroup=trace.legendgroup,
+                            line=dict(color="red")))
+        # ''.join(filter(str.isalpha, s)) # works in python3
+        print(fig['data'])
+        fig.show()
 
 
-
+##########################
+#         EXTRA          #
+##########################
+def value_from_df(filename, roots):
+    values = [None] * len(roots)
+    option_dataset = pd.read_csv(filename.rstrip('\n'), usecols=["Ask", " DataDate", "OptionRoot"])
+    for i in range(len(roots)):
+        if roots[i] in option_dataset.OptionRoot.values:
+            value = option_dataset.loc[option_dataset['OptionRoot'] == roots[i]].iloc[0]['Ask']
+            values[i] = value
+    return values
 
     #
     # import sys

@@ -89,6 +89,6 @@ train_filename = '2nd_period-24-01-2021:11:29:53 PM.pickle'
 # TEST
 test_filename = '2nd_period-13-01-2021:06:34:24 PM.pickle'
 # ui.graph_ROI(test_filename)
-ui.graph_trades(test_filename)
+# ui.graph_trades(test_filename)
 # ui.print_nr_trades(test_filename)
-# ui.options_graph(test_filename, eval_start, eval_end)
+ui.options_graph(test_filename, eval_start, eval_end)
