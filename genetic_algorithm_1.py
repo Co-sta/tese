@@ -101,72 +101,42 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
 def get_GENE_SIZE():
     global GENE_SIZE
     return GENE_SIZE
-
-
 def get_END_VALUE():
     global END_VALUE
     return END_VALUE
-
-
 def get_MAX_N_GEN():
     global MAX_N_GEN
     return MAX_N_GEN
-
-
 def get_N_TOP():
     global N_TOP
     return N_TOP
-
-
 def get_N_PARENTS():
     global N_PARENTS
     return N_PARENTS
-
-
 def get_N_CHILDREN():
     global N_CHILDREN
     return N_CHILDREN
-
-
 def get_CROV_W():
     global CROV_W
     return CROV_W
-
-
 def get_MUTATION_RATE():
     global MUTATION_RATE
     return MUTATION_RATE
-
-
 def get_MUTATION_STD():
     global MUTATION_STD
     return MUTATION_STD
-
-
 def get_DEFAULT_MUTATION_STD():
     global DEFAULT_MUTATION_STD
     return DEFAULT_MUTATION_STD
-
-
 def get_MAX_NO_EVOL():
     global MAX_NO_EVOL
     return MAX_NO_EVOL
-
-
 def get_NO_EVOL_STD_INCREASE():
     global NO_EVOL_STD_INCREASE
     return NO_EVOL_STD_INCREASE
-
-
-# def get_FORECAST_DIST():
-#     global FORECAST_DIST
-#     return FORECAST_DIST
-
-
 def get_IVOL_CHANGE_STEP():
     global IVOL_CHANGE_STEP
     return IVOL_CHANGE_STEP
-
 
 class Gene:
     def __init__(self, value):
@@ -177,7 +147,6 @@ class Gene:
     ###########################
     def get_value(self):
         return self.value
-
     def set_value(self, value):
         self.value = value
 
@@ -215,13 +184,10 @@ class Chromosome:
     ###########################
     def set_score(self, score):
         self.score = score
-
     def get_score(self):
         return self.score
-
     def get_size(self):
         return self.size
-
     def get_gene_list(self):
         return self.gene_list
 
@@ -272,19 +238,14 @@ class Population:
             raise Exception('Chromosome size has to be greater than 0. Right now is' + str(self.chromo_size))
         if not 0 <= self.mutation_rate <= 1:
             raise Exception('mutation rate has to be between 0 and 1. Right now is' + str(self.mutation_rate))
-
     def get_pop_size(self):
         return self.pop_size
-
     def get_chr_size(self):
         return self.chromo_size
-
     def get_chromo_list(self):
         return self.chromo_list
-
     def set_chromo_list(self, new_gen):
         self.chromo_list = new_gen
-
     def print_chromo_list(self):
         for i, chromo in zip(range(self.get_pop_size()), self.get_chromo_list()):
             ch_str = ''
@@ -292,56 +253,40 @@ class Population:
             for ge in chromo.get_gene_list():
                 ch_str = ch_str + ' [' + str(ge.value) + ']'
             print(ch_str)
-
     def get_mutation_rate(self):
         return self.mutation_rate
-
     def get_crov_w(self):
         return self.crov_w
-
     def get_method_1pop(self):
         return self.method_1pop
-
     def get_method_ps(self):
         return self.method_ps
-
     def get_method_crov(self):
         return self.method_crov
-
     def get_parents(self):
         return self.parents
-
     def print_parents(self):
         for parent in self.get_parents():
             print(parent.get_score())
-
     def get_h_fame(self):
         return self.h_fame
-
     def set_h_fame(self, h_fame):
         self.h_fame = h_fame
-
     def print_h_fame(self):
         print('HALL OF FAME')
         for chromo in self.get_h_fame():
             print(chromo.get_score())
-
     def get_no_evol(self):
         return self.no_evolution
-
     def incr_no_evol(self):
         self.no_evolution = self.get_no_evol() + 1
-
     def reset_no_evol(self):
         self.no_evolution = 0
-
     def get_generation(self):
         return self.generation
-
     def increase_gen(self):
         gen = self.get_generation()
         self.generation = gen + 1
-
     def get_max_score(self):
         return self.max_score
 
@@ -716,39 +661,35 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
 
-    fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-8].get_value())) + '_stock_rsi.csv'
-    fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_stock_roc.csv'
-    fp_stock_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_stock_sto.csv'
-    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_ivol_rsi.csv'
-    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_roc.csv'
-    fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_sto.csv'
-    fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
+    # fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-8].get_value())) + '_stock_rsi.csv'
+    # fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_stock_roc.csv'
+    # fp_stock_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_stock_sto.csv'
+    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_roc.csv'
+    fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_sto.csv'
+    # fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
 
-    stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
-    stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
-    stock_sto = pd.read_csv(fp_stock_sto, index_col='Date', parse_dates=True)
+    # stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
+    # stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
+    # stock_sto = pd.read_csv(fp_stock_sto, index_col='Date', parse_dates=True)
     ivol_rsi = pd.read_csv(fp_ivol_rsi, index_col='Date', parse_dates=True)
     ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
     ivol_sto = pd.read_csv(fp_ivol_sto, index_col='Date', parse_dates=True)
-    ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
+    # ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
 
     gene_sum = 0
-    for i in range(7):
+    for i in range(3):
         gene_sum += genes[i].get_value()
     for ticker in tickers:
-        for date in stock_rsi.index:
+        for date in ivol_rsi.index:
             if date < eval_start:
                 continue
             elif date > eval_end:
                 break
             else:
-                fc = (stock_rsi.loc[date, 'stock_' + ticker + '_rsi'] * genes[0].get_value() +
-                      stock_roc.loc[date, 'stock_' + ticker + '_roc'] * genes[1].get_value() +
-                      stock_sto.loc[date, 'stock_' + ticker + '_sto'] * genes[2].get_value() +
-                      ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[3].get_value() +
-                      ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[4].get_value() +
-                      ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[5].get_value() +
-                      ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[6].get_value()) / gene_sum  # TODO ... AQUI
+                fc = (ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[0].get_value() +
+                      ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[1].get_value() +
+                      ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[2].get_value()) / gene_sum  # TODO ... AQUI
 
                 # print('---------------------------')
                 # print(ticker)

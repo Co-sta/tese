@@ -1,9 +1,11 @@
 import genetic_algorithm_2 as ga2
 import genetic_algorithm_1 as ga1
 import data as data
-import pandas as pd
 import technical_indicators as ti
 import trading_simulator as ts
+
+import pandas as pd
+from datetime import timedelta
 import pickle
 
 import plotly.express as px
@@ -90,49 +92,50 @@ def graph_TI(filename):
     chromo = best_chromo.get_sub_pop().get_h_fame()[0]
     gene_list = chromo.get_gene_list()
 
-    n_fp_stock_rsi = ga1.unnorm_ti(gene_list[-8].get_value())
-    n_fp_stock_roc = ga1.unnorm_ti(gene_list[-7].get_value())
-    n_fp_stock_sto = ga1.unnorm_ti(gene_list[-6].get_value())
-    n_fp_ivol_rsi = ga1.unnorm_ti(gene_list[-5].get_value())
-    n_fp_ivol_roc = ga1.unnorm_ti(gene_list[-4].get_value())
-    n_fp_ivol_sto = ga1.unnorm_ti(gene_list[-3].get_value())
-    n_fp_ivol_macd = ga1.unnorm_ti(gene_list[-2].get_value())
+    # n_fp_stock_rsi = ga1.unnorm_ti(gene_list[-8].get_value())
+    # n_fp_stock_roc = ga1.unnorm_ti(gene_list[-7].get_value())
+    # n_fp_stock_sto = ga1.unnorm_ti(gene_list[-6].get_value())
+    n_fp_ivol_rsi = ga1.unnorm_ti(gene_list[-4].get_value())
+    n_fp_ivol_roc = ga1.unnorm_ti(gene_list[-3].get_value())
+    n_fp_ivol_sto = ga1.unnorm_ti(gene_list[-2].get_value())
+    # n_fp_ivol_macd = ga1.unnorm_ti(gene_list[-2].get_value())
 
 
-    fp_stock_rsi = 'data/technical_indicators/' + str(n_fp_stock_rsi) + '_stock_rsi.csv'
-    fp_stock_roc = 'data/technical_indicators/' + str(n_fp_stock_roc) + '_stock_roc.csv'
-    fp_stock_sto = 'data/technical_indicators/' + str(n_fp_stock_sto) + '_stock_sto.csv'
+    # fp_stock_rsi = 'data/technical_indicators/' + str(n_fp_stock_rsi) + '_stock_rsi.csv'
+    # fp_stock_roc = 'data/technical_indicators/' + str(n_fp_stock_roc) + '_stock_roc.csv'
+    # fp_stock_sto = 'data/technical_indicators/' + str(n_fp_stock_sto) + '_stock_sto.csv'
     fp_ivol_rsi = 'data/technical_indicators/' + str(n_fp_ivol_rsi) + '_ivol_rsi.csv'
     fp_ivol_roc = 'data/technical_indicators/' + str(n_fp_ivol_roc) + '_ivol_roc.csv'
     fp_ivol_sto = 'data/technical_indicators/' + str(n_fp_ivol_sto) + '_ivol_sto.csv'
-    fp_ivol_macd = 'data/technical_indicators/' + str(n_fp_ivol_macd) + '_ivol_macd.csv'
+    # fp_ivol_macd = 'data/technical_indicators/' + str(n_fp_ivol_macd) + '_ivol_macd.csv'
 
-    stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
-    stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
-    stock_sto = pd.read_csv(fp_stock_sto, index_col='Date', parse_dates=True)
+    # stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
+    # stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
+    # stock_sto = pd.read_csv(fp_stock_sto, index_col='Date', parse_dates=True)
     ivol_rsi = pd.read_csv(fp_ivol_rsi, index_col='Date', parse_dates=True)
     ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
     ivol_sto = pd.read_csv(fp_ivol_sto, index_col='Date', parse_dates=True)
-    ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
+    # ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
 
-    ti_signals = pd.concat([stock_rsi, stock_roc, stock_sto, ivol_rsi,
-                                ivol_roc, ivol_sto, ivol_macd], axis=1)
+    # ti_signals = pd.concat([stock_rsi, stock_roc, stock_sto, ivol_rsi,
+    #                             ivol_roc, ivol_sto, ivol_macd], axis=1)
+    ti_signals = pd.concat([ivol_rsi,
+                                ivol_roc, ivol_sto], axis=1)
 
     for ticker in tickers:
         fig = px.line(ti_signals,
                       x=ti_signals.index,
-                      y=['stock_' + ticker + '_rsi', 'stock_' + ticker + '_roc',
-                         'stock_' + ticker + '_sto', 'ivol_' + ticker + '_rsi',
-                         'ivol_' + ticker + '_roc',  'ivol_' + ticker + '_sto',
-                         'ivol_' + ticker + '_macd'],
+                      y=['ivol_' + ticker + '_rsi',
+                         'ivol_' + ticker + '_roc',
+                         'ivol_' + ticker + '_sto'],
                       title="Technical Indicators")
-        fig.data[0].name = 'stock_' + ticker + '_rsi (' + str(n_fp_stock_rsi) + ')'
-        fig.data[1].name = 'stock_' + ticker + '_roc (' + str(n_fp_stock_roc) + ')'
-        fig.data[2].name = 'stock_' + ticker + '_sto (' + str(n_fp_stock_sto) + ')'
-        fig.data[3].name = 'ivol_' + ticker + '_rsi (' + str(n_fp_ivol_rsi) + ')'
-        fig.data[4].name = 'ivol_' + ticker + '_roc (' + str(n_fp_ivol_roc) + ')'
-        fig.data[5].name = 'ivol_' + ticker + '_sto (' + str(n_fp_ivol_sto) + ')'
-        fig.data[6].name = 'ivol_' + ticker + '_macd (' + str(n_fp_ivol_macd) + ')'
+        # fig.data[0].name = 'stock_' + ticker + '_rsi (' + str(n_fp_stock_rsi) + ')'
+        # fig.data[1].name = 'stock_' + ticker + '_roc (' + str(n_fp_stock_roc) + ')'
+        # fig.data[2].name = 'stock_' + ticker + '_sto (' + str(n_fp_stock_sto) + ')'
+        fig.data[0].name = 'ivol_' + ticker + '_rsi (' + str(n_fp_ivol_rsi) + ')'
+        fig.data[1].name = 'ivol_' + ticker + '_roc (' + str(n_fp_ivol_roc) + ')'
+        fig.data[2].name = 'ivol_' + ticker + '_sto (' + str(n_fp_ivol_sto) + ')'
+        # fig.data[6].name = 'ivol_' + ticker + '_macd (' + str(n_fp_ivol_macd) + ')'
 
 
         fig.show()
@@ -246,13 +249,13 @@ def graph_trades(filename):
                 if txn.get_result() == 'positive':
                     line = go.Scatter(x=[txn.get_init_date(), txn.get_final_date()],
                                       y=[txn.get_init_value(), txn.get_final_value()],
-                                      name="Positive",
+                                      name=txn.get_root(),
                                       legendgroup="Positive",
                                       line=dict(color="blue"))
                 else:
                     line = go.Scatter(x=[txn.get_init_date(), txn.get_final_date()],
                                       y=[txn.get_init_value(), txn.get_final_value()],
-                                      name="Negative",
+                                      name=txn.get_root(),
                                       legendgroup="Negative",
                                       line=dict(color="red"))
                 data.append(line)
@@ -268,19 +271,66 @@ def print_nr_trades(filename):
     print('\n   Nr of positive trades: ' + str(nr_pos_trades))
     print('\n   Nr of negative trades: ' + str(nr_neg_trades))
 
-def option_graph(root):
-    fig = go.Figure()
-    values = []
-    dates = []
+def options_graph(filename, start_date, end_date):
+
+    roots = []
     filenames = open('data/Options/option_dataset_filenames.txt').readlines()
-    for filename in filenames:
-        print(filename)
-        option_dataset = pd.read_csv(filename.rstrip('\n'))
-        # if option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']:
-        values.append(option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask'])
-        print(dates)
-        dates.append(option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['DataDate'])
-    fig.add_trace(go.Scatter(x=values, y=dates))
-    fig.show()
+    mm_to_month = {'01':'January', '02':'February', '03':'March', '04':'April',
+                   '05':'May', '06':'June', '07':'July', '08':'August',
+                   '09':'September', '10':'October', '11':'November', '12':'December'}
+
+    filepath = 'data/results/test/' + filename
+    log = pickle.load( open( filepath, "rb" )).get_log()
+    for daily_transactions in log.values():
+        for txn in daily_transactions:
+            roots.append(txn.get_root())
+    roots = set(roots)
+    options = pd.DataFrame(columns=roots,index=[start_date])
+    dates = pd.date_range(start_date,end_date-timedelta(days=1),freq='d')
+    for date in dates:
+        # print(date)
+        yyyy = str(date.year)
+        mm = str('%02d' % date.month)
+        dd = str('%02d' % date.day)
+        month = mm_to_month[mm]
+        filename = 'data/Options/bb_'+yyyy+'_'+month+'/bb_options_'+yyyy+mm+dd+'.csv\n'
+        if filename in filenames:
+            print(filename)
+            option_dataset = pd.read_csv(filename.rstrip('\n'),usecols=["Ask", " DataDate", "OptionRoot"])
+            for root in roots:
+                if root in option_dataset.OptionRoot:
+                    value = option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']
+                    print(root)
+                    print(value)
+
+
+
+
+    #
+    # import sys
+    # import dis
+    # import gc
+    # import ctypes
+    # values = []
+    # dates = []
+
+    # for filename in filenames:
+    #     print(filename)
+    #     option_dataset = pd.read_csv(filename.rstrip('\n'),usecols=["Ask", " DataDate", "OptionRoot"])
+    #     # if option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']:
+    #     value = option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']
+    #     date = option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0][' DataDate']
+    #     values.append(value)
+    #     dates.append(date)
+    #     del value
+    #     del date
+    #     del option_dataset
+    #     del filename
+    #
+    #
+    #
+    # fig = go.Figure()
+    # fig.add_trace(go.Scatter(x=values, y=dates))
+    # fig.show()
 
 # option_graph('AAPL120121P00460000')

@@ -45,7 +45,7 @@ def trade(eval_start, eval_end, orders, tickers):
             if position == 'open':
                 root = port.search_root(ticker, option_type)
                 if root:
-                    n_options = port.get_n_options(root)[0])
+                    n_options = port.get_n_options(root)[0]
                     port.open_position(transation_type, root, n_options)
             elif position == 'close':
                 port.close_position(transation_type, ticker=ticker)
@@ -413,14 +413,14 @@ class Portfolio:
         return n_options, option_price
 
     def open_position(self, type, root, n_options=0):
-        print('opening... ' type ': ' + root)
+        print('opening... ' + type + ': ' + root)
         [_n_options, option_price] = self.get_n_options(root)
         if not n_options:
             n_options = _n_options
         if n_options:
-            if type = 'long':
+            if type == 'long':
                 self.current_capital -= option_price * n_options
-            elif type = 'short':
+            elif type == 'short':
                 self.current_capital += option_price * n_options
             self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
             self.log[self.current_date].append(Transaction(self.current_date, root, type, option_price, n_options))
@@ -446,12 +446,12 @@ class Portfolio:
                         to_close.append(root)
 
         for root in to_close:
-            print('closing... ' type ': ' + root)
+            print('closing... ' + type + ': ' + root)
             option_price = self.dataset.loc[self.dataset['OptionRoot'] == root].iloc[0]['Ask']
             n_options = self.portfolio[root].get_quantity()
-            if type = 'long':
+            if type == 'long':
                 self.current_capital += option_price * n_options
-            elif type = 'short':
+            elif type == 'short':
                 self.current_capital -= option_price * n_options
             self.current_capital += option_price * n_options
             self.holdings.at[self.current_date, 'capital'] = self.current_capital
