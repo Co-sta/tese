@@ -327,8 +327,6 @@ def options_graph(test_filename, start_date, end_date):
                             name='close',
                             legendgroup=trace.legendgroup,
                             line=dict(color="red")))
-        # ''.join(filter(str.isalpha, s)) # works in python3
-        print(fig['data'])
         fig.show()
 
 
@@ -343,32 +341,3 @@ def value_from_df(filename, roots):
             value = option_dataset.loc[option_dataset['OptionRoot'] == roots[i]].iloc[0]['Ask']
             values[i] = value
     return values
-
-    #
-    # import sys
-    # import dis
-    # import gc
-    # import ctypes
-    # values = []
-    # dates = []
-
-    # for filename in filenames:
-    #     print(filename)
-    #     option_dataset = pd.read_csv(filename.rstrip('\n'),usecols=["Ask", " DataDate", "OptionRoot"])
-    #     # if option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']:
-    #     value = option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0]['Ask']
-    #     date = option_dataset.loc[option_dataset['OptionRoot'] == root].iloc[0][' DataDate']
-    #     values.append(value)
-    #     dates.append(date)
-    #     del value
-    #     del date
-    #     del option_dataset
-    #     del filename
-    #
-    #
-    #
-    # fig = go.Figure()
-    # fig.add_trace(go.Scatter(x=values, y=dates))
-    # fig.show()
-
-# option_graph('AAPL120121P00460000')
