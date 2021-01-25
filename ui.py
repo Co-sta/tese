@@ -244,6 +244,7 @@ def graph_trades(filename):
                 yaxis={'title':'option value'})
         for daily_transactions in port.get_log().values():
             for txn in daily_transactions:
+                print(txn.get_result())
                 if ts.Option(txn.get_root()).get_company() != ticker:
                     continue
                 if txn.get_result() == 'positive':
@@ -305,8 +306,6 @@ def options_graph(test_filename, start_date, end_date):
                 for (root, value) in zip(roots, values):
                     options.at[date, root] = value
         options.to_csv('data/results/trades/'+test_filename.strip('.pickle\n')+'.csv', index_label='Date')
-
-        a.columns = pd.MultiIndex.from_tuples([(c[0], c[1]) for c in a.columns])
 
     finally:
         filepath = 'data/results/test/' + test_filename

@@ -8,7 +8,7 @@ from multiprocessing import Pool
 
 
 def compute_technical_signals(n):
-    tickers = d.open_all_sp500_tickers_to_list()
+    tickers = d.open_all_sp500_tickers_to_list()  # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
     rsi_stock_signals = pd.DataFrame()
     roc_stock_signals = pd.DataFrame()
     sto_stock_signals = pd.DataFrame()
@@ -44,7 +44,7 @@ def compute_technical_signals(n):
     # Stock signals
     filepath = 'data/yfinance/all_tickers_yfinance.csv'
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+    for tic in tickers:
         data['close'] = data_all_tic[tic]
         if not exists_stock_rsi:
             print('stock rsi: ' + tic + ' - ' + str(n))
@@ -66,8 +66,9 @@ def compute_technical_signals(n):
     # Implied volatility
     filepath = 'data/implied_volatility/all_tickers_ivol.csv'
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    for tic in tickers:    # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+    for tic in tickers:
         data['close'] = data_all_tic[tic]
+        data['close'] = EMA(data['close'])['value'] # TODO VERIFICAR SE O SMOTHING FUNCIONA
         if not exists_ivol_rsi:
             print('ivol rsi: ' + tic + ' - ' + str(n))
             rsi_tic = RSI(data, n).rename(columns={'value': 'ivol_' + tic + '_rsi', 'Unnamed: 0':'Date'})
