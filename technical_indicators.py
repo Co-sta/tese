@@ -68,7 +68,6 @@ def compute_technical_signals(n):
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for tic in tickers:
         data['close'] = data_all_tic[tic]
-        data['close'] = EMA(data['close'])['value'] # TODO VERIFICAR SE O SMOTHING FUNCIONA
         if not exists_ivol_rsi:
             print('ivol rsi: ' + tic + ' - ' + str(n))
             rsi_tic = RSI(data, n).rename(columns={'value': 'ivol_' + tic + '_rsi', 'Unnamed: 0':'Date'})
@@ -89,8 +88,6 @@ def compute_technical_signals(n):
     if not exists_ivol_roc: save_technical_indicator(roc_ivol_signals, str(n)+'_ivol_roc')
     if not exists_ivol_sto: save_technical_indicator(sto_ivol_signals, str(n)+'_ivol_sto')
     if not exists_ivol_macd: save_technical_indicator(macd_ivol_signals, str(n)+'_ivol_macd')
-
-    # Other signals
 
 
 ############################
@@ -241,20 +238,25 @@ def StO(raw_signal, n=14, stock=False):
 
 def EMA(raw_signal, n=14):
     calc = raw_signal.copy()
+    calc['value'] = calc['close']
+    print(calc)
     k = 2 / (n-1)
     sum = 0
 
     for i in range(n):
         sum += calc.iloc[i]['close']
+
     calc.at[calc.index[n], 'value'] = sum/n
     for i in range(n+1, len(calc)):
         calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
+        print('------------')
+        print(calc.iloc[i]['close'])
+        print(calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k))
     return calc
 
 
 def MACD(raw_signal, n1=12, n2=26):
     calc = raw_signal.copy()
-    calc['value'] = np.nan
     ema1 = EMA(calc, n1)
     ema2 = EMA(calc, n2)
 
@@ -266,5 +268,3 @@ def MACD(raw_signal, n1=12, n2=26):
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
     return signal
-
-# compute_all_technical_signals()

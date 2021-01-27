@@ -88,7 +88,7 @@ train_filename = '3_ti.pickle'
 
 # TEST
 test_filename = '3_ti_long_call.pickle'
-ui.graph_ROI(test_filename)
-ui.graph_trades(test_filename)
-ui.print_nr_trades(test_filename)
-ui.options_graph(test_filename, eval_start, eval_end)
+# ui.graph_ROI(test_filename)
+# ui.graph_trades(test_filename)
+# ui.print_nr_trades(test_filename)
+# ui.options_graph(test_filename, eval_start, eval_end)
