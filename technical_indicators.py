@@ -9,21 +9,23 @@ from multiprocessing import Pool
 
 def compute_technical_signals(n):
     tickers = d.open_all_sp500_tickers_to_list()  # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
-    rsi_stock_signals = pd.DataFrame()
-    roc_stock_signals = pd.DataFrame()
-    sto_stock_signals = pd.DataFrame()
+    # rsi_stock_signals = pd.DataFrame()
+    # roc_stock_signals = pd.DataFrame()
+    # sto_stock_signals = pd.DataFrame()
 
     rsi_ivol_signals = pd.DataFrame()
     roc_ivol_signals = pd.DataFrame()
     sto_ivol_signals = pd.DataFrame()
     macd_ivol_signals = pd.DataFrame()
 
-    exists_vix_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_vix_rsi.csv')
-    exists_vix_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_vix_roc.csv')
+    data = pd.DataFrame()
 
-    exists_stock_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_rsi.csv')
-    exists_stock_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_roc.csv')
-    exists_stock_sto = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_sto.csv')
+    # exists_vix_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_vix_rsi.csv')
+    # exists_vix_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_vix_roc.csv')
+
+    # exists_stock_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_rsi.csv')
+    # exists_stock_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_roc.csv')
+    # exists_stock_sto = os.path.isfile('data/technical_indicators/' + str(n) + '_stock_sto.csv')
 
     exists_ivol_rsi = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_rsi.csv')
     exists_ivol_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_roc.csv')
@@ -32,36 +34,36 @@ def compute_technical_signals(n):
 
 
     # Vix signal
-    filepath = 'data/VIX/VIX30D.csv'
-    data = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    if not exists_vix_rsi:
-        rsi_vix = RSI(data, n).rename(columns={'value': 'vix_rsi', 'Unnamed: 0':'Date'})
-        save_technical_indicator(rsi_vix, str(n)+'_vix_rsi')
-    if not exists_vix_roc:
-        roc_vix = ROC(data, n).rename(columns={'value': 'vix_roc', 'Unnamed: 0':'Date'})
-        save_technical_indicator(roc_vix, str(n)+'_vix_roc')
+    # filepath = 'data/VIX/VIX30D.csv'
+    # data = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    # if not exists_vix_rsi:
+    #     rsi_vix = RSI(data, n).rename(columns={'value': 'vix_rsi', 'Unnamed: 0':'Date'})
+    #     save_technical_indicator(rsi_vix, str(n)+'_vix_rsi')
+    # if not exists_vix_roc:
+    #     roc_vix = ROC(data, n).rename(columns={'value': 'vix_roc', 'Unnamed: 0':'Date'})
+    #     save_technical_indicator(roc_vix, str(n)+'_vix_roc')
 
     # Stock signals
-    filepath = 'data/yfinance/all_tickers_yfinance.csv'
-    data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
-    for tic in tickers:
-        data['close'] = data_all_tic[tic]
-        if not exists_stock_rsi:
-            print('stock rsi: ' + tic + ' - ' + str(n))
-            rsi_tic = RSI(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_rsi', 'Unnamed: 0':'Date'})
-            rsi_stock_signals = pd.concat([rsi_stock_signals, rsi_tic], axis=1)
-        if not exists_stock_roc:
-            print('stock roc: ' + tic + ' - ' + str(n))
-            roc_tic = ROC(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_roc', 'Unnamed: 0':'Date'})
-            roc_stock_signals = pd.concat([roc_stock_signals, roc_tic], axis=1)
-        if not exists_stock_sto:
-            print('stock sto: ' + tic + ' - ' + str(n))
-            sto_tic = StO(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_sto', 'Unnamed: 0':'Date'})
-            sto_stock_signals = pd.concat([sto_stock_signals, sto_tic], axis=1)
-
-    if not exists_stock_rsi: save_technical_indicator(rsi_stock_signals, str(n)+'_stock_rsi')
-    if not exists_stock_roc: save_technical_indicator(roc_stock_signals, str(n)+'_stock_roc')
-    if not exists_stock_sto: save_technical_indicator(sto_stock_signals, str(n)+'_stock_sto')
+    # filepath = 'data/yfinance/all_tickers_yfinance.csv'
+    # data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    # for tic in tickers:
+    #     data['close'] = data_all_tic[tic]
+    #     if not exists_stock_rsi:
+    #         print('stock rsi: ' + tic + ' - ' + str(n))
+    #         rsi_tic = RSI(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_rsi', 'Unnamed: 0':'Date'})
+    #         rsi_stock_signals = pd.concat([rsi_stock_signals, rsi_tic], axis=1)
+    #     if not exists_stock_roc:
+    #         print('stock roc: ' + tic + ' - ' + str(n))
+    #         roc_tic = ROC(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_roc', 'Unnamed: 0':'Date'})
+    #         roc_stock_signals = pd.concat([roc_stock_signals, roc_tic], axis=1)
+    #     if not exists_stock_sto:
+    #         print('stock sto: ' + tic + ' - ' + str(n))
+    #         sto_tic = StO(data, n, stock=True).rename(columns={'value': 'stock_' + tic + '_sto', 'Unnamed: 0':'Date'})
+    #         sto_stock_signals = pd.concat([sto_stock_signals, sto_tic], axis=1)
+    #
+    # if not exists_stock_rsi: save_technical_indicator(rsi_stock_signals, str(n)+'_stock_rsi')
+    # if not exists_stock_roc: save_technical_indicator(roc_stock_signals, str(n)+'_stock_roc')
+    # if not exists_stock_sto: save_technical_indicator(sto_stock_signals, str(n)+'_stock_sto')
 
     # Implied volatility
     # filepath = 'data/implied_volatility/all_tickers_ivol.csv'
@@ -182,9 +184,13 @@ def RSI(raw_signal, n=14, stock=False):
         calc.at[calc.index[n], 'rsi'] = 100
 
     for i in range(n + 1, len(calc)):
-        calc.at[calc.index[i], 'avg_up'] = (n - 1 * calc.iloc[i-1].at['avg_up'] + calc.iloc[i].at['up']) / n
-        calc.at[calc.index[i], 'avg_down'] = (n - 1 * calc.iloc[i-1].at['avg_down'] + calc.iloc[i].at['down']) / n
-        calc.at[calc.index[i], 'rsi'] = 100 - 100 / (1 + calc.iloc[i].at['avg_up'] / calc.iloc[i].at['avg_down'])
+        calc.at[calc.index[i], 'avg_up'] = ((n - 1) * calc.iloc[i-1].at['avg_up'] + calc.iloc[i].at['up']) / n
+        calc.at[calc.index[i], 'avg_down'] = ((n - 1) * calc.iloc[i-1].at['avg_down'] + calc.iloc[i].at['down']) / n
+        if calc.iloc[n].at['avg_down']:
+            calc.at[calc.index[i], 'rsi'] = 100 - 100 / (1 + calc.iloc[i].at['avg_up'] / calc.iloc[i].at['avg_down'])
+        else:
+            calc.at[calc.index[i], 'rsi'] = 100
+
 
     if stock:
         for i in range(n, len(calc)):
@@ -206,7 +212,7 @@ def ROC(raw_signal, n=14, stock=False):
     if stock:
         for i in range(n, len(calc)):
             calc.at[calc.index[i], 'value'] = abs(calc.at[calc.index[i], 'value'])
-    calc = normalization(calc, -100, 100)
+    calc = normalization(calc, -50, 100) # the limits are 2x(100) and 1/2x(-50)
 
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
@@ -258,7 +264,18 @@ def MACD(raw_signal, n1=12, n2=26):
     ema2 = EMA(calc, n2)
 
     for i in range(n2, len(calc)):
-        calc.at[calc.index[i], 'value'] = ((ema1.iloc[i]['value'] - ema2.iloc[i]['value']) / ema2.iloc[i]['value']) * 100
+        calc.at[calc.index[i], 'close'] = ema1.iloc[i]['value'] - ema2.iloc[i]['value']
+
+    signal_line = EMA(calc, 9)
+    for i in range(n2, len(calc)):
+        macd = calc.iloc[i]['close']
+        sig_l = signal_line.iloc[i]['value']
+        if macd > sig_l:
+            calc.at[calc.index[i], 'value'] = 50+(abs(macd-sig_l)/abs(sig_l))*25
+            if calc.at[calc.index[i], 'value'] > 100: calc.at[calc.index[i], 'value'] = 100
+        else:
+            calc.at[calc.index[i], 'value'] = 50-(abs(sig_l-macd)/abs(macd))*25
+            if calc.at[calc.index[i], 'value'] < 0: calc.at[calc.index[i], 'value'] = 0
 
     # calc = normalization(calc, -50, 100)
 
@@ -266,4 +283,4 @@ def MACD(raw_signal, n1=12, n2=26):
     signal['value'] = calc['value']
     return signal
 
-# compute_all_technical_signals(min=5, max=29,)
+compute_all_technical_signals(min=5, max=60)

@@ -73,7 +73,7 @@ time_period = '2nd_period'
 # STARTING UI ENVIRONMENT
 # TRAIN
 train_filename = '2nd_period-01-02-2021:03:22:37 AM.pickle'
-ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
+# ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats(train_filename)
 # ui.graph_score(train_filename)
 # ui.graph_TI(train_filename)
