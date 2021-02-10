@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 ###########################
 #          TRAIN          #
 ###########################
-def print_result(filename, ga1_pop_size, ga1_gene_size):
+def print_result(filename, ga1_pop_size, ga1_gene_size): #TODO CORRIGIR
     print('printing results...')
     filepath = 'data/results/train/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))

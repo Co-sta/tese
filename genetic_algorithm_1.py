@@ -44,6 +44,7 @@ METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
+FORECAST_DIST = 10 # forecast at 10 days
 IVOL_CHANGE_STEP = 2  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
@@ -541,6 +542,7 @@ class Population:
 
     # TODO INTRODUZIR A LISTA COMPLETA DE EMPRESAS
     def evaluation_phase(self, eval_start, eval_end, use_trading=False):
+
         tickers = data.open_sp500_tickers_to_list()
         # tickers = data.open_all_sp500_tickers_to_list()
         cnt = 1  # TODO tirar
@@ -555,7 +557,7 @@ class Population:
             else:
                 [score, nr_trading_days, nr_correct_days,
                 nr_up_days, nr_stay_days, nr_down_days,
-                nr_correct_ups, nr_correct_stays, nr_correct_downs] = forecast_check(forecast, tickers, unnorm_ti(chro.get_gene_list()[-1].get_value()))
+                nr_correct_ups, nr_correct_stays, nr_correct_downs] = forecast_check(forecast, tickers)
             chro.set_score(score)
             chro.nr_trading_days = nr_trading_days
             chro.nr_correct_days = nr_correct_days
@@ -720,7 +722,7 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     return forecast, orders
 
 
-def forecast_check(forecast, tickers, for_dist):
+def forecast_check(forecast, tickers):
     change_step = get_IVOL_CHANGE_STEP()
     nr_correct_days, nr_trading_days = 0,0
     nr_correct_ups, nr_correct_downs, nr_correct_stays = 0,0,0
@@ -735,8 +737,8 @@ def forecast_check(forecast, tickers, for_dist):
             if date in ivol.index:
                 ivol_pre_idx = ivol.index.get_loc(date)
                 ivol_pre_value = ivol.iloc[ivol_pre_idx]
-                ivol_fut_idx = ivol_pre_idx + for_dist
-                if ivol_fut_idx > ivol.size - 1 - for_dist:
+                ivol_fut_idx = ivol_pre_idx + FORECAST_DIST
+                if ivol_fut_idx > ivol.size - 1 - FORECAST_DIST:
                     break
                 ivol_fut_value = ivol.iloc[ivol_fut_idx]
                 change = ivol_fut_value - ivol_pre_value

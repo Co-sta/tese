@@ -22,7 +22,7 @@ ga2_method_crov = 5  # crossover methods. [1,2,3,4,5] # MEXER
 
 # GA 1 - LOWER
 ga1_pop_size = 100  # MEXER
-ga1_chr_size = 7    # 3 INDICADORES PARA CADA EMPRESA + 3 GENES PARA O 'N' DE CADA INDICADOR +1 para a dist de forecast
+ga1_chr_size = 10    # 5 INDICADORES PARA CADA EMPRESA + 5 GENES PARA O 'N' DE CADA INDICADOR
 ga1_gene_size = 100000
 
 ################################################################################
