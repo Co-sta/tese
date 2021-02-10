@@ -4,8 +4,8 @@ import math
 MAX_DIS_TIME = pd.to_timedelta('90 days')  # max distance from current date to option expiration in order do buy
 MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
 TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
-PRICE_RANGE = [3, 80]
-CASE_STUDY = 1 # 1:long calls | 2:long puts | 3:short calls | 4:short puts
+PRICE_RANGE = [10, 150]
+CASE_STUDY = 4 # 1:long calls | 2:long puts | 3:short calls | 4:short puts
 CAPITAL_MODE = 0 # 1:max capital | 0:unlimited capital
 
 trading_dic = {

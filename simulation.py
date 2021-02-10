@@ -62,7 +62,7 @@ time_period = '2nd_period'
 
 ################################################################################
 # STARTING TEST
-# file = '2nd_period-24-01-2021:11:29:53 PM.pickle'
+# file = '2nd_period-01-02-2021:03:22:37 AM.pickle'
 # test_filepath = 'data/results/test/' + file
 # train_filepath = 'data/results/train/' + file
 # best_pop = pickle.load( open( train_filepath, "rb" ))
@@ -72,8 +72,8 @@ time_period = '2nd_period'
 ################################################################################
 # STARTING UI ENVIRONMENT
 # TRAIN
-train_filename = '3_ti.pickle'
-# ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
+train_filename = '2nd_period-01-02-2021:03:22:37 AM.pickle'
+ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats(train_filename)
 # ui.graph_score(train_filename)
 # ui.graph_TI(train_filename)
@@ -83,11 +83,12 @@ train_filename = '3_ti.pickle'
 
 # SIGNALS
 # ui.graph_IVol()
+# ui.graph_smooth_IVol(12)
 # ui.graph_Stocks()
 # ui.graph_VIX()
 
 # TEST
-test_filename = '3_ti_long_call.pickle'
+test_filename = 'short_put.pickle'
 # ui.graph_ROI(test_filename)
 # ui.graph_trades(test_filename)
 # ui.print_nr_trades(test_filename)

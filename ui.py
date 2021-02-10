@@ -38,20 +38,20 @@ def print_result(filename, ga1_pop_size, ga1_gene_size):
         if i == 0: print('\n      stock_rsi_weight: ' + str(chr1.get_value()))
         if i == 1: print('      stock_roc_weight: ' + str(chr1.get_value()))
         if i == 2: print('      stock_sto_weight: ' + str(chr1.get_value()))
-        if i == 3: print('       ivol_rsi_weight: ' + str(chr1.get_value()))
-        if i == 4: print('       ivol_roc_weight: ' + str(chr1.get_value()))
-        if i == 5: print('       ivol_sto_weight: ' + str(chr1.get_value()))
-        if i == 6: print('         ivol_macd_roc: ' + str(chr1.get_value()))
+        # if i == 3: print('       ivol_rsi_weight: ' + str(chr1.get_value()))
+        # if i == 4: print('       ivol_roc_weight: ' + str(chr1.get_value()))
+        # if i == 5: print('       ivol_sto_weight: ' + str(chr1.get_value()))
+        # if i == 6: print('         ivol_macd_roc: ' + str(chr1.get_value()))
+        #
+        # if i == 7: print('           n_stock_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        # if i == 8: print('           n_stock_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        # if i == 9: print('           n_stock_sto: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        # if i == 10: print('            n_ivol_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 3: print('            n_ivol_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 4: print('            n_ivol_sto: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 5: print('           n_ivol_macd: ' + str(ga1.unnorm_ti(chr1.get_value())))
 
-        if i == 7: print('           n_stock_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 8: print('           n_stock_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 9: print('           n_stock_sto: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 10: print('            n_ivol_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 11: print('            n_ivol_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 12: print('            n_ivol_sto: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 13: print('           n_ivol_macd: ' + str(ga1.unnorm_ti(chr1.get_value())))
-
-        if i == 14: print('          n_prediction: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 6: print('          n_prediction: ' + str(ga1.unnorm_ti(chr1.get_value())))
 
 def print_train_stats(filename):
     print('printing train statistics...')
@@ -189,6 +189,18 @@ def graph_IVol():
     cnt = 0
     tickers = data.open_sp500_tickers_to_list()
     filepath = 'data/implied_volatility/all_tickers_ivol.csv'
+    iv_signals = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    for ticker in tickers:
+        fig.add_trace(go.Scatter(x=iv_signals.index, y=iv_signals[ticker]))
+        fig.data[cnt].name = ticker
+        cnt += 1
+    fig.show()
+
+def graph_smooth_IVol(n):
+    fig = go.Figure()
+    cnt = 0
+    tickers = data.open_sp500_tickers_to_list()
+    filepath = 'data/implied_volatility/all_tickers_smooth_ivol_('+str(n)+').csv'
     iv_signals = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for ticker in tickers:
         fig.add_trace(go.Scatter(x=iv_signals.index, y=iv_signals[ticker]))

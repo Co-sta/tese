@@ -1,6 +1,3 @@
-import technical_indicators as ti
-from inspect import getmembers, isfunction
-print(getmembers(ti, isfunction))
 import pandas as pd
 from pandas_ods_reader import read_ods
 import numpy as np
@@ -145,7 +142,7 @@ def create_ivol_dataset():
     return all_ivol
 
 def create_smooth_ivol_dataset(n):
-    filename = 'data/implied_volatility/all_tickers_smooth_ivol.csv'
+    filename = 'data/implied_volatility/all_tickers_smooth_ivol_('+str(n)+').csv'
     if path.exists(filename):
         os.remove(filename)
         print("File Removed!")
@@ -160,18 +157,33 @@ def create_smooth_ivol_dataset(n):
             data['Date'] = pd.to_datetime(data['Date'])
             data = data.set_index('Date')
             data = data.sort_index()
-            data.drop(data.columns.difference(['IV30']), 1, inplace=True)
-            print(data)
-            data = data.rename({'IV30': ticker}, axis='columns')
-            print(data)
-            data['close'] = data[ticker]
-            print(data)
-            ti.EMA(data, n)
-
+            data['close'] = data['IV30']
+            data = EMA(data, n)
+            data.drop(data.columns.difference(['value']), 1, inplace=True)
+            data = data.rename({'value': ticker}, axis='columns')
             all_ivol = pd.concat([all_ivol, data], axis=1)
     all_ivol.to_csv(filename)
     print("File Saved!")
     return all_ivol
+
+
+def EMA(raw_signal, n=14):
+    calc = raw_signal.copy()
+    calc['value'] = calc['close']
+    k = 2 / (n-1)
+    sum = 0
+
+    for i in range(n):
+        sum += calc.iloc[i]['close']
+
+    calc.at[calc.index[n], 'value'] = sum/n
+    for i in range(n+1, len(calc)):
+        calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
+        # print('------------')
+        # print(calc.iloc[i]['close'])
+        # print(calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k))
+    return calc
+
 
 def create_yfinance_dataset():
     tickers = open_all_sp500_tickers_to_list()
@@ -201,5 +213,3 @@ def save_portfolio(portfolio, time_period=0, filepath=0):
         filepath = 'data/results/test/' + time_period + '-' + now + '.pickle'
     pickle.dump(portfolio, open( filepath, "wb" ))
     print('portfolio saved')
-
-create_smooth_ivol_dataset(12)

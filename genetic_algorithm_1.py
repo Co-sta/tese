@@ -14,7 +14,7 @@ import time
 
 # o que interessa da implied volatility é a varaiação absoludta e não a variação precentual a implied volatility
 
-def unnorm_ti(ti_norm, n_min=30, n_max=60):
+def unnorm_ti(ti_norm, n_min=5, n_max=60):
     pos_ti = np.arange(n_min, n_max + 1)
     step_ti = (GENE_SIZE + 1) / (n_max-n_min)
     i = int(np.floor(ti_norm / step_ti))

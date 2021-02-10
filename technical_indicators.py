@@ -64,7 +64,8 @@ def compute_technical_signals(n):
     if not exists_stock_sto: save_technical_indicator(sto_stock_signals, str(n)+'_stock_sto')
 
     # Implied volatility
-    filepath = 'data/implied_volatility/all_tickers_ivol.csv'
+    # filepath = 'data/implied_volatility/all_tickers_ivol.csv'
+    filepath = 'data/implied_volatility/all_tickers_smooth_ivol_(12).csv'
     data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
     for tic in tickers:
         data['close'] = data_all_tic[tic]
@@ -239,7 +240,6 @@ def StO(raw_signal, n=14, stock=False):
 def EMA(raw_signal, n=14):
     calc = raw_signal.copy()
     calc['value'] = calc['close']
-    print(calc)
     k = 2 / (n-1)
     sum = 0
 
@@ -249,9 +249,6 @@ def EMA(raw_signal, n=14):
     calc.at[calc.index[n], 'value'] = sum/n
     for i in range(n+1, len(calc)):
         calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
-        print('------------')
-        print(calc.iloc[i]['close'])
-        print(calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k))
     return calc
 
 
@@ -268,3 +265,5 @@ def MACD(raw_signal, n1=12, n2=26):
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
     return signal
+
+# compute_all_technical_signals(min=5, max=29,)
