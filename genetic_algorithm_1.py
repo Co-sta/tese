@@ -16,9 +16,20 @@ import time
 
 def unnorm_ti(ti_norm, n_min=5, n_max=60):
     pos_ti = np.arange(n_min, n_max + 1)
-    step_ti = (GENE_SIZE + 1) / (n_max-n_min)
+    step_ti = (GENE_SIZE + 1) / len(pos_ti)
     i = int(np.floor(ti_norm / step_ti))
     return int(pos_ti[i])
+
+def unnorm_xema(ti_norm):
+    short_n = np.arange(2, 19)
+    long_n = np.arange(20, 101, 5)
+    pos_ti = []
+    for i in short_n:
+        for j in long_n:
+            pos_ti.append([i,j])
+    step_ti = (GENE_SIZE + 1) / len(pos_ti)
+    i = int(np.floor(ti_norm / step_ti))
+    return pos_ti[i]
 
 
 ############################
@@ -666,10 +677,11 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     # fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-8].get_value())) + '_stock_rsi.csv'
     # fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_stock_roc.csv'
     # fp_stock_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_stock_sto.csv'
-    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_rsi.csv'
-    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_roc.csv'
-    fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_sto.csv'
-    # fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
+    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_ivol_rsi.csv'
+    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_roc.csv'
+    fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_sto.csv'
+    fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
+    fp_ivol_xema = 'data/technical_indicators/' + str(unnorm_xema(genes[-1].get_value())[0])+'-'+str(unnorm_xema(genes[-1].get_value())[1]) + '_ivol_xema.csv'
 
     # stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
     # stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
@@ -677,10 +689,11 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     ivol_rsi = pd.read_csv(fp_ivol_rsi, index_col='Date', parse_dates=True)
     ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
     ivol_sto = pd.read_csv(fp_ivol_sto, index_col='Date', parse_dates=True)
-    # ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
+    ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
+    ivol_xema = pd.read_csv(fp_ivol_xema, index_col='Date', parse_dates=True)
 
     gene_sum = 0
-    for i in range(3):
+    for i in range(5):
         gene_sum += genes[i].get_value()
     for ticker in tickers:
         for date in ivol_rsi.index:
@@ -691,7 +704,9 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
             else:
                 fc = (ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[0].get_value() +
                       ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[1].get_value() +
-                      ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[2].get_value()) / gene_sum  # TODO ... AQUI
+                      ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[2].get_value() +
+                      ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[3].get_value() +
+                      ivol_xema.loc[date, 'ivol_' + ticker + '_xema'] * genes[4].get_value()) / gene_sum  # TODO ... AQUI
 
                 # print('---------------------------')
                 # print(ticker)

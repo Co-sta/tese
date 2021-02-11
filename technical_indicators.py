@@ -4,6 +4,7 @@ import pickle
 import yfinance as yf
 import data as d
 import os.path
+import math
 from multiprocessing import Pool
 
 
@@ -92,14 +93,42 @@ def compute_technical_signals(n):
     if not exists_ivol_sto: save_technical_indicator(sto_ivol_signals, str(n)+'_ivol_sto')
     if not exists_ivol_macd: save_technical_indicator(macd_ivol_signals, str(n)+'_ivol_macd')
 
+def compute_xema_signals(n):
+    tickers = d.open_all_sp500_tickers_to_list()  # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+
+    xema_ivol_signals = pd.DataFrame()
+    data = pd.DataFrame()
+
+    exists_ivol_xema = os.path.isfile('data/technical_indicators/' + str(n[0]) +'-'+ str(n[1]) + '_xema_rsi.csv')
+
+    filepath = 'data/implied_volatility/all_tickers_smooth_ivol_(12).csv'
+    data_all_tic = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    for tic in tickers:
+        data['close'] = data_all_tic[tic]
+        if not exists_ivol_xema:
+            print('ivol xema: ' + tic + ' - ' + str(n[0]) +'-'+ str(n[1]))
+            xema_tic = XEMA(data, n[0], n[1]).rename(columns={'value': 'ivol_' + tic + '_xema', 'Unnamed: 0':'Date'})
+            xema_ivol_signals = pd.concat([xema_ivol_signals, xema_tic], axis=1)
+    if not exists_ivol_xema: save_technical_indicator(xema_ivol_signals, str(n[0])+'-'+str(n[1])+'_ivol_xema')
 
 ############################
 #       extra methods      #
 ############################
 def compute_all_technical_signals(min=30, max=60, n_threads= 5):
+    short_n = np.arange(2, 19)
+    long_n = np.arange(20, 101, 5)
+    n = []
+    for i in short_n:
+        for j in long_n:
+            n.append([i,j])
+    with Pool(n_threads) as p:
+        p.map(compute_xema_signals, n)
+
     n = np.arange(min, max+1)
     with Pool(n_threads) as p:
         p.map(compute_technical_signals, n)
+
+
 
 
 def normalization(signal, s_min=0, s_max=0):
@@ -254,7 +283,10 @@ def EMA(raw_signal, n=14):
 
     calc.at[calc.index[n], 'value'] = sum/n
     for i in range(n+1, len(calc)):
-        calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
+        if math.isnan(calc.iloc[i]['close']):
+            calc.at[calc.index[i], 'value'] = calc.iloc[i-1]['value']
+        else:
+            calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
     return calc
 
 
@@ -263,7 +295,7 @@ def MACD(raw_signal, n1=12, n2=26):
     ema1 = EMA(calc, n1)
     ema2 = EMA(calc, n2)
 
-    for i in range(n2, len(calc)):
+    for i in range(n2, len(ema2)):
         calc.at[calc.index[i], 'close'] = ema1.iloc[i]['value'] - ema2.iloc[i]['value']
 
     signal_line = EMA(calc, 9)
@@ -277,7 +309,21 @@ def MACD(raw_signal, n1=12, n2=26):
             calc.at[calc.index[i], 'value'] = 50-(abs(sig_l-macd)/abs(macd))*25
             if calc.at[calc.index[i], 'value'] < 0: calc.at[calc.index[i], 'value'] = 0
 
-    # calc = normalization(calc, -50, 100)
+    signal = pd.DataFrame(index=calc.index)
+    signal['value'] = calc['value']
+    return signal
+
+
+def XEMA(raw_signal, n1=2, n2=20):
+    calc = raw_signal.copy()
+    short_ema = EMA(calc, n1)
+    long_ema = EMA(calc, n2)
+
+    for i in range(n2, len(calc)):
+        if short_ema.iloc[i]['value'] > long_ema.iloc[i]['value']:
+            calc.at[calc.index[i], 'value'] = 100
+        else:
+            calc.at[calc.index[i], 'value'] = 0
 
     signal = pd.DataFrame(index=calc.index)
     signal['value'] = calc['value']
