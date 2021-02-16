@@ -182,6 +182,7 @@ class Chromosome:
         self.score = 0
         self.forecast = pd.DataFrame()
         self.orders = pd.DataFrame()
+        self.correct_orders = pd.DataFrame()
         self.nr_trading_days = 0
         self.nr_correct_days = 0
         self.nr_up_days = 0
@@ -566,10 +567,11 @@ class Population:
                 portfolio = ts.trade(eval_start, eval_end, orders)
                 score = portfolio.get_ROI()['value'].iloc[-1]
             else:
-                [score, nr_trading_days, nr_correct_days,
+                [score, correct_orders, nr_trading_days, nr_correct_days,
                 nr_up_days, nr_stay_days, nr_down_days,
                 nr_correct_ups, nr_correct_stays, nr_correct_downs] = forecast_check(forecast, tickers)
             chro.set_score(score)
+            chro.correct_orders = correct_orders
             chro.nr_trading_days = nr_trading_days
             chro.nr_correct_days = nr_correct_days
             chro.nr_up_days = nr_up_days
@@ -681,7 +683,7 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_roc.csv'
     fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_sto.csv'
     fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
-    fp_ivol_xema = 'data/technical_indicators/' + str(unnorm_xema(genes[-1].get_value())[0])+'-'+str(unnorm_xema(genes[-1].get_value())[1]) + '_ivol_xema.csv'
+    # fp_ivol_xema = 'data/technical_indicators/' + str(unnorm_xema(genes[-1].get_value())[0])+'-'+str(unnorm_xema(genes[-1].get_value())[1]) + '_ivol_xema.csv'
 
     # stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
     # stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
@@ -690,13 +692,13 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
     ivol_sto = pd.read_csv(fp_ivol_sto, index_col='Date', parse_dates=True)
     ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
-    ivol_xema = pd.read_csv(fp_ivol_xema, index_col='Date', parse_dates=True)
+    # ivol_xema = pd.read_csv(fp_ivol_xema, index_col='Date', parse_dates=True)
 
     gene_sum = 0
-    for i in range(5):
+    for i in range(4):
         gene_sum += genes[i].get_value()
     for ticker in tickers:
-        for date in ivol_rsi.index:
+        for date in ivol_roc.index:
             if date < eval_start:
                 continue
             elif date > eval_end:
@@ -705,9 +707,7 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                 fc = (ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[0].get_value() +
                       ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[1].get_value() +
                       ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[2].get_value() +
-                      ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[3].get_value() +
-                      ivol_xema.loc[date, 'ivol_' + ticker + '_xema'] * genes[4].get_value()) / gene_sum  # TODO ... AQUI
-
+                      ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[3].get_value()) / gene_sum  # TODO ... AQUI
                 # print('---------------------------')
                 # print(ticker)
                 # print('vix rsi: ' + str(vix_rsi.loc[date, 'vix_rsi']))
@@ -738,6 +738,7 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
 
 
 def forecast_check(forecast, tickers):
+    correct_orders = pd.DataFrame()
     change_step = get_IVOL_CHANGE_STEP()
     nr_correct_days, nr_trading_days = 0,0
     nr_correct_ups, nr_correct_downs, nr_correct_stays = 0,0,0
@@ -767,16 +768,19 @@ def forecast_check(forecast, tickers):
 
                 if change >= change_step:
                     nr_up_days += 1
+                    correct_orders.at[ticker, date] = 1
                     if forecast.at[ticker, date] >= 60:
                         nr_correct_ups += 1
                         nr_correct_days += 1
                 elif change <= -change_step:
                     nr_down_days += 1
+                    correct_orders.at[ticker, date] = -1
                     if forecast.at[ticker, date] <= 40:
                         nr_correct_downs += 1
                         nr_correct_days += 1
                 else:
                     nr_stay_days +=1
+                    correct_orders.at[ticker, date] = 0
                     if 40 >= forecast.at[ticker, date] >= 60:
                         nr_correct_stays += 1
                         nr_correct_days += 1
@@ -787,7 +791,7 @@ def forecast_check(forecast, tickers):
     print('correct sell: ' + str(nr_correct_downs) +' ('+ str(nr_down_days) +')')
     print('correct stay: ' + str(nr_correct_stays) +' ('+ str(nr_stay_days) +')')
     score = nr_correct_days / nr_trading_days
-    return [score, nr_trading_days, nr_correct_days,
+    return [score, correct_orders, nr_trading_days, nr_correct_days,
             nr_up_days, nr_stay_days, nr_down_days,
             nr_correct_ups, nr_correct_stays, nr_correct_downs]
 
@@ -798,4 +802,5 @@ def check_same_chromo(chromo1, chromo2):
     for i in range(chromo1.get_size()):
         if chromo1.get_gene_list()[i].get_value() != chromo2.get_gene_list()[i].get_value():
             return False
+    return True
     return True

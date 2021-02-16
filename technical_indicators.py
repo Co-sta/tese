@@ -129,8 +129,6 @@ def compute_all_technical_signals(min=30, max=60, n_threads= 5):
         p.map(compute_technical_signals, n)
 
 
-
-
 def normalization(signal, s_min=0, s_max=0):
     signal_norm = signal.copy()
     if not(s_max or s_min):
@@ -329,4 +327,4 @@ def XEMA(raw_signal, n1=2, n2=20):
     signal['value'] = calc['value']
     return signal
 
-compute_all_technical_signals(min=5, max=60)
+# compute_all_technical_signals(min=5, max=60, n_threads= 10)

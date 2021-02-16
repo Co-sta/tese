@@ -22,7 +22,7 @@ ga2_method_crov = 5  # crossover methods. [1,2,3,4,5] # MEXER
 
 # GA 1 - LOWER
 ga1_pop_size = 100  # MEXER
-ga1_chr_size = 10    # 5 INDICADORES PARA CADA EMPRESA + 5 GENES PARA O 'N' DE CADA INDICADOR
+ga1_chr_size = 8    # 5 INDICADORES PARA CADA EMPRESA + 5 GENES PARA O 'N' DE CADA INDICADOR
 ga1_gene_size = 100000
 
 ################################################################################
@@ -57,8 +57,8 @@ time_period = '2nd_period'
 
 ################################################################################
 # STARTING FULL TRAIN AND TEST
-# [best_chromo, filepath] = train()
-# test(best_chromo, filepath=filepath)
+[best_chromo, filepath] = train()
+test(best_chromo, filepath=filepath)
 
 ################################################################################
 # STARTING TEST
@@ -72,13 +72,14 @@ time_period = '2nd_period'
 ################################################################################
 # STARTING UI ENVIRONMENT
 # TRAIN
-train_filename = '2nd_period-01-02-2021:03:22:37 AM.pickle'
+train_filename = '2nd_period-16-02-2021:03:23:08 PM.pickle'
 # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats(train_filename)
 # ui.graph_score(train_filename)
 # ui.graph_TI(train_filename)
 # ui.graph_forecast(train_filename)
 # ui.graph_orders(train_filename)
+# ui.graph_orders_correct_orders(train_filename)
 # ui.graph_forecast_ivol(train_filename)
 
 # SIGNALS
@@ -88,7 +89,7 @@ train_filename = '2nd_period-01-02-2021:03:22:37 AM.pickle'
 # ui.graph_VIX()
 
 # TEST
-test_filename = 'short_put.pickle'
+test_filename = '2nd_period-16-02-2021:03:42:18 PM.pickle'
 # ui.graph_ROI(test_filename)
 # ui.graph_trades(test_filename)
 # ui.print_nr_trades(test_filename)

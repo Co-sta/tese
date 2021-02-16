@@ -166,7 +166,6 @@ def create_smooth_ivol_dataset(n):
     print("File Saved!")
     return all_ivol
 
-
 def EMA(raw_signal, n=14):
     calc = raw_signal.copy()
     calc['value'] = calc['close']
@@ -179,11 +178,7 @@ def EMA(raw_signal, n=14):
     calc.at[calc.index[n], 'value'] = sum/n
     for i in range(n+1, len(calc)):
         calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
-        # print('------------')
-        # print(calc.iloc[i]['close'])
-        # print(calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k))
     return calc
-
 
 def create_yfinance_dataset():
     tickers = open_all_sp500_tickers_to_list()
@@ -213,3 +208,51 @@ def save_portfolio(portfolio, time_period=0, filepath=0):
         filepath = 'data/results/test/' + time_period + '-' + now + '.pickle'
     pickle.dump(portfolio, open( filepath, "wb" ))
     print('portfolio saved')
+
+# def create_options_xema():
+#     roots = []
+#     filenames = open('data/Options/option_dataset_filenames.txt').readlines()
+#
+#     for filename in filenames:
+#         print(filename)
+#         roots = list(set(roots + roots_from_df(filename)))
+#         print(len(roots))
+
+
+        # values = []
+        # roots = []
+        # filenames = open('data/Options/option_dataset_filenames.txt').readlines()
+        # mm_to_month = {'01':'January', '02':'February', '03':'March', '04':'April',
+        #                '05':'May', '06':'June', '07':'July', '08':'August',
+        #                '09':'September', '10':'October', '11':'November', '12':'December'}
+        #
+        # filepath = 'data/results/test/' + test_filename
+        # log = pickle.load( open( filepath, "rb" )).get_log()
+        # for daily_transactions in log.values():
+        #     for txn in daily_transactions:
+        #         roots.append(txn.get_root())
+        # roots = sorted(list(set(roots)))
+        # options = pd.DataFrame(columns=roots,index=[start_date])
+        # dates = pd.date_range(start_date,end_date-timedelta(days=1),freq='d')
+        #
+        # for date in dates:
+        #     print(date)
+        #     yyyy = str(date.year)
+        #     mm = str('%02d' % date.month)
+        #     dd = str('%02d' % date.day)
+        #     month = mm_to_month[mm]
+        #     filename = 'data/Options/bb_'+yyyy+'_'+month+'/bb_options_'+yyyy+mm+dd+'.csv\n'
+        #     if filename in filenames:
+        #         values = value_from_df(filename, roots)
+        #         for (root, value) in zip(roots, values):
+        #             options.at[date, root] = value
+        # options.to_csv('data/results/trades/'+test_filename.strip('.pickle\n')+'.csv', index_label='Date')
+
+
+
+def roots_from_df(filename):
+    option_dataset = pd.read_csv(filename.rstrip('\n'), usecols=["OptionRoot"])
+    roots = option_dataset["OptionRoot"].tolist()
+    return roots
+
+# create_options_xema()
