@@ -72,7 +72,7 @@ test(best_chromo, filepath=filepath)
 ################################################################################
 # STARTING UI ENVIRONMENT
 # TRAIN
-train_filename = '2nd_period-16-02-2021:03:23:08 PM.pickle'
+train_filename = '2nd_period-17-02-2021:12:09:16 PM.pickle'
 # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats(train_filename)
 # ui.graph_score(train_filename)

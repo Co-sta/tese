@@ -42,16 +42,16 @@ def print_result(filename, ga1_pop_size, ga1_gene_size): #TODO CORRIGIR
         if i == 1: print('       ivol_roc_weight: ' + str(chr1.get_value()))
         if i == 2: print('       ivol_sto_weight: ' + str(chr1.get_value()))
         if i == 3: print('       ivol_macd_weight: ' + str(chr1.get_value()))
-        if i == 4: print('       ivol_xema_weight: ' + str(chr1.get_value()))
+        # if i == 4: print('       ivol_xema_weight: ' + str(chr1.get_value()))
         #
         # if i == 7: print('           n_stock_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
         # if i == 8: print('           n_stock_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
         # if i == 9: print('           n_stock_sto: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 5: print('            n_ivol_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 6: print('            n_ivol_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 7: print('            n_ivol_sto: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 8: print('            n_ivol_macd: ' + str(ga1.unnorm_ti(chr1.get_value())))
-        if i == 9: print('            n_ivo_xema: ' + str(ga1.unnorm_xema(chr1.get_value())[0]) +'-'+str(ga1.unnorm_xema(chr1.get_value())[1]))
+        if i == 4: print('            n_ivol_rsi: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 5: print('            n_ivol_roc: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 6: print('            n_ivol_sto: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        if i == 7: print('            n_ivol_macd: ' + str(ga1.unnorm_ti(chr1.get_value())))
+        # if i == 9: print('            n_ivo_xema: ' + str(ga1.unnorm_xema(chr1.get_value())[0]) +'-'+str(ga1.unnorm_xema(chr1.get_value())[1]))
 
 def print_train_stats(filename):
     print('printing train statistics...')

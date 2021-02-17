@@ -39,8 +39,8 @@ GENE_SIZE = 100000
 END_VALUE = 0.9  # MEXER
 MAX_N_GEN = 100  # max of generations per simulation # MEXER
 N_TOP = 5 # MEXER
-MAX_NO_EVOL = 15 # MEXERNO_EVOL_STD_INCREASE
-NO_EVOL_STD_INCREASE = 5 # MEXER
+MAX_NO_EVOL = 20 # MEXERNO_EVOL_STD_INCREASE
+NO_EVOL_STD_INCREASE = 2500 # MEXER
 DEFAULT_MUTATION_STD = 1 # initialization
 
 H_FAME_SIZE = 5 # MEXER
@@ -50,13 +50,12 @@ N_CHILDREN = 1  # initialization
 CROV_W = 1.0  # initialization
 MUTATION_RATE = 1.0  # initialization
 MUTATION_STD = 1  # initialization
-NO_EVOL_STD_INCREASE
 METHOD_1POP = 1  # initialization
 METHOD_PS = 1  # initialization
 METHOD_CROV = 1  # initialization
 
 FORECAST_DIST = 10 # forecast at 10 days
-IVOL_CHANGE_STEP = 2  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
+IVOL_CHANGE_STEP = 3  # ivol minimum change to consider change # TODO PERGUNTAR AO RUI NEVES SE É ESTE O VALOR
 
 
 def set_global_var(gene_size, n_parents, n_children, crow_w, mutation_rate,
@@ -489,7 +488,7 @@ class Population:
     def mutation_phase(self):
         for chromo in self.get_chromo_list():
             for gene in chromo.get_gene_list():
-                if get_MUTATION_RATE() > random.random():
+                if get_MUTATION_RATE() >= random.random():
                     gene.mutate()
 
     def pop_generation_phase(self):
@@ -592,13 +591,13 @@ class Population:
             print('AUMENTOU')
             print(get_MUTATION_STD())
             global MUTATION_STD
-            MUTATION_STD = get_MUTATION_STD() + 10000
+            MUTATION_STD = get_MUTATION_STD() + get_NO_EVOL_STD_INCREASE()
             print(get_MUTATION_STD())
         else:
             print('MANTEVE')
             print(get_MUTATION_STD())
             MUTATION_STD = get_DEFAULT_MUTATION_STD()
-            print(get_MUTATION_STD()    )
+            print(get_MUTATION_STD())
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():
             return 1
@@ -671,7 +670,6 @@ def crov_random(chromo1, chromo2):
 ############################
 #        forecast          #
 ############################
-# TODO METER O RESTO DOS INDICADORES...
 def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
@@ -727,9 +725,9 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                 # print('---------------------------')
                 # time.sleep(1)
                 forecast.at[ticker, date] = fc
-                if fc >= 60:  # TODO VERIFICAR O VALOR
+                if fc >= 65:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = 1
-                elif fc <= 40:  # TODO VERIFICAR O VALOR
+                elif fc <= 35:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = -1
                 else:
                     orders.at[ticker, date] = 0
@@ -769,24 +767,25 @@ def forecast_check(forecast, tickers):
                 if change >= change_step:
                     nr_up_days += 1
                     correct_orders.at[ticker, date] = 1
-                    if forecast.at[ticker, date] >= 60:
+                    if forecast.at[ticker, date] >= 65:
                         nr_correct_ups += 1
                         nr_correct_days += 1
                 elif change <= -change_step:
                     nr_down_days += 1
                     correct_orders.at[ticker, date] = -1
-                    if forecast.at[ticker, date] <= 40:
+                    if forecast.at[ticker, date] <= 35:
                         nr_correct_downs += 1
                         nr_correct_days += 1
                 else:
                     nr_stay_days +=1
                     correct_orders.at[ticker, date] = 0
-                    if 40 >= forecast.at[ticker, date] >= 60:
+                    if 35 <= forecast.at[ticker, date] <= 65:
                         nr_correct_stays += 1
                         nr_correct_days += 1
 
                 nr_trading_days += 1
-    print('CORRECT DAYS: ' + str(nr_correct_days) +' ('+ str(nr_trading_days) +')')
+
+    print('CORRECT DAYS: ' + str(nr_correct_days) +' ('+ str(nr_trading_days) +')' + '('+str(nr_correct_days/nr_trading_days)+')')
     print('correct buy: ' + str(nr_correct_ups) +' ('+ str(nr_up_days) +')')
     print('correct sell: ' + str(nr_correct_downs) +' ('+ str(nr_down_days) +')')
     print('correct stay: ' + str(nr_correct_stays) +' ('+ str(nr_stay_days) +')')

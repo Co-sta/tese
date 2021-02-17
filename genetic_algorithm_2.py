@@ -630,26 +630,6 @@ class Population:
             eval_multi=partial(evaluate_multi, eval_start=eval_start, eval_end=eval_end)
             self.chromo_list = p.map(eval_multi, self.get_chromo_list())
 
-
-    # def evaluation_phase(self, eval_start, eval_end):
-    #     cnt = 1  # TODO tirar
-    #     for chromo in self.get_chromo_list():
-    #         print('G2 generation nr: ' + str(self.get_generation())) # TODO tirar
-    #         print('G2: evaluating ' + 'chromossome ' + str(cnt) + ' (' + str(self.get_pop_size()) + ')')  # TODO tirar
-    #         gene_list = chromo.get_gene_list()
-    #         [ga1_n_parents,ga1_n_children,ga1_crov_w,ga1_mutation_rate,
-    #         ga1_mutation_std,ga1_method_1pop,ga1_method_ps,ga1_method_crov] = unnorm(gene_list)
-    #
-    #         # TODO VERIFICAR O QUE É QUE O GA1.SIMULATE RETORNA
-    #         chromo.sub_pop = ga1.simulate(G1_POP_SIZE, G1_CHR_SIZE, G1_GENE_SIZE,
-    #                                          ga1_n_parents, ga1_n_children, ga1_crov_w,
-    #                                          ga1_mutation_rate, ga1_mutation_std,
-    #                                          ga1_method_1pop, ga1_method_ps, ga1_method_crov,
-    #                                          eval_start, eval_end)
-    #
-    #         chromo.set_score(chromo.sub_pop.get_h_fame()[0].get_score())
-    #         cnt += 1
-
     # TODO verificar se estão todas as condições
     def check_end_phase(self):  # 1 = end achieved, 0 = end not achieved
         best_chromo = deepcopy(self.h_fame[0])
