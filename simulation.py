@@ -22,7 +22,7 @@ ga2_method_crov = 5  # crossover methods. [1,2,3,4,5] # MEXER
 
 # GA 1 - LOWER
 ga1_pop_size = 100  # MEXER
-ga1_chr_size = 8    # 5 INDICADORES PARA CADA EMPRESA + 5 GENES PARA O 'N' DE CADA INDICADOR
+ga1_chr_size = 10    # 5 INDICADORES PARA CADA EMPRESA + 5 GENES PARA O 'N' DE CADA INDICADOR
 ga1_gene_size = 100000
 
 ################################################################################
@@ -38,9 +38,6 @@ def test(chromo, filepath=False):
     tickers = data.open_sp500_tickers_to_list()
     # tickers = data.open_all_sp500_tickers_to_list()
     [forecast, orders] = ga1.forecast_orders(chromo.get_gene_list(), tickers, ga1_chr_size, eval_start, eval_end)
-    # print(forecast)
-    # forecast.to_csv('forecast.csv')
-    # print(orders)
     portfolio = ts.trade(eval_start, eval_end, orders, tickers)
     data.save_portfolio(portfolio, time_period=time_period)
 
@@ -62,7 +59,7 @@ test(best_chromo, filepath=filepath)
 
 ################################################################################
 # STARTING TEST
-# file = '2nd_period-01-02-2021:03:22:37 AM.pickle'
+file = '2nd_period-01-02-2021:03:22:37 AM.pickle'
 # test_filepath = 'data/results/test/' + file
 # train_filepath = 'data/results/train/' + file
 # best_pop = pickle.load( open( train_filepath, "rb" ))
@@ -72,7 +69,7 @@ test(best_chromo, filepath=filepath)
 ################################################################################
 # STARTING UI ENVIRONMENT
 # TRAIN
-train_filename = '2nd_period-17-02-2021:12:09:16 PM.pickle'
+train_filename = '2nd_period-22-02-2021:10:25:57 PM.pickle'
 # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats(train_filename)
 # ui.graph_score(train_filename)
@@ -89,7 +86,7 @@ train_filename = '2nd_period-17-02-2021:12:09:16 PM.pickle'
 # ui.graph_VIX()
 
 # TEST
-test_filename = '2nd_period-16-02-2021:03:42:18 PM.pickle'
+test_filename = '2nd_period-22-02-2021:10:33:33 PM.pickle'
 # ui.graph_ROI(test_filename)
 # ui.graph_trades(test_filename)
 # ui.print_nr_trades(test_filename)

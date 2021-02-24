@@ -101,8 +101,6 @@ def simulate(pop_size, chromo_size, gene_size, n_parents, n_children, crow_w,
             pop.max_score = pop.max_score.append({'epoch':epoch, 'score':pop.get_h_fame()[0].get_score()}, ignore_index=True)
             print(pop.max_score)
             pop.parent_selection_phase()
-            # print('N_PAreNTS: ' + str(N_PARENTS))
-            # print('n_parents: ' + str(len(pop.get_parents())))
             pop.crossover_phase()
             pop.mutation_phase()
             pop.increase_gen()
@@ -226,7 +224,7 @@ class Population:
         self.chromo_list = self.pop_generation_phase()
 
         self.parents = []
-        self.h_fame = []  # a hall of fame with top 10 all time best
+        self.h_fame = []  # a hall of fame with top 5 all time best
         self.no_evolution = 0
         self.generation = 0
 
@@ -260,6 +258,13 @@ class Population:
         self.chromo_list = new_gen
     def print_chromo_list(self):
         for i, chromo in zip(range(self.get_pop_size()), self.get_chromo_list()):
+            ch_str = ''
+            print('Gene:' + str(i) + ' | score:' + str(chromo.get_score()))
+            for ge in chromo.get_gene_list():
+                ch_str = ch_str + ' [' + str(ge.value) + ']'
+            print(ch_str)
+    def print_hfame_list(self):
+        for i, chromo in zip(range(len(self.h_fame)), self.get_h_fame()):
             ch_str = ''
             print('Gene:' + str(i) + ' | score:' + str(chromo.get_score()))
             for ge in chromo.get_gene_list():
@@ -435,8 +440,12 @@ class Population:
     ############################
     def update_h_fame(self):
         h_fame_size = H_FAME_SIZE
-        chromo_list = self.get_chromo_list().copy()
-        h_fame = self.get_h_fame().copy()
+        chromo_list = deepcopy(self.get_chromo_list())
+        h_fame = deepcopy(self.get_h_fame())
+        # self.print_hfame_list()
+        # for chromo in h_fame:
+        #     print('old_H_FAME: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         if h_fame:
             old_best_score = h_fame[0].get_score()
         else:
@@ -446,14 +455,8 @@ class Population:
                 if check_same_chromo(chromo_h_fame, chromo):
                     print('same')
                     chromo_list.remove(chromo)
-        #  TODO CONTINUAR AQUI
-        # for chromo in chromo_list:
-        #     print('score: ' + str(chromo.get_score()))
-        # print('------------------------------------')
-        chromo_list.sort(key=lambda x: x.score, reverse=True)
-        # for chromo in chromo_list:
-        #     print('score ordenado: ' + str(chromo.get_score()))
-        # print('------------------------------------')
+
+
         h_fame.extend(chromo_list)
         # for chromo in h_fame:
         #     print('h_fame + list: ' + str(chromo.get_score()))
@@ -463,11 +466,12 @@ class Population:
         #     print('h_fame + list ordenado: ' + str(chromo.get_score()))
         # print('------------------------------------')
         new_h_fame = deepcopy(h_fame[0:h_fame_size])
-        for chromo in new_h_fame:
-            print('H_FAME: ' + str(chromo.get_score()))
-        print('------------------------------------')
-        self.print_chromo_list()
+        # for chromo in new_h_fame:
+        #     print('new_H_FAME: ' + str(chromo.get_score()))
+        # print('------------------------------------')
         new_best_score = new_h_fame[0].get_score()
+
+        # print(str(old_best_score) + '---' + str(new_best_score))
 
         if new_best_score > old_best_score:
             print(self.no_evolution)
@@ -480,7 +484,9 @@ class Population:
             print('INCRESE')
             self.incr_no_evol()
             print(self.no_evolution)
+
         self.set_h_fame(new_h_fame)
+        # self.print_hfame_list()
 
     ############################
     #          phases          #
@@ -533,6 +539,9 @@ class Population:
         elif method_crov == 5:
             method = crov_random
 
+        for top in deepcopy(self.get_h_fame()):
+            new_gen.append(top)
+
         for i in range(get_N_CHILDREN()):
             if len(parents) < 2:
                 parents = self.get_parents().copy()
@@ -550,6 +559,9 @@ class Population:
                         score = parents[j].score
                         index = j
                 new_gen.append(parents.pop(index))
+
+        self.set_chromo_list(new_gen)
+
 
     # TODO INTRODUZIR A LISTA COMPLETA DE EMPRESAS
     def evaluation_phase(self, eval_start, eval_end, use_trading=False):
@@ -583,8 +595,8 @@ class Population:
 
     # TODO verificar se estão todas as condições
     def check_end_phase(self):  # 1 = end achieved, 0 = end not achieved
-        score = 0
-        best_chromo = deepcopy(self.h_fame[0])
+        best_chromo = self.get_h_fame()[0]
+        score = best_chromo.get_score()
 
         # if there is no evolution increase mutation_std 10 000, turns back to default otherwise
         if self.get_no_evol() >= get_NO_EVOL_STD_INCREASE():
@@ -674,26 +686,20 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
     forecast = pd.DataFrame()
     orders = pd.DataFrame()
 
-    # fp_stock_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-8].get_value())) + '_stock_rsi.csv'
-    # fp_stock_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-7].get_value())) + '_stock_roc.csv'
-    # fp_stock_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-6].get_value())) + '_stock_sto.csv'
-    fp_ivol_rsi = 'data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_ivol_rsi.csv'
-    fp_ivol_roc = 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_roc.csv'
-    fp_ivol_sto = 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_sto.csv'
-    fp_ivol_macd = 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv'
-    # fp_ivol_xema = 'data/technical_indicators/' + str(unnorm_xema(genes[-1].get_value())[0])+'-'+str(unnorm_xema(genes[-1].get_value())[1]) + '_ivol_xema.csv'
+    filenames = ['data/technical_indicators/' + str(unnorm_ti(genes[-5].get_value())) + '_ivol_rsi.csv',
+                 'data/technical_indicators/' + str(unnorm_ti(genes[-4].get_value())) + '_ivol_roc.csv',
+                 'data/technical_indicators/' + str(unnorm_ti(genes[-3].get_value())) + '_ivol_sto.csv',
+                 'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv',
+                 'data/technical_indicators/' + str(unnorm_xema(genes[-1].get_value())[0])+'-'+str(unnorm_xema(genes[-1].get_value())[1]) + '_ivol_xema.csv']
 
-    # stock_rsi = pd.read_csv(fp_stock_rsi, index_col='Date', parse_dates=True)
-    # stock_roc = pd.read_csv(fp_stock_roc, index_col='Date', parse_dates=True)
-    # stock_sto = pd.read_csv(fp_stock_sto, index_col='Date', parse_dates=True)
-    ivol_rsi = pd.read_csv(fp_ivol_rsi, index_col='Date', parse_dates=True)
-    ivol_roc = pd.read_csv(fp_ivol_roc, index_col='Date', parse_dates=True)
-    ivol_sto = pd.read_csv(fp_ivol_sto, index_col='Date', parse_dates=True)
-    ivol_macd = pd.read_csv(fp_ivol_macd, index_col='Date', parse_dates=True)
-    # ivol_xema = pd.read_csv(fp_ivol_xema, index_col='Date', parse_dates=True)
+    ivol_rsi = pd.read_csv(filenames[0], index_col='Date', parse_dates=True)
+    ivol_roc = pd.read_csv(filenames[1], index_col='Date', parse_dates=True)
+    ivol_sto = pd.read_csv(filenames[2], index_col='Date', parse_dates=True)
+    ivol_macd = pd.read_csv(filenames[3], index_col='Date', parse_dates=True)
+    ivol_xema = pd.read_csv(filenames[4], index_col='Date', parse_dates=True)
 
     gene_sum = 0
-    for i in range(4):
+    for i in range(len(filenames)):
         gene_sum += genes[i].get_value()
     for ticker in tickers:
         for date in ivol_roc.index:
@@ -705,7 +711,8 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                 fc = (ivol_rsi.loc[date, 'ivol_' + ticker + '_rsi'] * genes[0].get_value() +
                       ivol_roc.loc[date, 'ivol_' + ticker + '_roc'] * genes[1].get_value() +
                       ivol_sto.loc[date, 'ivol_' + ticker + '_sto'] * genes[2].get_value() +
-                      ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[3].get_value()) / gene_sum  # TODO ... AQUI
+                      ivol_macd.loc[date, 'ivol_' + ticker + '_macd'] * genes[3].get_value() +
+                      ivol_xema.loc[date, 'ivol_' + ticker + '_xema'] * genes[4].get_value()) / gene_sum  # TODO ... AQUI
                 # print('---------------------------')
                 # print(ticker)
                 # print('vix rsi: ' + str(vix_rsi.loc[date, 'vix_rsi']))
@@ -725,9 +732,9 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                 # print('---------------------------')
                 # time.sleep(1)
                 forecast.at[ticker, date] = fc
-                if fc >= 65:  # TODO VERIFICAR O VALOR
+                if fc >= 60:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = 1
-                elif fc <= 35:  # TODO VERIFICAR O VALOR
+                elif fc <= 40:  # TODO VERIFICAR O VALOR
                     orders.at[ticker, date] = -1
                 else:
                     orders.at[ticker, date] = 0
@@ -767,19 +774,19 @@ def forecast_check(forecast, tickers):
                 if change >= change_step:
                     nr_up_days += 1
                     correct_orders.at[ticker, date] = 1
-                    if forecast.at[ticker, date] >= 65:
+                    if forecast.at[ticker, date] >= 60:
                         nr_correct_ups += 1
                         nr_correct_days += 1
                 elif change <= -change_step:
                     nr_down_days += 1
                     correct_orders.at[ticker, date] = -1
-                    if forecast.at[ticker, date] <= 35:
+                    if forecast.at[ticker, date] <= 40:
                         nr_correct_downs += 1
                         nr_correct_days += 1
                 else:
                     nr_stay_days +=1
                     correct_orders.at[ticker, date] = 0
-                    if 35 <= forecast.at[ticker, date] <= 65:
+                    if 40 <= forecast.at[ticker, date] <= 60:
                         nr_correct_stays += 1
                         nr_correct_days += 1
 

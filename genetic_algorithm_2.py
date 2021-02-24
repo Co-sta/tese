@@ -436,7 +436,7 @@ class Population:
     ############################
     def ps_top(self):  # the parents are the chromosomes with best scores
         parents = []
-        chromo_list = self.get_chromo_list().copy()
+        chromo_list = deepcopy(self.get_chromo_list())
 
         for i in range(get_N_PARENTS()):
             index = 0
@@ -449,7 +449,7 @@ class Population:
         return parents
 
     def ps_roullete(self):  # the parents are selected by roullete method
-        chromo_list = self.get_chromo_list().copy()
+        chromo_list = deepcopy(self.get_chromo_list())
         scores = []
         sum_scores = 0
         parents = []
@@ -458,7 +458,7 @@ class Population:
             sum_scores = sum_scores + chromo_list[i].get_score()
         for i in range(len(chromo_list)):
             scores.append(chromo_list[i].score / sum_scores)
-        parents_i = np.random.choice(self.get_pop_size(), get_N_PARENTS(), replace=False, p=scores).tolist()
+        parents_i = np.random.choice(len(chromo_list), get_N_PARENTS(), replace=False, p=scores).tolist()
         for i in parents_i:
             parents.append(chromo_list[i])
         return parents
@@ -466,7 +466,7 @@ class Population:
     def ps_roullete_top(self):  # ntop parents are the top scores and the others are chosen by roullete
         ntop = get_N_TOP()
         parents = []
-        chromo_list = self.get_chromo_list().copy()
+        chromo_list = deepcopy(self.get_chromo_list())
         scores = []
         sum_scores = 0
 
@@ -491,7 +491,7 @@ class Population:
         return parents
 
     def ps_tournament(self):
-        chromo_list = self.get_chromo_list().copy()
+        chromo_list = deepcopy(self.get_chromo_list())
         tournament_size = 10
         if tournament_size < self.get_pop_size():
             tournament_size = self.get_pop_size()
@@ -515,8 +515,8 @@ class Population:
     ############################
     def update_h_fame(self):
         h_fame_size = H_FAME_SIZE
-        chromo_list = self.get_chromo_list().copy()
-        h_fame = self.get_h_fame().copy()
+        chromo_list = deepcopy(self.get_chromo_list())
+        h_fame = deepcopy(self.get_h_fame())
         if h_fame:
             old_best_score = h_fame[0].get_score()
         else:
@@ -525,14 +525,7 @@ class Population:
             for chromo in chromo_list:
                 if check_same_chromo(chromo_h_fame, chromo):
                     chromo_list.remove(chromo)
-        #  TODO CONTINUAR AQUI
-        # for chromo in chromo_list:
-        #     print('G2: score: ' + str(chromo.get_score()))
-        # print('------------------------------------')
-        chromo_list.sort(key=lambda x: x.score, reverse=True)
-        # for chromo in chromo_list:
-        #     print('G2: score ordenado: ' + str(chromo.get_score()))
-        # print('------------------------------------')
+
         h_fame.extend(chromo_list)
         # for chromo in h_fame:
         #     print('G2: h_fame + list: ' + str(chromo.get_score()))
@@ -551,6 +544,7 @@ class Population:
             self.reset_no_evol()
         else:
             self.incr_no_evol()
+
         self.set_h_fame(new_h_fame)
 
     ############################
@@ -604,6 +598,9 @@ class Population:
         elif method_crov == 5:
             method = crov_random
 
+        for top in deepcopy(self.get_h_fame()):
+            new_gen.append(top)
+
         for i in range(get_N_CHILDREN()):
             if len(parents) < 2:
                 parents = self.get_parents().copy()
@@ -632,7 +629,7 @@ class Population:
 
     # TODO verificar se estão todas as condições
     def check_end_phase(self):  # 1 = end achieved, 0 = end not achieved
-        best_chromo = deepcopy(self.h_fame[0])
+        best_chromo = deepcopy(self.get_h_fame()[0])
         score = best_chromo.get_score()
 
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
