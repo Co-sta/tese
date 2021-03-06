@@ -598,8 +598,8 @@ class Population:
         best_chromo = self.get_h_fame()[0]
         score = best_chromo.get_score()
 
-        # if there is no evolution increase mutation_std 10 000, turns back to default otherwise
-        if self.get_no_evol() >= get_NO_EVOL_STD_INCREASE():
+        # if there is no evolution, increase mutation_std 10 000, turns back to default otherwise
+        if self.get_no_evol() >= 5:
             print('AUMENTOU')
             print(get_MUTATION_STD())
             global MUTATION_STD
