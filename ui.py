@@ -271,6 +271,7 @@ def graph_trades(filename):
                 data.append(line)
         go.Figure(data=data, layout=layout).show()
 
+
 def print_nr_trades(filename):
     print('printing nr of positive and negative trades...')
     filepath = 'data/results/test/' + filename
@@ -335,6 +336,48 @@ def options_graph(test_filename, start_date, end_date):
                             name='close',
                             legendgroup=trace.legendgroup,
                             line=dict(color="red")))
+        fig.show()
+
+def option_graph(roots, start_date, end_date):
+        filenames = open('data/Options/option_dataset_filenames.txt').readlines()
+        mm_to_month = {'01':'January', '02':'February', '03':'March', '04':'April',
+                       '05':'May', '06':'June', '07':'July', '08':'August',
+                       '09':'September', '10':'October', '11':'November', '12':'December'}
+        start = False
+        first = True
+
+        dates = pd.date_range(start_date,end_date-timedelta(days=1),freq='d')
+        for date in dates:
+            yyyy = str(date.year)
+            mm = str('%02d' % date.month)
+            dd = str('%02d' % date.day)
+            month = mm_to_month[mm]
+            filename = 'data/Options/bb_'+yyyy+'_'+month+'/bb_options_'+yyyy+mm+dd+'.csv\n'
+            if filename in filenames:
+                values = value_from_df(filename, roots)
+                print(values[0])
+                if values[0] == None:
+                    if start:
+                        break
+                    else:
+                        start = True
+                        continue
+                else:
+                    if first:
+                        options = pd.DataFrame(columns=['value', 'avg5', 'avg32'],index=[date])
+                        first = False
+                    options.at[date, 'value'] = values[0]
+                    print(values[0])
+
+        avg = pd.DataFrame()
+        avg['close'] = options['value']
+        avg5 = ti.MA(avg, 5)
+        avg32 = ti.MA(avg, 32)
+        options['avg5'] = avg5['value']
+        options['avg32'] = avg32['value']
+        print(options)
+
+        fig = px.line(options, x=options.index, y=options.columns, title='Traded Options')
         fig.show()
 
 

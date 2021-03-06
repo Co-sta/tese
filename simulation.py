@@ -54,8 +54,8 @@ time_period = '2nd_period'
 
 ################################################################################
 # STARTING FULL TRAIN AND TEST
-[best_chromo, filepath] = train()
-test(best_chromo, filepath=filepath)
+# [best_chromo, filepath] = train()
+# test(best_chromo, filepath=filepath)
 
 ################################################################################
 # STARTING TEST
@@ -69,7 +69,7 @@ file = '2nd_period-01-02-2021:03:22:37 AM.pickle'
 ################################################################################
 # STARTING UI ENVIRONMENT
 # TRAIN
-train_filename = '2nd_period-22-02-2021:10:25:57 PM.pickle'
+train_filename = '2nd_period-27-02-2021:08:59:52 AM.pickle'
 # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
 # ui.print_train_stats(train_filename)
 # ui.graph_score(train_filename)
@@ -86,8 +86,10 @@ train_filename = '2nd_period-22-02-2021:10:25:57 PM.pickle'
 # ui.graph_VIX()
 
 # TEST
-test_filename = '2nd_period-22-02-2021:10:33:33 PM.pickle'
+test_filename = '2nd_period-27-02-2021:09:07:35 AM.pickle'
 # ui.graph_ROI(test_filename)
 # ui.graph_trades(test_filename)
 # ui.print_nr_trades(test_filename)
 # ui.options_graph(test_filename, eval_start, eval_end)
+
+# EXTRA

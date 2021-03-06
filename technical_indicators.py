@@ -327,4 +327,22 @@ def XEMA(raw_signal, n1=2, n2=20):
     signal['value'] = calc['value']
     return signal
 
+def MA(raw_signal, n=14):
+    calc = raw_signal.copy()
+    calc['value'] = calc['close']
+    sum = 0
+
+    for i in range(n):
+
+        sum += calc.iloc[i]['close']
+    print(sum)
+
+    calc.at[calc.index[n], 'value'] = sum/n
+    for i in range(n+1, len(calc)):
+        if math.isnan(calc.iloc[i]['close']):
+            calc.at[calc.index[i], 'value'] = calc.iloc[i-1]['value']
+        else:
+            calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] + calc.iloc[i-1]['value'] * (n-1))/n
+    return calc
+
 # compute_all_technical_signals(min=5, max=60, n_threads= 10)
