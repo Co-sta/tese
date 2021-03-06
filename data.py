@@ -180,6 +180,24 @@ def EMA(raw_signal, n=14):
         calc.at[calc.index[i], 'value'] = calc.iloc[i]['close'] * k + calc.iloc[i-1]['value'] * (1-k)
     return calc
 
+def MA(raw_signal, n=14):
+    calc = raw_signal.copy()
+    calc['value'] = calc['close']
+    sum = 0
+
+    for i in range(n):
+        sum += calc.iloc[i]['close']
+    print(sum)
+
+    calc.at[calc.index[n], 'value'] = sum/n
+    for i in range(n+1, len(calc)):
+        if math.isnan(calc.iloc[i]['close']):
+            calc.at[calc.index[i], 'value'] = calc.iloc[i-1]['value']
+        else:
+            calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] + calc.iloc[i-1]['value'] * (n-1))/n
+        print(calc.at[calc.index[i], 'value'])
+    return calc
+
 def create_yfinance_dataset():
     tickers = open_all_sp500_tickers_to_list()
     filename = 'data/yfinance/all_tickers_yfinance.csv'
@@ -209,50 +227,70 @@ def save_portfolio(portfolio, time_period=0, filepath=0):
     pickle.dump(portfolio, open( filepath, "wb" ))
     print('portfolio saved')
 
-# def create_options_xema():
-#     roots = []
-#     filenames = open('data/Options/option_dataset_filenames.txt').readlines()
-#
-#     for filename in filenames:
-#         print(filename)
-#         roots = list(set(roots + roots_from_df(filename)))
-#         print(len(roots))
+def create_options_xma(ticker):
+    n1 = 5
+    n2 = 32
+    filenames = open('data/Options/option_dataset_filenames.txt').readlines()
+    options = pd.DataFrame(index=[pd.to_datetime('01-03-2011')])
+    data = pd.DataFrame()
 
+    print('aggregating option dataframe:')
+    for filename in filenames[:50]:
+        print(filename)
+        date = date_from_filename(filename)
+        roots = roots_from_df(filename)
+        roots = [elem for elem in roots if ticker in elem]
+        values = value_from_df(filename, roots)
 
-        # values = []
-        # roots = []
-        # filenames = open('data/Options/option_dataset_filenames.txt').readlines()
-        # mm_to_month = {'01':'January', '02':'February', '03':'March', '04':'April',
-        #                '05':'May', '06':'June', '07':'July', '08':'August',
-        #                '09':'September', '10':'October', '11':'November', '12':'December'}
-        #
-        # filepath = 'data/results/test/' + test_filename
-        # log = pickle.load( open( filepath, "rb" )).get_log()
-        # for daily_transactions in log.values():
-        #     for txn in daily_transactions:
-        #         roots.append(txn.get_root())
-        # roots = sorted(list(set(roots)))
-        # options = pd.DataFrame(columns=roots,index=[start_date])
-        # dates = pd.date_range(start_date,end_date-timedelta(days=1),freq='d')
-        #
-        # for date in dates:
-        #     print(date)
-        #     yyyy = str(date.year)
-        #     mm = str('%02d' % date.month)
-        #     dd = str('%02d' % date.day)
-        #     month = mm_to_month[mm]
-        #     filename = 'data/Options/bb_'+yyyy+'_'+month+'/bb_options_'+yyyy+mm+dd+'.csv\n'
-        #     if filename in filenames:
-        #         values = value_from_df(filename, roots)
-        #         for (root, value) in zip(roots, values):
-        #             options.at[date, root] = value
-        # options.to_csv('data/results/trades/'+test_filename.strip('.pickle\n')+'.csv', index_label='Date')
+        for (root, value) in zip(roots, values):
+            options.at[date, root] = value
+
+    print('applying MA5 and MA32 to each column:')
+    for (columnName, columnData) in options.iteritems():
+        print('option root: ', columnName)
+        data['close'] = options[columnName]
+        print('5 days ma:')
+        short_ma = MA(data, n1)
+        print('32 days ma:')
+        long_ma = MA(data, n2)
+
+        print('creating xma:')
+        for i in range(n2):
+            print(i)
+            options.at[options.index[i], columnName] = 0
+        for i in range(n2, len(data)):
+            print(i)
+            if short_ma.iloc[i]['value'] > long_ma.iloc[i]['value']:
+                options.at[options.index[i], columnName] = 1
+            elif short_ma.iloc[i]['value'] < long_ma.iloc[i]['value']:
+                options.at[options.index[i], columnName] = 0
+
+        print(options.head())
+
+    filepath = 'data/options_xma/' + ticker + '.csv'
+    signal.to_csv(filepath)
+
 
 
 
 def roots_from_df(filename):
-    option_dataset = pd.read_csv(filename.rstrip('\n'), usecols=["OptionRoot"])
-    roots = option_dataset["OptionRoot"].tolist()
+    with open(filename.rstrip('\n')) as file:
+        option_dataset = pd.read_csv(file, usecols=["OptionRoot"])
+        roots = option_dataset["OptionRoot"].tolist()
     return roots
 
-# create_options_xema()
+def value_from_df(filename, roots):
+    values = []
+    with open(filename.rstrip('\n')) as file:
+        option_dataset = pd.read_csv(file, usecols=["OptionRoot", "Ask"])
+        for root in roots:
+            values.append(option_dataset[option_dataset["OptionRoot"] == root]["Ask"].iloc[0])
+    return values
+
+def date_from_filename(filename):
+    date_txt = filename.split('_')[-1].split('.')[0]
+    date = pd.to_datetime(date_txt, format='%Y%m%d')
+    return date
+
+
+create_options_xma('AAPL')
