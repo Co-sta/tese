@@ -5,6 +5,7 @@ import pickle
 import os.path as path
 import os
 import yfinance as yf
+import math
 
 
 
@@ -187,7 +188,6 @@ def MA(raw_signal, n=14):
 
     for i in range(n):
         sum += calc.iloc[i]['close']
-    print(sum)
 
     calc.at[calc.index[n], 'value'] = sum/n
     for i in range(n+1, len(calc)):
@@ -195,7 +195,6 @@ def MA(raw_signal, n=14):
             calc.at[calc.index[i], 'value'] = calc.iloc[i-1]['value']
         else:
             calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] + calc.iloc[i-1]['value'] * (n-1))/n
-        print(calc.at[calc.index[i], 'value'])
     return calc
 
 def create_yfinance_dataset():
@@ -227,6 +226,32 @@ def save_portfolio(portfolio, time_period=0, filepath=0):
     pickle.dump(portfolio, open( filepath, "wb" ))
     print('portfolio saved')
 
+def compress_dataframe():
+    filenames = open('data/Options/option_dataset_filenames(some).txt').readlines()
+    data = pd.DataFrame()
+    for filename in filenames:
+        print(filename)
+        with open(filename.rstrip('\n')) as file:
+            option_dataset = pd.read_csv(file, usecols=["UnderlyingSymbol",
+                                                        "UnderlyingPrice",
+                                                        "OptionRoot",
+                                                        "Type",
+                                                        "Expiration",
+                                                        "DataDate",
+                                                        "Strike",
+                                                        "Ask"])
+
+        option_dataset = option_dataset.rename(columns={"DataDate": "Date"})
+        option_dataset = option_dataset.astype({"UnderlyingSymbol": 'string',
+                                                    "UnderlyingPrice": 'float16',
+                                                    "OptionRoot": 'string',
+                                                    "Type": 'category',
+                                                    "Expiration": 'category',
+                                                    "Date": 'category',
+                                                    "Strike": 'float16',
+                                                    "Ask": 'float16'})
+        option_dataset.to_csv(filename.rstrip('\n'), index=False)
+
 def create_options_xma(ticker):
     n1 = 5
     n2 = 32
@@ -235,7 +260,7 @@ def create_options_xma(ticker):
     data = pd.DataFrame()
 
     print('aggregating option dataframe:')
-    for filename in filenames[:50]:
+    for filename in filenames:
         print(filename)
         date = date_from_filename(filename)
         roots = roots_from_df(filename)
@@ -244,6 +269,7 @@ def create_options_xma(ticker):
 
         for (root, value) in zip(roots, values):
             options.at[date, root] = value
+    options.to_csv('data/options_xma/temp.csv')
 
     print('applying MA5 and MA32 to each column:')
     for (columnName, columnData) in options.iteritems():
@@ -256,19 +282,19 @@ def create_options_xma(ticker):
 
         print('creating xma:')
         for i in range(n2):
-            print(i)
             options.at[options.index[i], columnName] = 0
         for i in range(n2, len(data)):
-            print(i)
-            if short_ma.iloc[i]['value'] > long_ma.iloc[i]['value']:
-                options.at[options.index[i], columnName] = 1
-            elif short_ma.iloc[i]['value'] < long_ma.iloc[i]['value']:
+            if math.isnan(long_ma.iloc[i]['value']):
                 options.at[options.index[i], columnName] = 0
-
-        print(options.head())
-
+            else:
+                if short_ma.iloc[i]['value'] > long_ma.iloc[i]['value']:
+                    options.at[options.index[i], columnName] = 1
+                elif short_ma.iloc[i]['value'] < long_ma.iloc[i]['value']:
+                    options.at[options.index[i], columnName] = -1
+                else:
+                    options.at[options.index[i], columnName] = 0
     filepath = 'data/options_xma/' + ticker + '.csv'
-    signal.to_csv(filepath)
+    options.to_csv(filepath)
 
 
 
