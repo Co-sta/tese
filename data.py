@@ -6,9 +6,7 @@ import os.path as path
 import os
 import yfinance as yf
 import math
-
-
-
+from multiprocessing import Pool
 
 def vix_to_dataframe(vix):
     date = vix['date'].to_list()
@@ -143,6 +141,8 @@ def create_ivol_dataset():
     return all_ivol
 
 def create_smooth_ivol_dataset(n):
+    start = pd.to_datetime('01-02-2010')
+    end = pd.to_datetime('12-31-2015')
     filename = 'data/implied_volatility/all_tickers_smooth_ivol_('+str(n)+').csv'
     if path.exists(filename):
         os.remove(filename)
@@ -159,6 +159,11 @@ def create_smooth_ivol_dataset(n):
             data = data.set_index('Date')
             data = data.sort_index()
             data['close'] = data['IV30']
+
+            indices = [index for index in data.index.tolist() if (start>index or index>end)]
+            data = data.drop(indices)
+
+
             data = EMA(data, n)
             data.drop(data.columns.difference(['value']), 1, inplace=True)
             data = data.rename({'value': ticker}, axis='columns')
@@ -182,19 +187,25 @@ def EMA(raw_signal, n=14):
     return calc
 
 def MA(raw_signal, n=14):
+    first = 0
     calc = raw_signal.copy()
     calc['value'] = calc['close']
     sum = 0
 
-    for i in range(n):
-        sum += calc.iloc[i]['close']
+    for i in range(len(calc)):
+        if not math.isnan(calc.iloc[i]['close']):
+            first = i
+            break
+    if first+n < len(calc):
+        for i in range(first, first+n):
+            sum += calc.iloc[i]['close']
 
-    calc.at[calc.index[n], 'value'] = sum/n
-    for i in range(n+1, len(calc)):
-        if math.isnan(calc.iloc[i]['close']):
-            calc.at[calc.index[i], 'value'] = calc.iloc[i-1]['value']
-        else:
-            calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] + calc.iloc[i-1]['value'] * (n-1))/n
+        calc.at[calc.index[n], 'value'] = sum/n
+        for i in range(first+n+1, len(calc)):
+            if math.isnan(calc.iloc[i]['close']):
+                calc.at[calc.index[i], 'value'] = calc.iloc[i-1]['value']
+            else:
+                calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] + calc.iloc[i-1]['value'] * (n-1))/n
     return calc
 
 def create_yfinance_dataset():
@@ -210,19 +221,19 @@ def create_yfinance_dataset():
     print("File Saved!")
     return all_yfiance
 
-def save_best(best, title):
-    now = pd.to_datetime("now")
-    now = now.strftime('%d-%m-%Y:%r')
-    filepath = 'data/results/train/' + title + '-' + now + '.pickle'
+def save_best(best, start, end):
+    start = start.strftime('%d-%m-%Y:%r')
+    end = end.strftime('%d-%m-%Y:%r')
+    filepath = 'data/results/train/('+start+')--('+end+').pickle'
     pickle.dump(best, open( filepath, "wb" ))
     print('best population saved')
     return filepath
 
-def save_portfolio(portfolio, time_period=0, filepath=0):
-    if not filepath:
-        now = pd.to_datetime("now")
-        now = now.strftime('%d-%m-%Y:%r')
-        filepath = 'data/results/test/' + time_period + '-' + now + '.pickle'
+def save_portfolio(portfolio, type, start, end):
+    start = start.strftime('%d-%m-%Y:%r')
+    end = end.strftime('%d-%m-%Y:%r')
+    type = str(type)
+    filepath = 'data/results/test/('+start+')--('+end+')--('+type+').pickle'
     pickle.dump(portfolio, open( filepath, "wb" ))
     print('portfolio saved')
 
@@ -252,52 +263,87 @@ def compress_dataframe():
                                                     "Ask": 'float16'})
         option_dataset.to_csv(filename.rstrip('\n'), index=False)
 
-def create_options_xma(ticker):
+def create_options_xma(tickers):
+    df_list = []
     n1 = 5
     n2 = 32
-    filenames = open('data/Options/option_dataset_filenames.txt').readlines()
-    options = pd.DataFrame(index=[pd.to_datetime('01-03-2011')])
+
+    # IF TEMP FILE EXISTS
+    #########################
+    ticker_dic = { tickers[i] : i for i in range(0, len(tickers))}
     data = pd.DataFrame()
+    for ticker in tickers:
+        filename = 'data/options_xma/'+ticker+'_temp.csv'
+        df_list.append(pd.read_csv(filename, index_col='Date', parse_dates=True))
+    #########################
 
-    print('aggregating option dataframe:')
-    for filename in filenames:
-        print(filename)
-        date = date_from_filename(filename)
-        roots = roots_from_df(filename)
-        roots = [elem for elem in roots if ticker in elem]
-        values = value_from_df(filename, roots)
+    # OTHERWISE
+    #########################
+    # for i in range(len(tickers)):
+    #     df_list.append(pd.DataFrame(index=[pd.to_datetime('01-03-2011')]))
+    # filenames = open('data/Options/option_dataset_filenames.txt').readlines()
+    # ticker_dic = { tickers[i] : i for i in range(0, len(tickers))}
+    # data = pd.DataFrame()
+    #
+    # print('aggregating option dataframe:')
+    # for filename in filenames:
+    #     roots = []
+    #     print(filename)
+    #     date = date_from_filename(filename)
+    #     _roots = roots_from_df(filename)
+    #     for ticker in tickers:
+    #         roots.extend([elem for elem in _roots if ticker in elem])
+    #     values = value_from_df(filename, roots)
+    #
+    #     for (root, value) in zip(roots, values):
+    #         i = ticker_dic[root[0:-15]]
+    #         df_list[i].at[date, root] = value
+    #
+    # for ticker in tickers:
+    #     filepath = 'data/options_xma/'+ticker+'_temp.csv'
+    #     df_list[ticker_dic[ticker]].to_csv(filepath, index_label='Date')
+    #########################
 
-        for (root, value) in zip(roots, values):
-            options.at[date, root] = value
-    options.to_csv('data/options_xma/temp.csv')
+    for ticker in tickers:
+        print('applying MA5 and MA32 to each column:')
+        options = df_list[ticker_dic[ticker]]
+        for (columnName, columnData) in options.iteritems():
+            print('option root: ', columnName)
+            data['close'] = options[columnName]
+            print('5 days ma:')
+            short_ma = MA(data, n1)
+            print('32 days ma:')
+            long_ma = MA(data, n2)
 
-    print('applying MA5 and MA32 to each column:')
-    for (columnName, columnData) in options.iteritems():
-        print('option root: ', columnName)
-        data['close'] = options[columnName]
-        print('5 days ma:')
-        short_ma = MA(data, n1)
-        print('32 days ma:')
-        long_ma = MA(data, n2)
-
-        print('creating xma:')
-        for i in range(n2):
-            options.at[options.index[i], columnName] = 0
-        for i in range(n2, len(data)):
-            if math.isnan(long_ma.iloc[i]['value']):
+            print('creating xma...')
+            for i in range(n2):
                 options.at[options.index[i], columnName] = 0
-            else:
-                if short_ma.iloc[i]['value'] > long_ma.iloc[i]['value']:
-                    options.at[options.index[i], columnName] = 1
-                elif short_ma.iloc[i]['value'] < long_ma.iloc[i]['value']:
-                    options.at[options.index[i], columnName] = -1
-                else:
+            for i in range(n2, len(data)):
+                if math.isnan(long_ma.iloc[i]['value']):
                     options.at[options.index[i], columnName] = 0
-    filepath = 'data/options_xma/' + ticker + '.csv'
-    options.to_csv(filepath)
+                else:
+                    if short_ma.iloc[i]['value'] > long_ma.iloc[i]['value']:
+                        options.at[options.index[i], columnName] = 1
+                    elif short_ma.iloc[i]['value'] < long_ma.iloc[i]['value']:
+                        options.at[options.index[i], columnName] = -1
+                    else:
+                        options.at[options.index[i], columnName] = 0
+        filepath = 'data/options_xma/' + ticker + '.csv'
+        options.to_csv(filepath, index_label='Date')
 
+def create_multiple_options_xma(n_threads=5):
+    to_remove = []
+    split_tickers = []
+    tickers = open_sp500_tickers_to_list()
+    for ticker in tickers:
+        if os.path.isfile('data/options_xma/' + ticker + '.csv'):
+            to_remove.append(ticker)
+    tickers = [elem for elem in tickers if elem not in to_remove]
 
-
+    for i in range(0, len(tickers), 2):
+        split_tickers.append(tickers[i:i+2])
+    with Pool(n_threads) as p:
+        p.map(create_options_xma, split_tickers)
 
 def roots_from_df(filename):
     with open(filename.rstrip('\n')) as file:
@@ -319,4 +365,5 @@ def date_from_filename(filename):
     return date
 
 
-create_options_xma('AAPL')
+# create_multiple_options_xma()
+# create_smooth_ivol_dataset(12)

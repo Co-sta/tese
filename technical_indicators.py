@@ -9,7 +9,7 @@ from multiprocessing import Pool
 
 
 def compute_technical_signals(n):
-    tickers = d.open_all_sp500_tickers_to_list()  # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
+    tickers = d.open_all_sp500_tickers_to_list()
     # rsi_stock_signals = pd.DataFrame()
     # roc_stock_signals = pd.DataFrame()
     # sto_stock_signals = pd.DataFrame()
@@ -32,7 +32,6 @@ def compute_technical_signals(n):
     exists_ivol_roc = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_roc.csv')
     exists_ivol_sto = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_sto.csv')
     exists_ivol_macd = os.path.isfile('data/technical_indicators/' + str(n) + '_ivol_macd.csv')
-
 
     # Vix signal
     # filepath = 'data/VIX/VIX30D.csv'
@@ -88,10 +87,12 @@ def compute_technical_signals(n):
             print('ivol macd: ' + tic + ' - ' + str(n))
             macd_tic = MACD(data, n, n+14).rename(columns={'value': 'ivol_' + tic + '_macd', 'Unnamed: 0':'Date'})
             macd_ivol_signals = pd.concat([macd_ivol_signals, macd_tic], axis=1)
+
     if not exists_ivol_rsi: save_technical_indicator(rsi_ivol_signals, str(n)+'_ivol_rsi')
     if not exists_ivol_roc: save_technical_indicator(roc_ivol_signals, str(n)+'_ivol_roc')
     if not exists_ivol_sto: save_technical_indicator(sto_ivol_signals, str(n)+'_ivol_sto')
     if not exists_ivol_macd: save_technical_indicator(macd_ivol_signals, str(n)+'_ivol_macd')
+
 
 def compute_xema_signals(n):
     tickers = d.open_all_sp500_tickers_to_list()  # TODO METER LISTA COMPLETA DE TECHNICAL INDICATORS
@@ -114,7 +115,11 @@ def compute_xema_signals(n):
 ############################
 #       extra methods      #
 ############################
-def compute_all_technical_signals(min=30, max=60, n_threads= 5):
+def compute_all_technical_signals(min=30, max=60, n_threads=5):
+    n = np.arange(min, max+1)
+    with Pool(n_threads) as p:
+        p.map(compute_technical_signals, n)
+
     short_n = np.arange(2, 19)
     long_n = np.arange(20, 101, 5)
     n = []
@@ -124,9 +129,7 @@ def compute_all_technical_signals(min=30, max=60, n_threads= 5):
     with Pool(n_threads) as p:
         p.map(compute_xema_signals, n)
 
-    n = np.arange(min, max+1)
-    with Pool(n_threads) as p:
-        p.map(compute_technical_signals, n)
+
 
 
 def normalization(signal, s_min=0, s_max=0):
@@ -327,6 +330,7 @@ def XEMA(raw_signal, n1=2, n2=20):
     signal['value'] = calc['value']
     return signal
 
+
 def MA(raw_signal, n=14):
     calc = raw_signal.copy()
     calc['value'] = calc['close']
@@ -345,4 +349,4 @@ def MA(raw_signal, n=14):
             calc.at[calc.index[i], 'value'] = (calc.iloc[i]['close'] + calc.iloc[i-1]['value'] * (n-1))/n
     return calc
 
-# compute_all_technical_signals(min=5, max=60, n_threads= 10)
+# compute_all_technical_signals(min=5, max=60, n_threads=10)

@@ -377,7 +377,7 @@ class Population:
         for i in range(len(chromo_list)):
             scores.append(chromo_list[i].score / sum_scores)
 
-        parents_i = np.random.choice(self.get_pop_size(), get_N_PARENTS(), replace=False, p=scores).tolist()
+        parents_i = np.random.choice(len(chromo_list), get_N_PARENTS(), replace=False, p=scores).tolist()
         for i in parents_i:
             parents.append(chromo_list[i])
         return parents
@@ -692,11 +692,11 @@ def forecast_orders(genes, tickers, chr_size, eval_start, eval_end):
                  'data/technical_indicators/' + str(unnorm_ti(genes[-2].get_value())) + '_ivol_macd.csv',
                  'data/technical_indicators/' + str(unnorm_xema(genes[-1].get_value())[0])+'-'+str(unnorm_xema(genes[-1].get_value())[1]) + '_ivol_xema.csv']
 
-    ivol_rsi = pd.read_csv(filenames[0], index_col='Date', parse_dates=True)
-    ivol_roc = pd.read_csv(filenames[1], index_col='Date', parse_dates=True)
-    ivol_sto = pd.read_csv(filenames[2], index_col='Date', parse_dates=True)
-    ivol_macd = pd.read_csv(filenames[3], index_col='Date', parse_dates=True)
-    ivol_xema = pd.read_csv(filenames[4], index_col='Date', parse_dates=True)
+    ivol_rsi = pd.read_csv(filenames[0], index_col=0, parse_dates=True)
+    ivol_roc = pd.read_csv(filenames[1], index_col=0, parse_dates=True)
+    ivol_sto = pd.read_csv(filenames[2], index_col=0, parse_dates=True)
+    ivol_macd = pd.read_csv(filenames[3], index_col=0, parse_dates=True)
+    ivol_xema = pd.read_csv(filenames[4], index_col=0, parse_dates=True)
 
     gene_sum = 0
     for i in range(len(filenames)):

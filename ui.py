@@ -242,6 +242,40 @@ def graph_ROI(filename):
     fig.data[cnt].name = 'Total'
     fig.show()
 
+def graph_CAPITAL(filename):
+    print('printing CAPITAL graph...')
+    layout= go.Layout(title=go.layout.Title(text='Capital'),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'capital value'})
+    fig = go.Figure(layout=layout)
+    cnt = 0
+    filepath = 'data/results/test/' + filename
+    port = pickle.load( open( filepath, "rb" ))
+    capital = port.get_CAPITAL()
+    for ticker in port.get_tickers():
+        fig.add_trace(go.Scatter(x=capital.index, y=capital[ticker]))
+        fig.data[cnt].name = ticker
+        cnt += 1
+    fig.add_trace(go.Scatter(x=capital.index, y=capital['total']))
+    fig.data[cnt].name = 'Total'
+    fig.show()
+
+def graph_holdings(filename):
+    print('printing Holdings graph...')
+    layout= go.Layout(title=go.layout.Title(text='Holdings'),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'dollars'})
+    fig = go.Figure(layout=layout)
+    cnt = 0
+    filepath = 'data/results/test/' + filename
+    port = pickle.load( open( filepath, "rb" ))
+    holdings = port.get_holdings()
+    fig.add_trace(go.Scatter(x=holdings.index, y=holdings['net_value']))
+    fig.data[0].name = 'net_value'
+    fig.add_trace(go.Scatter(x=holdings.index, y=holdings['capital']))
+    fig.data[1].name = 'capital'
+    fig.show()
+
 def graph_trades(filename):
     print('printing trades...')
     filepath = 'data/results/test/' + filename
@@ -254,6 +288,9 @@ def graph_trades(filename):
         for daily_transactions in port.get_log().values():
             for txn in daily_transactions:
                 print(txn.get_result())
+                print(txn.get_root())
+                print(txn.get_init_date())
+                print(txn.get_final_date())
                 if ts.Option(txn.get_root()).get_company() != ticker:
                     continue
                 if txn.get_result() == 'positive':
@@ -270,7 +307,6 @@ def graph_trades(filename):
                                       line=dict(color="red"))
                 data.append(line)
         go.Figure(data=data, layout=layout).show()
-
 
 def print_nr_trades(filename):
     print('printing nr of positive and negative trades...')
@@ -386,7 +422,7 @@ def option_graph(roots, start_date, end_date):
 ##########################
 def value_from_df(filename, roots):
     values = [None] * len(roots)
-    option_dataset = pd.read_csv(filename.rstrip('\n'), usecols=["Ask", " DataDate", "OptionRoot"])
+    option_dataset = pd.read_csv(filename.rstrip('\n'), usecols=["Ask", "Date", "OptionRoot"])
     for i in range(len(roots)):
         if roots[i] in option_dataset.OptionRoot.values:
             value = option_dataset.loc[option_dataset['OptionRoot'] == roots[i]].iloc[0]['Ask']
