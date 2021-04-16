@@ -144,7 +144,7 @@ class Option:
 
 class Portfolio:
 
-    def __init__(self, start_date, end_date, tickers, initial_capital=1000000):
+    def __init__(self, start_date, end_date, tickers, initial_capital=0):
         self.max_position = 100000  # o valor máximo por posição é de 100000
         self.current_capital = initial_capital
         self.initial_capital = initial_capital
@@ -301,6 +301,10 @@ class Portfolio:
         for daily_transactions in self.get_log().values():
             for transaction in daily_transactions:
                 if transaction.get_root() == root:
+                    print('7777777777777')
+                    print(price)
+                    print(self.get_current_date())
+                    print('7777777777777')
                     transaction.set_final_value(price)
                     transaction.set_final_date(self.get_current_date())
 
@@ -356,7 +360,7 @@ class Portfolio:
             # rectifies transactions
             for daily_transactions in self.get_log().values():
                 for transaction in daily_transactions:
-                    if transaction.get_final_value() != -1:
+                    if transaction.get_final_value() == -1:
                         for i in stock_splits.index:
                             option = Option(transaction.get_root())
                             if option.get_company() == stock_splits.at[i, 'ticker'] and date == stock_splits.at[i, 'date']:
@@ -396,6 +400,7 @@ class Portfolio:
         self.ROI = roi
 
     def update_CAPITAL(self):
+        print('UPDATE CAPITAL init')
         capital = self.get_CAPITAL()
         old_data = pd.DataFrame(capital[-1:].values,
                                      index=[self.current_date],
@@ -405,14 +410,22 @@ class Portfolio:
             for transaction in daily_transactions:
                 if transaction.get_final_date() == self.get_current_date():
                     ticker = Option(transaction.get_root()).get_company()
+                    print(ticker)
+                    print(transaction.get_type())
+                    print(transaction.get_init_value())
+                    print(transaction.get_final_value())
+                    print()
                     if transaction.get_type() == 'short':
                         profit = transaction.get_init_value() - transaction.get_final_value()
+                        print(profit)
                     else: #transaction.type == long
                         profit = transaction.get_final_value() - transaction.get_init_value()
+                        print(profit)
                     capital.at[self.current_date, ticker] += profit*transaction.get_quantity()
                     capital.at[self.current_date, 'total'] += profit*transaction.get_quantity()
 
         self.CAPITAL = capital
+        print('UPDATE CAPITAL end')
 
     def close_VIX(self):
         vix = self.get_VIX().at[self.current_date, 'close']
@@ -460,7 +473,11 @@ class Portfolio:
                 self.current_capital -= option_price * n_options
             elif type == 'short':
                 self.current_capital += option_price * n_options
+            print('----------OPEN POSITION UPDATED')
+            print(self.holdings.at[self.current_date, 'capital'])
             self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
+            print(self.holdings.at[self.current_date, 'capital'])
+            print('----------OPEN POSITION UPDATED')
             self.log[self.current_date].append(Transaction(self.current_date, root, type, option_price, n_options))
             # adds the transaction to logs
             if root in self.portfolio:
@@ -500,7 +517,11 @@ class Portfolio:
                 print('short')
                 print(option_price * n_options)
                 self.current_capital -= option_price * n_options
+            print('----------CLOSE POSITION UPDATED')
+            print(self.holdings.at[self.current_date, 'capital'])
             self.holdings.at[self.current_date, 'capital'] = self.current_capital
+            print(self.holdings.at[self.current_date, 'capital'])
+            print('----------CLOSE POSITION UPDATED')
             self.close_transations(root, option_price)
             self.to_clean_portfolio.append(root)
 

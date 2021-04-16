@@ -63,15 +63,19 @@ test_period = {1:{'start': pd.to_datetime('01-02-2012'), 'end': pd.to_datetime('
 
 ################################################################################
 # STARTING TEST
-# types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
-# period = 2
-# file = '(02-01-2012:12:00:00 AM)--(31-12-2012:12:00:00 AM).pickle'
-# train_filepath = 'data/results/train/' + file
-# best_pop = pickle.load( open( train_filepath, "rb" ))
-# best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
-#
-# for type in types:
-#     test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
+period = 3
+types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
+
+filenames = {1:'(02-01-2011:12:00:00 AM)--(31-12-2011:12:00:00 AM).pickle',
+             2:'(02-01-2012:12:00:00 AM)--(31-12-2012:12:00:00 AM).pickle',
+             3:'(02-01-2013:12:00:00 AM)--(31-12-2013:12:00:00 AM).pickle'}
+file = filenames[period]
+train_filepath = 'data/results/train/' + file
+best_pop = pickle.load( open( train_filepath, "rb" ))
+best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
+
+for type in types:
+    test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
 
 ################################################################################
 # STARTING UI ENVIRONMENT
@@ -94,15 +98,15 @@ test_period = {1:{'start': pd.to_datetime('01-02-2012'), 'end': pd.to_datetime('
 # ui.graph_VIX()
 
 # TEST
-test_filename = '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(4).pickle'
-period = 2
-eval_start = test_period[period]['start']
-eval_end = test_period[period]['end']
-ui.graph_ROI(test_filename)
-ui.graph_CAPITAL(test_filename)
-ui.graph_holdings(test_filename)
-ui.graph_trades(test_filename)
-ui.print_nr_trades(test_filename)
+# test_filename = '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(4).pickle'
+# period = 2
+# eval_start = test_period[period]['start']
+# eval_end = test_period[period]['end']
+# ui.graph_ROI(test_filename)
+# ui.graph_CAPITAL(test_filename)
+# ui.graph_holdings(test_filename)
+# ui.graph_trades(test_filename)
+# ui.print_nr_trades(test_filename)
 # ui.options_graph(test_filename, eval_start, eval_end)
 
 # EXTRA
