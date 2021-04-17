@@ -52,6 +52,23 @@ test_period = {1:{'start': pd.to_datetime('01-02-2012'), 'end': pd.to_datetime('
                2:{'start': pd.to_datetime('01-02-2013'), 'end': pd.to_datetime('12-31-2014')},
                3:{'start': pd.to_datetime('01-02-2014'), 'end': pd.to_datetime('12-31-2015')}}
 
+train_filenames = {1:'(02-01-2011:12:00:00 AM)--(31-12-2011:12:00:00 AM).pickle',
+                   2:'(02-01-2012:12:00:00 AM)--(31-12-2012:12:00:00 AM).pickle',
+                   3:'(02-01-2013:12:00:00 AM)--(31-12-2013:12:00:00 AM).pickle'}
+
+test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
+                      '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(2).pickle',
+                      '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(3).pickle',
+                      '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(4).pickle'],
+                  2: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
+                      '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(2).pickle',
+                      '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(3).pickle',
+                      '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(4).pickle'],
+                  3: ['(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(1).pickle',
+                      '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(2).pickle',
+                      '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(3).pickle',
+                      '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(4).pickle']}
+
 ################################################################################
 # STARTING FULL TRAIN AND TEST
 # types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
@@ -66,10 +83,8 @@ test_period = {1:{'start': pd.to_datetime('01-02-2012'), 'end': pd.to_datetime('
 period = 3
 types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
 
-filenames = {1:'(02-01-2011:12:00:00 AM)--(31-12-2011:12:00:00 AM).pickle',
-             2:'(02-01-2012:12:00:00 AM)--(31-12-2012:12:00:00 AM).pickle',
-             3:'(02-01-2013:12:00:00 AM)--(31-12-2013:12:00:00 AM).pickle'}
-file = filenames[period]
+
+file = train_filenames[period]
 train_filepath = 'data/results/train/' + file
 best_pop = pickle.load( open( train_filepath, "rb" ))
 best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
@@ -110,3 +125,8 @@ for type in types:
 # ui.options_graph(test_filename, eval_start, eval_end)
 
 # EXTRA
+# for period in train_filenames.keys():
+#     start = test_period[period]['start']
+#     end = test_period[period]['end']
+#     for filename in train_filenames[period]:
+#         ui.options_graph(filename, start, end)

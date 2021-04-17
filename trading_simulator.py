@@ -313,8 +313,9 @@ class Portfolio:
         options_value = 0
 
         for option in self.portfolio.values():
-            value = self.get_dataset().loc[self.get_dataset()['OptionRoot'] == option.get_root()].iloc[0]['Ask'] * \
-                    option.get_quantity()
+            print(self.get_current_date())
+            print(option.get_root())
+            value = self.get_dataset().loc[self.get_dataset()['OptionRoot'] == option.get_root()].iloc[0]['Ask'] * option.get_quantity()
             options_value += value
 
         if CASE_STUDY == 1 or CASE_STUDY == 2: # long
