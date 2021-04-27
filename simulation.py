@@ -138,14 +138,14 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
 #         # ui.graph_trades(test_filename)
 #         ui.options_graph(test_filename, start, end)
 
-for period in train_filenames.keys():
-    train_filename = train_filenames[period]
-    print(train_filename)
-     # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
-    # ui.print_train_stats(train_filename)
-    ui.graph_score(train_filename)
-    # ui.graph_TI(train_filename)
-    # ui.graph_forecast(train_filename)
-    # ui.graph_orders(train_filename)
-    # ui.graph_orders_correct_orders(train_filename)
-    # ui.graph_forecast_ivol(train_filename)
+# for period in train_filenames.keys():
+#     train_filename = train_filenames[period]
+#     print(train_filename)
+#     ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
+#     ui.print_train_stats(train_filename)
+#     ui.graph_score(train_filename)
+#     ui.graph_TI(train_filename)
+#     ui.graph_forecast(train_filename)
+#     ui.graph_orders(train_filename)
+#     ui.graph_orders_correct_orders(train_filename)
+#     ui.graph_forecast_ivol(train_filename)
