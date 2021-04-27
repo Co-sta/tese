@@ -56,6 +56,8 @@ train_filenames = {1:'(02-01-2011:12:00:00 AM)--(31-12-2011:12:00:00 AM).pickle'
                    2:'(02-01-2012:12:00:00 AM)--(31-12-2012:12:00:00 AM).pickle',
                    3:'(02-01-2013:12:00:00 AM)--(31-12-2013:12:00:00 AM).pickle'}
 
+# test_filenames = {2: ['(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(1).pickle']}
+
 test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(2).pickle',
                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(3).pickle',
@@ -80,17 +82,17 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
 
 ################################################################################
 # STARTING TEST
-period = 3
-types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
-
-
-file = train_filenames[period]
-train_filepath = 'data/results/train/' + file
-best_pop = pickle.load( open( train_filepath, "rb" ))
-best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
-
-for type in types:
-    test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
+# period = 3
+# types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
+#
+#
+# file = train_filenames[period]
+# train_filepath = 'data/results/train/' + file
+# best_pop = pickle.load( open( train_filepath, "rb" ))
+# best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
+#
+# for type in types:
+#     test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
 
 ################################################################################
 # STARTING UI ENVIRONMENT
@@ -125,8 +127,25 @@ for type in types:
 # ui.options_graph(test_filename, eval_start, eval_end)
 
 # EXTRA
-# for period in train_filenames.keys():
+# for period in test_filenames.keys():
 #     start = test_period[period]['start']
 #     end = test_period[period]['end']
-#     for filename in train_filenames[period]:
-#         ui.options_graph(filename, start, end)
+#     for test_filename in test_filenames[period]:
+#         print(test_filename)
+#         # ui.graph_ROI(test_filename)
+#         # ui.graph_CAPITAL(test_filename)
+#         # ui.graph_holdings(test_filename)
+#         # ui.graph_trades(test_filename)
+#         ui.options_graph(test_filename, start, end)
+
+for period in train_filenames.keys():
+    train_filename = train_filenames[period]
+    print(train_filename)
+     # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
+    # ui.print_train_stats(train_filename)
+    ui.graph_score(train_filename)
+    # ui.graph_TI(train_filename)
+    # ui.graph_forecast(train_filename)
+    # ui.graph_orders(train_filename)
+    # ui.graph_orders_correct_orders(train_filename)
+    # ui.graph_forecast_ivol(train_filename)

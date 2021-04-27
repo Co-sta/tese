@@ -226,7 +226,7 @@ def graph_VIX():
 ##########################
 def graph_ROI(filename):
     print('printing ROI graph...')
-    layout= go.Layout(title=go.layout.Title(text='Rate of Income (ROI)'),
+    layout= go.Layout(title=go.layout.Title(text='Rate of Income (ROI) ('+ filename +')'),
                       xaxis={'title':'date'},
                       yaxis={'title':'roi value'})
     fig = go.Figure(layout=layout)
@@ -244,7 +244,7 @@ def graph_ROI(filename):
 
 def graph_CAPITAL(filename):
     print('printing CAPITAL graph...')
-    layout= go.Layout(title=go.layout.Title(text='Capital'),
+    layout= go.Layout(title=go.layout.Title(text='Capital ('+ filename +')'),
                       xaxis={'title':'date'},
                       yaxis={'title':'capital value'})
     fig = go.Figure(layout=layout)
@@ -262,7 +262,7 @@ def graph_CAPITAL(filename):
 
 def graph_holdings(filename):
     print('printing Holdings graph...')
-    layout= go.Layout(title=go.layout.Title(text='Holdings'),
+    layout= go.Layout(title=go.layout.Title(text='Holdings ('+ filename +')'),
                       xaxis={'title':'date'},
                       yaxis={'title':'dollars'})
     fig = go.Figure(layout=layout)
@@ -357,7 +357,7 @@ def options_graph(test_filename, start_date, end_date):
         filepath = 'data/results/test/' + test_filename
         log = pickle.load( open( filepath, "rb" )).get_log()
 
-        fig = px.line(options, x=options.index, y=options.columns, title='Traded Options')
+        fig = px.line(options, x=options.index, y=options.columns, title='Traded Options ('+test_filename+')')
         for trace in fig.data:
             for daily_transactions in log.values():
                 for txn in daily_transactions:

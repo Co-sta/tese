@@ -45,7 +45,7 @@ def trade(eval_start, eval_end, orders, tickers, type):
             position = trading_dic[CASE_STUDY]['action'][action]
             transation_type = trading_dic[CASE_STUDY]['tra_type']
             option_type = trading_dic[CASE_STUDY]['opt_type']
-            if port.close_VIX():
+            if (CASE_STUDY == 3 or CASE_STUDY == 3) and port.close_VIX():
                 port.close_all_positions(trading_dic[CASE_STUDY]['tra_type'])
             else:
                 if position == 'open':
