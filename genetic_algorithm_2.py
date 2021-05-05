@@ -621,7 +621,7 @@ class Population:
 
         self.set_chromo_list(new_gen)
 
-    def evaluation_phase(self, eval_start, eval_end, n_threads=6):
+    def evaluation_phase(self, eval_start, eval_end, n_threads=5):
         with Pool(n_threads) as p:
             # self.print_chromo_list()
             eval_multi=partial(evaluate_multi, eval_start=eval_start, eval_end=eval_end)
