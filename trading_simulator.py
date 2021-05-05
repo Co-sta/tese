@@ -301,10 +301,6 @@ class Portfolio:
         for daily_transactions in self.get_log().values():
             for transaction in daily_transactions:
                 if transaction.get_root() == root:
-                    print('7777777777777')
-                    print(price)
-                    print(self.get_current_date())
-                    print('7777777777777')
                     transaction.set_final_value(price)
                     transaction.set_final_date(self.get_current_date())
 
@@ -313,8 +309,6 @@ class Portfolio:
         options_value = 0
 
         for option in self.portfolio.values():
-            print(self.get_current_date())
-            print(option.get_root())
             value = self.get_dataset().loc[self.get_dataset()['OptionRoot'] == option.get_root()].iloc[0]['Ask'] * option.get_quantity()
             options_value += value
 
@@ -331,9 +325,6 @@ class Portfolio:
         stock_splits['date'] = pd.to_datetime(stock_splits['date'])
         if date in stock_splits['date'].values:
             # rectifies portfolio
-            print('1111111')
-            print(self.get_portfolio().keys())
-            print('1111111')
             for key in self.get_portfolio().keys():
                 option = self.get_portfolio()[key]
                 for i in stock_splits.index:
@@ -354,9 +345,6 @@ class Portfolio:
                         portfolio_copy.pop(key)
             new_entry.update(portfolio_copy)
             self.portfolio = deepcopy(new_entry)
-            print('44444444444')
-            print(self.get_portfolio().keys())
-            print('44444444444')
 
             # rectifies transactions
             for daily_transactions in self.get_log().values():
@@ -365,7 +353,6 @@ class Portfolio:
                         for i in stock_splits.index:
                             option = Option(transaction.get_root())
                             if option.get_company() == stock_splits.at[i, 'ticker'] and date == stock_splits.at[i, 'date']:
-                                print(option.get_company())
                                 ratio = stock_splits.loc[(stock_splits['date']==date) &
                                                          (stock_splits['ticker']==option.get_company()),
                                                          'ratio'].values[0]
@@ -401,7 +388,6 @@ class Portfolio:
         self.ROI = roi
 
     def update_CAPITAL(self):
-        print('UPDATE CAPITAL init')
         capital = self.get_CAPITAL()
         old_data = pd.DataFrame(capital[-1:].values,
                                      index=[self.current_date],
@@ -411,22 +397,14 @@ class Portfolio:
             for transaction in daily_transactions:
                 if transaction.get_final_date() == self.get_current_date():
                     ticker = Option(transaction.get_root()).get_company()
-                    print(ticker)
-                    print(transaction.get_type())
-                    print(transaction.get_init_value())
-                    print(transaction.get_final_value())
-                    print()
                     if transaction.get_type() == 'short':
                         profit = transaction.get_init_value() - transaction.get_final_value()
-                        print(profit)
                     else: #transaction.type == long
                         profit = transaction.get_final_value() - transaction.get_init_value()
-                        print(profit)
                     capital.at[self.current_date, ticker] += profit*transaction.get_quantity()
                     capital.at[self.current_date, 'total'] += profit*transaction.get_quantity()
 
         self.CAPITAL = capital
-        print('UPDATE CAPITAL end')
 
     def close_VIX(self):
         vix = self.get_VIX().at[self.current_date, 'close']
@@ -474,11 +452,7 @@ class Portfolio:
                 self.current_capital -= option_price * n_options
             elif type == 'short':
                 self.current_capital += option_price * n_options
-            print('----------OPEN POSITION UPDATED')
-            print(self.holdings.at[self.current_date, 'capital'])
             self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
-            print(self.holdings.at[self.current_date, 'capital'])
-            print('----------OPEN POSITION UPDATED')
             self.log[self.current_date].append(Transaction(self.current_date, root, type, option_price, n_options))
             # adds the transaction to logs
             if root in self.portfolio:
@@ -489,8 +463,6 @@ class Portfolio:
                 self.portfolio[root] = Option(root, n_options)
 
     def close_position(self, type, root=0, ticker=0):
-        print('55555555555555555555')
-        print(root)
         to_close = []
         if root: # closes position of a specific root
             if root not in self.to_clean_portfolio:
@@ -502,27 +474,15 @@ class Portfolio:
                     root = option.get_root()
                     if root not in self.to_clean_portfolio:
                         to_close.append(root)
-        print(to_close)
-        print('portfolio:::::::::::::')
-        print(self.portfolio.keys())
-        print('55555555555555555555')
         for root in to_close:
             print('closing... ' + type + ': ' + root)
-            print(self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root])
             option_price = self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root].iloc[0]['Ask']
             n_options = self.portfolio[root].get_quantity()
             if type == 'long':
-                print('long')
                 self.current_capital += option_price * n_options
             elif type == 'short':
-                print('short')
-                print(option_price * n_options)
                 self.current_capital -= option_price * n_options
-            print('----------CLOSE POSITION UPDATED')
-            print(self.holdings.at[self.current_date, 'capital'])
             self.holdings.at[self.current_date, 'capital'] = self.current_capital
-            print(self.holdings.at[self.current_date, 'capital'])
-            print('----------CLOSE POSITION UPDATED')
             self.close_transations(root, option_price)
             self.to_clean_portfolio.append(root)
 
@@ -534,8 +494,4 @@ def control_xema(ticker, root, action, date):
     filepath = 'data/options_xma/' + ticker + '.csv'
     option_dataset = pd.read_csv(filepath, index_col='Date', parse_dates=['Date'], usecols=[root, 'Date'])
     option_action = option_dataset.at[date, root]
-    print(ticker)
-    print(action)
-    print(option_action)
-    print((action * option_action) != 1)
     return (action * option_action) != 1

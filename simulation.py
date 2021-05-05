@@ -56,8 +56,6 @@ train_filenames = {1:'(02-01-2011:12:00:00 AM)--(31-12-2011:12:00:00 AM).pickle'
                    2:'(02-01-2012:12:00:00 AM)--(31-12-2012:12:00:00 AM).pickle',
                    3:'(02-01-2013:12:00:00 AM)--(31-12-2013:12:00:00 AM).pickle'}
 
-# test_filenames = {2: ['(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(1).pickle']}
-
 test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(2).pickle',
                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(3).pickle',
@@ -71,28 +69,34 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
                       '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(3).pickle',
                       '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(4).pickle']}
 
+
+# test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
+#                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(2).pickle'],
+#                   2: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
+#                       '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(2).pickle']}
+
 ################################################################################
 # STARTING FULL TRAIN AND TEST
-# types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
-# periods = [1,3]
-# for period in periods:
-#     [best_chromo, filepath] = train(train_period[period]['start'], train_period[period]['end'])
-#     for type in types:
-#         test(best_chromo, type, test_period[period]['start'], test_period[period]['end'])
+types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
+periods = [1,2,3]
+for period in periods:
+    [best_chromo, filepath] = train(train_period[period]['start'], train_period[period]['end'])
+    for type in types:
+        test(best_chromo, type, test_period[period]['start'], test_period[period]['end'])
 
 ################################################################################
 # STARTING TEST
-# period = 3
-# types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
+# periods = [1,2]
+# types = [1,2]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
 #
+# for period in periods:
+#     file = train_filenames[period]
+#     train_filepath = 'data/results/train/' + file
+#     best_pop = pickle.load( open( train_filepath, "rb" ))
+#     best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
 #
-# file = train_filenames[period]
-# train_filepath = 'data/results/train/' + file
-# best_pop = pickle.load( open( train_filepath, "rb" ))
-# best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
-#
-# for type in types:
-#     test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
+#     for type in types:
+#         test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
 
 ################################################################################
 # STARTING UI ENVIRONMENT
@@ -132,10 +136,10 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
 #     end = test_period[period]['end']
 #     for test_filename in test_filenames[period]:
 #         print(test_filename)
-#         # ui.graph_ROI(test_filename)
-#         # ui.graph_CAPITAL(test_filename)
-#         # ui.graph_holdings(test_filename)
-#         # ui.graph_trades(test_filename)
+#         ui.graph_ROI(test_filename)
+#         ui.graph_CAPITAL(test_filename)
+#         ui.graph_holdings(test_filename)
+#         ui.graph_trades(test_filename)
 #         ui.options_graph(test_filename, start, end)
 
 # for period in train_filenames.keys():

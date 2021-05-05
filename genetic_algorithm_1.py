@@ -12,7 +12,7 @@ import data
 import time
 
 
-# o que interessa da implied volatility é a varaiação absoludta e não a variação precentual a implied volatility
+# o que interessa da implied volatility é a varaiação absoluta e não a variação precentual a implied volatility
 
 def unnorm_ti(ti_norm, n_min=5, n_max=60):
     pos_ti = np.arange(n_min, n_max + 1)
@@ -474,16 +474,16 @@ class Population:
         # print(str(old_best_score) + '---' + str(new_best_score))
 
         if new_best_score > old_best_score:
-            print(self.no_evolution)
+            # print(self.no_evolution)
             self.reset_no_evol()
-            print('RESET')
-            print(self.no_evolution)
+            # print('RESET')
+            # print(self.no_evolution)
 
         else:
-            print(self.no_evolution)
-            print('INCRESE')
+            # print(self.no_evolution)
+            # print('INCRESE')
             self.incr_no_evol()
-            print(self.no_evolution)
+            # print(self.no_evolution)
 
         self.set_h_fame(new_h_fame)
         # self.print_hfame_list()
@@ -600,16 +600,16 @@ class Population:
 
         # if there is no evolution, increase mutation_std 10 000, turns back to default otherwise
         if self.get_no_evol() >= 5:
-            print('AUMENTOU')
-            print(get_MUTATION_STD())
+            # print('AUMENTOU')
+            # print(get_MUTATION_STD())
             global MUTATION_STD
             MUTATION_STD = get_MUTATION_STD() + get_NO_EVOL_STD_INCREASE()
-            print(get_MUTATION_STD())
+            # print(get_MUTATION_STD())
         else:
-            print('MANTEVE')
-            print(get_MUTATION_STD())
+            # print('MANTEVE')
+            # print(get_MUTATION_STD())
             MUTATION_STD = get_DEFAULT_MUTATION_STD()
-            print(get_MUTATION_STD())
+            # print(get_MUTATION_STD())
         if score > get_END_VALUE() or self.get_no_evol() > get_MAX_NO_EVOL() or \
                 self.get_generation() >= get_MAX_N_GEN():
             return 1
