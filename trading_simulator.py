@@ -5,7 +5,7 @@ from copy import deepcopy
 MAX_DIS_TIME = pd.to_timedelta('90 days')  # max distance from current date to option expiration in order do buy
 MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
 TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
-PRICE_RANGE = [10, 150]
+PRICE_RANGE = [5, 500]
 CAPITAL_MODE = 0 # 1:max capital | 0:unlimited capital
 
 trading_dic = {
@@ -282,6 +282,7 @@ class Portfolio:
         current_date = self.get_current_date()
         for option in self.portfolio.values():
             if option.get_expiration_date() <= current_date + pd.to_timedelta(MIN_DIS_TIME):
+                # print('mature: ' + str(option.get_root()))
                 self.close_position(trading_dic[CASE_STUDY]['tra_type'], root=option.get_root())
 
     def get_option_dataset(self, date): # TODO VOLUE = 0?
@@ -290,6 +291,7 @@ class Portfolio:
         for filename in self.filenames:
             if str_date in filename:
                 option_dataset = pd.read_csv(filename.rstrip('\n'))  # rstrip removes \n from the end of string
+                # print(filename.rstrip('\n'))
                 # TODO VERIFICAR SE É PRECISO VOLTAR RETIRAR OS VOLUMES = 0
                 # option_dataset = option_dataset.drop(option_dataset[option_dataset.Volume == 0].index)  # drops from
                 # data all rows with Volume = 0
@@ -329,6 +331,11 @@ class Portfolio:
                 option = self.get_portfolio()[key]
                 for i in stock_splits.index:
                     if option.get_company() == stock_splits.at[i, 'ticker'] and date == stock_splits.at[i, 'date']:
+                        # print('STOCK SPLITS!!!')
+                        # print(option.get_company())
+                        # print(date)
+                        # print(stock_splits.at[i, 'ticker'])
+                        # print(stock_splits.at[i, 'date'])
                         ratio = stock_splits.loc[(stock_splits['date']==date) &
                                                  (stock_splits['ticker']==option.get_company()),
                                                  'ratio'].values[0]
@@ -343,6 +350,8 @@ class Portfolio:
                         option.set_root_strike_nr(new_root, new_strike, new_quantity)
                         new_entry[new_root] = option
                         portfolio_copy.pop(key)
+                        # print(option.strike)
+                        # print(new_strike)
             new_entry.update(portfolio_copy)
             self.portfolio = deepcopy(new_entry)
 
@@ -476,6 +485,7 @@ class Portfolio:
                         to_close.append(root)
         for root in to_close:
             print('closing... ' + type + ': ' + root)
+            # print(self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root]);
             option_price = self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root].iloc[0]['Ask']
             n_options = self.portfolio[root].get_quantity()
             if type == 'long':

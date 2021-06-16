@@ -292,7 +292,7 @@ def create_options_xma(tickers):
     #     date = date_from_filename(filename)
     #     _roots = roots_from_df(filename)
     #     for ticker in tickers:
-    #         roots.extend([elem for elem in _roots if ticker in elem])
+    #         roots.extend([elem for elem in _roots if ticker == elem[0:-15]])
     #     values = value_from_df(filename, roots)
     #
     #     for (root, value) in zip(roots, values):
@@ -340,8 +340,8 @@ def create_multiple_options_xma(n_threads=5):
             to_remove.append(ticker)
     tickers = [elem for elem in tickers if elem not in to_remove]
 
-    for i in range(0, len(tickers), 2):
-        split_tickers.append(tickers[i:i+2])
+    for i in range(0, len(tickers), 1):
+        split_tickers.append(tickers[i:i+1])
     with Pool(n_threads) as p:
         p.map(create_options_xma, split_tickers)
 

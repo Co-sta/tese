@@ -77,17 +77,17 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
 
 ################################################################################
 # STARTING FULL TRAIN AND TEST
-types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
-periods = [1,2,3]
-for period in periods:
-    [best_chromo, filepath] = train(train_period[period]['start'], train_period[period]['end'])
-    for type in types:
-        test(best_chromo, type, test_period[period]['start'], test_period[period]['end'])
+# types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
+# periods = [1,2,3]
+# for period in periods:
+#     [best_chromo, filepath] = train(train_period[period]['start'], train_period[period]['end'])
+#     for type in types:
+#         test(best_chromo, type, test_period[period]['start'], test_period[period]['end'])
 
 ################################################################################
 # STARTING TEST
-# periods = [1,2]
-# types = [1,2]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
+# periods = [1]
+# types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
 #
 # for period in periods:
 #     file = train_filenames[period]
@@ -119,8 +119,8 @@ for period in periods:
 # ui.graph_VIX()
 
 # TEST
-# test_filename = '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(4).pickle'
-# period = 2
+# test_filename = '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle'
+# period = 1
 # eval_start = test_period[period]['start']
 # eval_end = test_period[period]['end']
 # ui.graph_ROI(test_filename)
