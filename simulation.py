@@ -27,6 +27,7 @@ ga1_pop_size = 100  # MEXER
 ga1_chr_size = 10    # 5 INDICADORES PARA CADA EMPRESA + 5 GENES PARA O 'N' DE CADA INDICADOR
 ga1_gene_size = 100000
 
+
 ################################################################################
 def train(start, end):
     best_pop = ga2.simulate(ga2_pop_size, ga2_chromo_size, ga2_gene_size, ga2_n_parents, ga2_n_children, ga2_crow_w,
@@ -43,6 +44,12 @@ def test(type, chromo, start, end):
     portfolio = ts.trade(start, end, orders, tickers, type)
     data.save_portfolio(portfolio, type, start, end)
 
+def multi_test(self, eval_start, eval_end, n_threads=5):
+    with Pool(n_threads) as p:
+        # self.print_chromo_list()
+        eval_multi=partial(evaluate_multi, eval_start=eval_start, eval_end=eval_end)
+        self.chromo_list = p.map(eval_multi, self.get_chromo_list())
+
 ################################################################################
 train_period = {1:{'start': pd.to_datetime('01-02-2011'), 'end': pd.to_datetime('12-31-2011')},
                 2:{'start': pd.to_datetime('01-02-2012'), 'end': pd.to_datetime('12-31-2012')},
@@ -52,6 +59,8 @@ test_period = {1:{'start': pd.to_datetime('01-02-2012'), 'end': pd.to_datetime('
                2:{'start': pd.to_datetime('01-02-2013'), 'end': pd.to_datetime('12-31-2014')},
                3:{'start': pd.to_datetime('01-02-2014'), 'end': pd.to_datetime('12-31-2015')}}
 
+# test_period = {3:{'start': pd.to_datetime('01-02-2014'), 'end': pd.to_datetime('12-31-2015')}}
+
 train_filenames = {1:'(02-01-2011:12:00:00 AM)--(31-12-2011:12:00:00 AM).pickle',
                    2:'(02-01-2012:12:00:00 AM)--(31-12-2012:12:00:00 AM).pickle',
                    3:'(02-01-2013:12:00:00 AM)--(31-12-2013:12:00:00 AM).pickle'}
@@ -60,33 +69,31 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(2).pickle',
                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(3).pickle',
                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(4).pickle'],
-                  2: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
+                  2: ['(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(1).pickle',
                       '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(2).pickle',
                       '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(3).pickle',
                       '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(4).pickle'],
-                  3: ['(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(1).pickle',
+                  3: ['(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(1).pickle',
                       '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(2).pickle',
                       '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(3).pickle',
                       '(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(4).pickle']}
 
 
-# test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
-#                       '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(2).pickle'],
-#                   2: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle',
-#                       '(02-01-2013:12:00:00 AM)--(31-12-2014:12:00:00 AM)--(2).pickle']}
+# test_filenames = {3: ['(02-01-2014:12:00:00 AM)--(31-12-2015:12:00:00 AM)--(4).pickle']}
 
 ################################################################################
 # STARTING FULL TRAIN AND TEST
 # types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
-# periods = [1,2,3]
+# periods = [1,2,3] # 1,2,3
 # for period in periods:
 #     [best_chromo, filepath] = train(train_period[period]['start'], train_period[period]['end'])
 #     for type in types:
 #         test(best_chromo, type, test_period[period]['start'], test_period[period]['end'])
 
+
 ################################################################################
 # STARTING TEST
-# periods = [1]
+# periods = [1,2,3]
 # types = [1,2,3,4]  # 1:long calls | 2:long puts | 3:short calls | 4:short puts
 #
 # for period in periods:
@@ -95,8 +102,12 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
 #     best_pop = pickle.load( open( train_filepath, "rb" ))
 #     best_chromo = best_pop.get_sub_pop().get_h_fame()[0]
 #
-#     for type in types:
-#         test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
+#     with Pool(4) as p:
+#         test_multi = partial(test, chromo=best_chromo, start=test_period[period]['start'], end=test_period[period]['end'])
+#         p.map(test_multi, types)
+
+    # for type in types:
+    #     test(type, best_chromo, test_period[period]['start'], test_period[period]['end'])
 
 ################################################################################
 # STARTING UI ENVIRONMENT
@@ -117,6 +128,8 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
 # ui.graph_smooth_IVol(12)
 # ui.graph_Stocks()
 # ui.graph_VIX()
+# ui.graph_XMA('HD140222P00087500')
+# ui.option_graph('HD140222P00087500', pd.to_datetime('11-11-2013'), pd.to_datetime('02-22-2014'))
 
 # TEST
 # test_filename = '(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).pickle'
@@ -124,32 +137,41 @@ test_filenames = {1: ['(02-01-2012:12:00:00 AM)--(31-12-2013:12:00:00 AM)--(1).p
 # eval_start = test_period[period]['start']
 # eval_end = test_period[period]['end']
 # ui.graph_ROI(test_filename)
-# ui.graph_CAPITAL(test_filename)
+# ui.graph_PROFIT(test_filename)
 # ui.graph_holdings(test_filename)
 # ui.graph_trades(test_filename)
 # ui.print_nr_trades(test_filename)
 # ui.options_graph(test_filename, eval_start, eval_end)
 
-# EXTRA
+# ALL TESTS
 # for period in test_filenames.keys():
 #     start = test_period[period]['start']
 #     end = test_period[period]['end']
-#     for test_filename in test_filenames[period]:
-#         print(test_filename)
-#         ui.graph_ROI(test_filename)
-#         ui.graph_CAPITAL(test_filename)
-#         ui.graph_holdings(test_filename)
-#         ui.graph_trades(test_filename)
-#         ui.options_graph(test_filename, start, end)
+#     # for test_filename in test_filenames[period]:
+#         # print(test_filename)
+#         # ui.graph_trades(test_filename)
+#         # ui.print_nr_trades(test_filename)
+#         # ui.graph_ROI(test_filename, True)
+#         # ui.graph_PROFIT(test_filename, True)
+#         # ui.graph_CAPITAL(test_filename, True)
+#         # ui.graph_NET_VALUE(test_filename, True)
+#         # ui.graph_holdings(test_filename, True)
+#         # ui.graph_trades(test_filename)
+#         # ui.options_graph(test_filename, start, end)
+#     ui.all_graph_ROI(test_filenames[period], False)
+#     ui.all_graph_PROFIT(test_filenames[period], False)
+#     ui.all_graph_NET_VALUE(test_filenames[period], False)
 
-# for period in train_filenames.keys():
-#     train_filename = train_filenames[period]
-#     print(train_filename)
-#     ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
-#     ui.print_train_stats(train_filename)
-#     ui.graph_score(train_filename)
-#     ui.graph_TI(train_filename)
-#     ui.graph_forecast(train_filename)
-#     ui.graph_orders(train_filename)
-#     ui.graph_orders_correct_orders(train_filename)
-#     ui.graph_forecast_ivol(train_filename)
+
+# ALL TRAINS
+for period in train_filenames.keys():
+    train_filename = train_filenames[period]
+    print(train_filename)
+    # ui.print_result(train_filename, ga1_pop_size, ga1_gene_size)
+    # ui.print_train_stats(train_filename)
+    # ui.graph_score(train_filename, True)
+    # ui.graph_TI(train_filename)
+    # ui.graph_forecast(train_filename)
+    # ui.graph_orders(train_filename)
+    # ui.graph_orders_correct_orders(train_filename)
+    # ui.graph_forecast_ivol(train_filename)

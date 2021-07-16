@@ -337,9 +337,8 @@ def MA(raw_signal, n=14):
     sum = 0
 
     for i in range(n):
-
         sum += calc.iloc[i]['close']
-    print(sum)
+        calc.at[calc.index[i], 'value'] = -1
 
     calc.at[calc.index[n], 'value'] = sum/n
     for i in range(n+1, len(calc)):

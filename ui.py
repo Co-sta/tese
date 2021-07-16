@@ -10,6 +10,7 @@ import pickle
 
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 
 ###########################
 #          TRAIN          #
@@ -71,13 +72,31 @@ def print_train_stats(filename):
     print('-% of Correct Stay Days: ' + str(100*nr_correct_stays/nr_stay_days) + ' %')
     print('-% of Correct Down Days: ' + str(100*nr_correct_downs/nr_down_days) + ' %')
 
-def graph_score(filename):
+def graph_score(filename, save=False):
     print('printing score...')
+    print(filename)
     filepath = 'data/results/train/' + filename
     best_chromo = pickle.load( open( filepath, "rb" ))
     score_evol =  best_chromo.get_sub_pop().get_max_score()
-    fig = px.line(score_evol, x="epoch", y="score")
-    fig.show()
+    fig = px.line(score_evol, x="epoch", y="score", title='Training score ' + get_period(filename))
+    fig.update_layout(title_x=0.5)
+    if save:
+        fig.write_image('data/images/train_score/' + get_period(filename) + '.png')
+    else:
+        fig.show()
+
+def g2_graph_score(filename, save=False):
+    print('printing score...')
+    print(filename)
+    filepath = 'data/results/train/' + filename
+    best_chromo = pickle.load( open( filepath, "rb" ))
+    score_evol =  best_chromo.get_sub_pop().get_max_score()
+    fig = px.line(score_evol, x="epoch", y="score", title='Training score ' + get_period(filename))
+    fig.update_layout(title_x=0.5)
+    if save:
+        fig.write_image('data/images/train_score/' + get_period(filename) + '.png')
+    else:
+        fig.show()
 
 def graph_TI(filename):
     print('printing technical indicators graphs...')
@@ -220,61 +239,168 @@ def graph_VIX():
     fig = px.line(vix_signals, x=vix_signals.index, y=['9 days', '30 days', '3 months', '6 months'], title='Vix signals')
     fig.show()
 
+def graph_XMA(root):
+    ticker = root[0:-15]
+    fig = go.Figure()
+    filepath = 'data/options_xma/'+ticker+'.csv'
+    options_df = pd.read_csv(filepath, index_col='Date', parse_dates=True)
+    fig.add_trace(go.Scatter(x=options_df.index, y=options_df[root]))
+    fig.show()
 
 ##########################
 #          TEST          #
 ##########################
-def graph_ROI(filename):
+def graph_ROI(filename, save=False):
     print('printing ROI graph...')
-    layout= go.Layout(title=go.layout.Title(text='Rate of Income (ROI) ('+ filename +')'),
+    layout= go.Layout(title=go.layout.Title(text='Rate of Income (ROI) '+ get_filename(filename)),
                       xaxis={'title':'date'},
                       yaxis={'title':'roi value'})
     fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
     cnt = 0
-    filepath = 'data/results/test/' + filename
-    port = pickle.load( open( filepath, "rb" ))
+    port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
     roi = port.get_ROI()
-    for ticker in port.get_tickers():
-        fig.add_trace(go.Scatter(x=roi.index, y=roi[ticker]))
-        fig.data[cnt].name = ticker
-        cnt += 1
+    # for ticker in port.get_tickers():
+    #     fig.add_trace(go.Scatter(x=roi.index, y=roi[ticker]))
+    #     fig.data[cnt].name = ticker
+    #     cnt += 1
     fig.add_trace(go.Scatter(x=roi.index, y=roi['total']))
     fig.data[cnt].name = 'Total'
-    fig.show()
+    if save:
+        fig.write_image('data/images/roi/' + get_filename(filename) + '.png')
+    else:
+        fig.show()
 
-def graph_CAPITAL(filename):
-    print('printing CAPITAL graph...')
-    layout= go.Layout(title=go.layout.Title(text='Capital ('+ filename +')'),
+def all_graph_ROI(filenames, save=False):
+    print('printing ROI graph...')
+    layout= go.Layout(title=go.layout.Title(text='Rate of Income (ROI) '+ get_period(filenames[0])),
                       xaxis={'title':'date'},
-                      yaxis={'title':'capital value'})
+                      yaxis={'title':'roi value'})
     fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
     cnt = 0
-    filepath = 'data/results/test/' + filename
-    port = pickle.load( open( filepath, "rb" ))
-    capital = port.get_CAPITAL()
-    for ticker in port.get_tickers():
-        fig.add_trace(go.Scatter(x=capital.index, y=capital[ticker]))
-        fig.data[cnt].name = ticker
+    for filename in filenames:
+        port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
+        roi = port.get_ROI()
+        fig.add_trace(go.Scatter(x=roi.index, y=roi['total']))
+        fig.data[cnt].name = get_case_study(filename)
         cnt += 1
-    fig.add_trace(go.Scatter(x=capital.index, y=capital['total']))
-    fig.data[cnt].name = 'Total'
-    fig.show()
+    if save:
+        fig.write_image('data/images/roi/' + get_period(filenames[0]) + '.png')
+    else:
+        fig.show()
 
-def graph_holdings(filename):
-    print('printing Holdings graph...')
-    layout= go.Layout(title=go.layout.Title(text='Holdings ('+ filename +')'),
+def graph_PROFIT(filename, save=False):
+    print('printing PROFIT graph...')
+    layout= go.Layout(title=go.layout.Title(text='Profit '+ get_filename(filename)),
                       xaxis={'title':'date'},
                       yaxis={'title':'dollars'})
     fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
     cnt = 0
-    filepath = 'data/results/test/' + filename
-    port = pickle.load( open( filepath, "rb" ))
+    port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
+    profit = port.get_CAPITAL()
+    fig.add_trace(go.Scatter(x=profit.index, y=profit['total']))
+    fig.data[cnt].name = 'Total'
+    for ticker in port.get_tickers():
+        cnt += 1
+        fig.add_trace(go.Scatter(x=profit.index, y=profit[ticker]))
+        fig.data[cnt].name = ticker
+    if save:
+        fig.write_image('data/images/profit/' + get_filename(filename) + '.png')
+    else:
+        fig.show()
+
+def all_graph_PROFIT(filenames, save=False):
+    print('printing PROFIT graph...')
+    layout= go.Layout(title=go.layout.Title(text='Profit '+ get_period(filenames[0])),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'dollars'})
+    fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
+    cnt = 0
+    for filename in filenames:
+        port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
+        profit = port.get_CAPITAL()
+        fig.add_trace(go.Scatter(x=profit.index, y=profit['total']))
+        fig.data[cnt].name = get_case_study(filename)
+        cnt += 1
+    if save:
+        fig.write_image('data/images/profit/' + get_period(filenames[0]) + '.png')
+    else:
+        fig.show()
+
+def graph_holdings(filename, save=False):
+    print('printing Holdings graph...')
+    layout= go.Layout(title=go.layout.Title(text='Holdings '+ get_filename(filename)),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'dollars'})
+    fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
+    cnt = 0
+    port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
     holdings = port.get_holdings()
     fig.add_trace(go.Scatter(x=holdings.index, y=holdings['net_value']))
     fig.data[0].name = 'net_value'
     fig.add_trace(go.Scatter(x=holdings.index, y=holdings['capital']))
     fig.data[1].name = 'capital'
-    fig.show()
+    if save:
+        fig.write_image('data/images/holdings/' + get_filename(filename) + '.png')
+    else:
+        fig.show()
+
+def graph_CAPITAL(filename, save=False):
+    print('printing CAPITAL graph...')
+    layout= go.Layout(title=go.layout.Title(text='Capital '+ get_filename(filename)),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'dollars'})
+    fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
+    cnt = 0
+    port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
+    holdings = port.get_holdings()
+    fig.add_trace(go.Scatter(x=holdings.index, y=holdings['capital']))
+    fig.data[0].name = 'capital'
+    if save:
+        fig.write_image('data/images/capital/' + get_filename(filename) + '.png')
+    else:
+        fig.show()
+
+def graph_NET_VALUE(filename, save=False):
+    print('printing NET_VALUE graph...')
+    layout= go.Layout(title=go.layout.Title(text='Net value '+ get_filename(filename)),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'dollars'})
+    fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
+    cnt = 0
+    port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
+    holdings = port.get_holdings()
+    fig.add_trace(go.Scatter(x=holdings.index, y=holdings['net_value']))
+    fig.data[0].name = 'net value'
+    if save:
+        fig.write_image('data/images/net_value/' + get_filename(filename) + '.png')
+    else:
+        fig.show()
+
+def all_graph_NET_VALUE(filenames, save=False):
+    print('printing NET_VALUE graph...')
+    layout= go.Layout(title=go.layout.Title(text='Net value '+ get_period(filenames[0])),
+                      xaxis={'title':'date'},
+                      yaxis={'title':'dollars'})
+    fig = go.Figure(layout=layout)
+    fig.update_layout(title_x=0.5)
+    cnt = 0
+    for filename in filenames:
+        port = pickle.load( open( 'data/results/test/' + filename, "rb" ))
+        holdings = port.get_holdings()
+        fig.add_trace(go.Scatter(x=holdings.index, y=holdings['net_value']))
+        fig.data[cnt].name = get_case_study(filename)
+        cnt+=1
+    if save:
+        fig.write_image('data/images/net_value/' + get_period(filenames[0]) + '.png')
+    else:
+        fig.show()
 
 def graph_trades(filename):
     print('printing trades...')
@@ -374,13 +500,14 @@ def options_graph(test_filename, start_date, end_date):
                             line=dict(color="red")))
         fig.show()
 
-def option_graph(roots, start_date, end_date):
+def option_graph(root, start_date, end_date):
         filenames = open('data/Options/option_dataset_filenames.txt').readlines()
         mm_to_month = {'01':'January', '02':'February', '03':'March', '04':'April',
                        '05':'May', '06':'June', '07':'July', '08':'August',
                        '09':'September', '10':'October', '11':'November', '12':'December'}
         start = False
         first = True
+        options = pd.DataFrame()
 
         dates = pd.date_range(start_date,end_date-timedelta(days=1),freq='d')
         for date in dates:
@@ -390,10 +517,10 @@ def option_graph(roots, start_date, end_date):
             month = mm_to_month[mm]
             filename = 'data/Options/bb_'+yyyy+'_'+month+'/bb_options_'+yyyy+mm+dd+'.csv\n'
             if filename in filenames:
-                values = value_from_df(filename, roots)
+                values = value_from_df(filename, [root])
                 print(values[0])
                 if values[0] == None:
-                    if start:
+                    if start and options.size > 0:
                         break
                     else:
                         start = True
@@ -407,8 +534,8 @@ def option_graph(roots, start_date, end_date):
 
         avg = pd.DataFrame()
         avg['close'] = options['value']
-        avg5 = ti.MA(avg, 5)
-        avg32 = ti.MA(avg, 32)
+        avg5 = data.MA(avg, 5)
+        avg32 = data.MA(avg, 32)
         options['avg5'] = avg5['value']
         options['avg32'] = avg32['value']
         print(options)
@@ -428,3 +555,32 @@ def value_from_df(filename, roots):
             value = option_dataset.loc[option_dataset['OptionRoot'] == roots[i]].iloc[0]['Ask']
             values[i] = value
     return values
+
+def get_filename(filename):
+    period = get_period(filename)
+    case_study = get_case_study(filename)
+    filename = period+'--('+case_study+')'
+    return filename
+
+def get_period(filename):
+    period = filename.replace(':12:00:00 AM', '').replace('.pickle', '')
+    if '(1)' in period:
+        period = period.replace('--(1)', '')
+    if '(2)' in period:
+        period = period.replace('--(2)', '')
+    if '(3)' in period:
+        period = period.replace('--(3)', '')
+    if '(4)' in period:
+        period = period.replace('--(4)', '')
+    return period
+
+def get_case_study(filename):
+    if '(1)' in filename:
+        return 'long-calls'
+    if '(2)' in filename:
+        return 'long-puts'
+    if '(3)' in filename:
+        return 'short-calls'
+    if '(4)' in filename:
+        return 'short-puts'
+    return case_study

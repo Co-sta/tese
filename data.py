@@ -199,6 +199,7 @@ def MA(raw_signal, n=14):
     if first+n < len(calc):
         for i in range(first, first+n):
             sum += calc.iloc[i]['close']
+            calc.at[calc.index[i], 'value'] = -1
 
         calc.at[calc.index[n], 'value'] = sum/n
         for i in range(first+n+1, len(calc)):
@@ -305,24 +306,26 @@ def create_options_xma(tickers):
     #########################
 
     for ticker in tickers:
-        print('applying MA5 and MA32 to each column:')
+        # print('applying MA5 and MA32 to each column:')
         options = df_list[ticker_dic[ticker]]
         for (columnName, columnData) in options.iteritems():
             print('option root: ', columnName)
             data['close'] = options[columnName]
-            print('5 days ma:')
+            # print('5 days ma:')
             short_ma = MA(data, n1)
-            print('32 days ma:')
+            # print('32 days ma:')
             long_ma = MA(data, n2)
 
-            print('creating xma...')
+            # print('creating xma...')
             for i in range(n2):
                 options.at[options.index[i], columnName] = 0
             for i in range(n2, len(data)):
                 if math.isnan(long_ma.iloc[i]['value']):
                     options.at[options.index[i], columnName] = 0
                 else:
-                    if short_ma.iloc[i]['value'] > long_ma.iloc[i]['value']:
+                    if long_ma.iloc[i]['value'] == -1:
+                        options.at[options.index[i], columnName] = 0
+                    elif short_ma.iloc[i]['value'] > long_ma.iloc[i]['value']:
                         options.at[options.index[i], columnName] = 1
                     elif short_ma.iloc[i]['value'] < long_ma.iloc[i]['value']:
                         options.at[options.index[i], columnName] = -1
@@ -366,4 +369,5 @@ def date_from_filename(filename):
 
 
 # create_multiple_options_xma()
+# create_options_xma(['HD'])
 # create_smooth_ivol_dataset(12)

@@ -6,7 +6,11 @@ MAX_DIS_TIME = pd.to_timedelta('90 days')  # max distance from current date to o
 MIN_DIS_TIME = pd.to_timedelta('40 days')  # min distance from current date to option expiration in order to buy
 TYPE_STRIKE = 1 # 0:out of the money | 1:in the money
 PRICE_RANGE = [5, 500]
-CAPITAL_MODE = 0 # 1:max capital | 0:unlimited capital
+CAPITAL_MODE = 1 # 1:minimum capital | 0:unlimited capital
+INITIAL_CAPITAL = 1000000
+MAX_INV_COMPANY = INITIAL_CAPITAL/20  # 50 000
+MAX_POSITION = MAX_INV_COMPANY/10  # 5 000
+
 
 trading_dic = {
 1: {'tra_type': 'long',
@@ -36,7 +40,7 @@ def trade(eval_start, eval_end, orders, tickers, type):
     global CASE_STUDY
     CASE_STUDY = type
 
-    port = Portfolio(eval_start, eval_end, tickers)
+    port = Portfolio(eval_start, eval_end, tickers, INITIAL_CAPITAL)
     while port.new_day():
         print(port.get_current_date())
         daily_orders = orders[port.get_current_date()].copy()
@@ -51,10 +55,8 @@ def trade(eval_start, eval_end, orders, tickers, type):
                 if position == 'open':
                     root = port.search_root(ticker, option_type)
                     if root:
-                        if control_xema(ticker, root, action, port.get_current_date()):
-                            continue
-                        n_options = port.get_n_options(root)[0]
-                        port.open_position(transation_type, root, n_options)
+                        if control_xma(ticker, root, action, port.get_current_date()):
+                            port.open_position(transation_type, root)
                 elif position == 'close':
                     port.close_position(transation_type, ticker=ticker)
         port.clean_portfolio()
@@ -145,7 +147,7 @@ class Option:
 class Portfolio:
 
     def __init__(self, start_date, end_date, tickers, initial_capital=0):
-        self.max_position = 100000  # o valor máximo por posição é de 100000
+        self.max_position = MAX_POSITION  # o valor máximo por posição é de 100000
         self.current_capital = initial_capital
         self.initial_capital = initial_capital
         self.start_date = start_date
@@ -154,6 +156,7 @@ class Portfolio:
         self.dataset = self.get_option_dataset(self.get_start_date())[0]
         self.current_date = self.get_start_date()
         self.portfolio = {}
+        self.investments = {}
         self.to_clean_portfolio = []
         self.holdings = pd.DataFrame({'net_value': initial_capital, 'capital': initial_capital}, index=[start_date])
 
@@ -164,6 +167,8 @@ class Portfolio:
         self.ROI = pd.DataFrame(roi_dic, index=[start_date])
         self.CAPITAL = pd.DataFrame(roi_dic, index=[start_date])
         self.stock_splits = pd.read_csv('data/stock_splits/stock_splits.csv', parse_dates=True)
+        self.income = 0
+        self.outcome = 0
 
         self.nr_pos_trades = 0
         self.nr_neg_trades = 0
@@ -306,6 +311,13 @@ class Portfolio:
                     transaction.set_final_value(price)
                     transaction.set_final_date(self.get_current_date())
 
+                    if transaction.get_type() == 'long':
+                        self.outcome += transaction.get_quantity() * transaction.get_init_value()
+                        self.income += transaction.get_quantity() * transaction.get_final_value()
+                    else:
+                        self.outcome += transaction.get_quantity() * transaction.get_final_value()
+                        self.income += transaction.get_quantity() * transaction.get_init_value()
+
     def update_holdings(self):
         capital = self.holdings.at[self.current_date, "capital"]
         options_value = 0
@@ -377,24 +389,29 @@ class Portfolio:
 
     def update_ROI(self):
         roi = self.get_ROI()
-        old_data = pd.DataFrame(roi[-1:].values,
-                                     index=[self.current_date],
-                                     columns=roi.columns)
-        roi = roi.append(old_data)
-        for daily_transactions in self.get_log().values():
-            for transaction in daily_transactions:
-                if transaction.get_final_date() == self.get_current_date():
-                    ticker = Option(transaction.get_root()).get_company()
-                    if transaction.get_type() == 'short':
-                        profit = transaction.get_init_value() - transaction.get_final_value()
-                        investment = transaction.get_final_value()
-                    else: #transaction.type == long
-                        profit = transaction.get_final_value() - transaction.get_init_value()
-                        investment = transaction.get_init_value()
-                    roi.at[self.current_date, ticker] += (profit/investment)*transaction.get_quantity()
-                    roi.at[self.current_date, 'total'] += (profit/investment)*transaction.get_quantity()
+        # old_data = pd.DataFrame(roi[-1:].values,
+        #                              index=[self.current_date],
+        #                              columns=roi.columns)
+        # roi = roi.append(old_data)
+        if self.outcome:
+            roi.at[self.current_date, 'total'] = (self.income-self.outcome)/self.outcome
+        else:
+            roi.at[self.current_date, 'total'] = 0
+        # for daily_transactions in self.get_log().values():
+        #     for transaction in daily_transactions:
+        #         if transaction.get_final_date() == self.get_current_date():
+        #             ticker = Option(transaction.get_root()).get_company()
+        #             if transaction.get_type() == 'short':
+        #                 profit = transaction.get_init_value() - transaction.get_final_value()
+        #                 investment = transaction.get_final_value()
+        #             else: #transaction.type == long
+        #                 profit = transaction.get_final_value() - transaction.get_init_value()
+        #                 investment = transaction.get_init_value()
+        #             roi.at[self.current_date, ticker] += (profit/investment)*transaction.get_quantity()
+        #             roi.at[self.current_date, 'total'] += (profit/investment)*transaction.get_quantity()
 
         self.ROI = roi
+        print(self.ROI.at[self.current_date, 'total'])
 
     def update_CAPITAL(self):
         capital = self.get_CAPITAL()
@@ -445,30 +462,45 @@ class Portfolio:
 
     def get_n_options(self, root):
         option_price = self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root].iloc[0]['Ask']
+        company = Option(root).get_company()
         if option_price > self.current_capital and CAPITAL_MODE:
-            # print('Not enough money to buy this option: ' + root)
+            print('Not enough money to buy this option: ' + root)
             return 0, option_price
-        n_options = int(float(self.get_max_position()) / float(option_price))
-        return n_options, option_price
+        if company not in self.investments:
+            n_options = int(math.floor(float(self.get_max_position()) / float(option_price)))
+            return n_options, option_price
+        if self.investments[company]>MAX_INV_COMPANY-option_price:
+            print('Max investment on: ' + company)
+            return 0, option_price
+        else:
+            n_options = min(int(math.floor(float(self.get_max_position()) / float(option_price))), int(math.floor(MAX_INV_COMPANY-self.investments[company] / float(option_price))))
+            return n_options, option_price
 
-    def open_position(self, type, root, n_options=0):
-        print('opening... ' + type + ': ' + root)
-        [_n_options, option_price] = self.get_n_options(root)
-        if not n_options:
-            n_options = _n_options
+    def open_position(self, type, root):
+        [n_options, option_price] = self.get_n_options(root)
         if n_options:
+            print('opening... ' + type + ': ' + root + ' (nr_options: ' + str(n_options) + ')')
+            # updates the capital
             if type == 'long':
                 self.current_capital -= option_price * n_options
             elif type == 'short':
                 self.current_capital += option_price * n_options
-            self.holdings.at[self.current_date, 'capital'] = self.current_capital  # updates the capital
+
+            # adds investment
+            company = Option(root).get_company()
+            if company in self.investments:
+                self.investments[company] += option_price * n_options
+            else:
+                self.investments[company] = option_price * n_options
+
+            # updates the capital and adds to the transations
+            self.holdings.at[self.current_date, 'capital'] = self.current_capital
             self.log[self.current_date].append(Transaction(self.current_date, root, type, option_price, n_options))
+
             # adds the transaction to logs
             if root in self.portfolio:
-                # updates the number of options of a company
                 self.portfolio[root].add_quantity(n_options)
             else:
-                # adds the option to the portfolio
                 self.portfolio[root] = Option(root, n_options)
 
     def close_position(self, type, root=0, ticker=0):
@@ -485,13 +517,22 @@ class Portfolio:
                         to_close.append(root)
         for root in to_close:
             print('closing... ' + type + ': ' + root)
-            # print(self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root]);
+            print(self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root]);
             option_price = self.get_dataset().loc[self.get_dataset()['OptionRoot'] == root].iloc[0]['Ask']
             n_options = self.portfolio[root].get_quantity()
+
+            # updates capital
             if type == 'long':
                 self.current_capital += option_price * n_options
             elif type == 'short':
                 self.current_capital -= option_price * n_options
+
+            # subtracts investment
+            company = Option(root).get_company()
+            self.investments[company] -= option_price * n_options
+            if self.investments[company] < 0:
+                self.investments[company] = 0
+
             self.holdings.at[self.current_date, 'capital'] = self.current_capital
             self.close_transations(root, option_price)
             self.to_clean_portfolio.append(root)
@@ -500,8 +541,8 @@ class Portfolio:
         for root in self.portfolio.keys():
             self.close_position(type, root=root)
 
-def control_xema(ticker, root, action, date):
+def control_xma(ticker, root, action, date):
     filepath = 'data/options_xma/' + ticker + '.csv'
     option_dataset = pd.read_csv(filepath, index_col='Date', parse_dates=['Date'], usecols=[root, 'Date'])
     option_action = option_dataset.at[date, root]
-    return (action * option_action) != 1
+    return (action * option_action) == 1
